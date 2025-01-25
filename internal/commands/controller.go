@@ -57,6 +57,11 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	if len(matchedScripts) == 0 {
+		fmt.Printf("no scripts matched flags: %s\n", strings.Join(flags.Tags, ", "))
+		return nil
+	}
+
 	// Execute matched scripts
 	for _, script := range matchedScripts {
 		// Create dividing line
