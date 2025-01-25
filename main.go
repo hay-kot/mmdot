@@ -72,7 +72,16 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			{
-				Name: "run",
+				Name:      "run",
+				Usage:     "runs scripts from the mmdot.toml file",
+				ArgsUsage: "tags for scripts to run",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:     "all",
+						Usage:    "run all scripts",
+						Required: false,
+					},
+				},
 				Action: func(ctx context.Context, c *cli.Command) error {
 					cfgpath := c.String("config")
 
@@ -82,6 +91,7 @@ func main() {
 					}
 
 					flags := commands.FlagsRun{
+						All:  c.Bool("all"),
 						Tags: c.Args().Slice(),
 					}
 

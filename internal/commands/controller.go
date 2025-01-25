@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/charmbracelet/huh"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/term"
@@ -25,6 +26,7 @@ type Controller struct {
 }
 
 type FlagsRun struct {
+	All  bool
 	Tags []string
 }
 
@@ -39,10 +41,37 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 	// Filter scripts based on tags
 	var matchedScripts []core.Script
 
-	// If no tags are specified, run all scripts
-	if len(flags.Tags) == 0 {
+	switch {
+	case flags.All:
 		matchedScripts = execs.Scripts
-	} else {
+	case len(flags.Tags) == 0:
+		options := []huh.Option[string]{}
+
+		for _, s := range execs.Scripts {
+			str := fmt.Sprintf("%s, (%s)", s.Path, strings.Join(s.Tags, ", "))
+			options = append(options, huh.NewOption(str, s.Path))
+		}
+
+		selected := []string{}
+
+		err := huh.NewMultiSelect[string]().
+			Title("Scripts").
+			Options(options...).
+			Value(&selected).
+			Run()
+		if err != nil {
+			return err
+		}
+
+		for _, selected := range selected {
+			for _, script := range execs.Scripts {
+				if script.Path == selected {
+					matchedScripts = append(matchedScripts, script)
+				}
+			}
+		}
+
+	default:
 		// Find scripts that match any of the specified tags
 		for _, script := range execs.Scripts {
 			if hasMatchingTag(script.Tags, flags.Tags) {
@@ -53,14 +82,15 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 			log.Debug().Str("script", script.Path).Strs("tags", script.Tags).Msg("filtered")
 		}
 	}
-	// Create a cancellation context with signal handling
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	if len(matchedScripts) == 0 {
 		fmt.Printf("no scripts matched flags: %s\n", strings.Join(flags.Tags, ", "))
 		return nil
 	}
+
+	// Create a cancellation context with signal handling
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	// Execute matched scripts
 	for _, script := range matchedScripts {
