@@ -126,6 +126,7 @@ func main() {
 							return err
 						}
 
+						log.Info().Str("file", cfg.Outfile).Msg("outfile written")
 					}
 
 					return nil
