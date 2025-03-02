@@ -6,9 +6,12 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
@@ -42,9 +45,10 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	app := &cli.Command{
-		Name:    "mmdot",
-		Usage:   `A tiny and terrible dotfiles utility for managing my machines. Probably don't use this.`,
-		Version: build(),
+		EnableShellCompletion: true,
+		Name:                  "mmdot",
+		Usage:                 `A tiny and terrible dotfiles utility for managing my machines. Probably don't use this.`,
+		Version:               build(),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "log-level",
@@ -96,6 +100,94 @@ func main() {
 					}
 
 					return ctrl.Run(ctx, cfg.Exec, flags)
+				},
+			},
+			{
+				Name: "diff",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{
+						Name:  "display-included",
+						Usage: "display brews that are on the machine and config",
+					},
+				},
+				Action: func(ctx context.Context, c *cli.Command) error {
+					cfgpath := c.String("config")
+					cfg, err := setupEnv(cfgpath)
+					if err != nil {
+						return err
+					}
+					keys := slices.Collect(maps.Keys(cfg.Brews))
+					arg := c.Args().First()
+					if arg == "" || !slices.Contains(keys, arg) {
+						return fmt.Errorf("invalid brew, please provide one of: %v", strings.Join(keys, ", "))
+					}
+					brewCfg := brew.Get(cfg.Brews, arg)
+					if brewCfg == nil {
+						panic("brew config not found")
+					}
+					diff, err := brewCfg.Diff()
+					if err != nil {
+						return err
+					}
+
+					sectionStyle := lipgloss.NewStyle().
+						Bold(true).
+						Underline(true).
+						MarginTop(1)
+
+					presentStyle := lipgloss.NewStyle().
+						Foreground(lipgloss.Color("10")). // Green
+						MarginLeft(2)
+
+					absentStyle := lipgloss.NewStyle().
+						Foreground(lipgloss.Color("9")). // Red
+						MarginLeft(2)
+
+					excludedStyle := lipgloss.NewStyle().
+						Foreground(lipgloss.Color("11")). // Yellow
+						MarginLeft(2)
+
+					// Present items section
+					if c.Bool("display-included") {
+						if len(diff.Present) > 0 {
+							fmt.Println(sectionStyle.Render("Present Brews:"))
+							for _, item := range diff.Present {
+								fmt.Println(presentStyle.Render("✓ " + item))
+							}
+						} else {
+							fmt.Println(sectionStyle.Render("Present Brews:"))
+							fmt.Println(presentStyle.Render("  None"))
+						}
+					}
+
+					// Absent items section
+					if len(diff.Absent) > 0 {
+						fmt.Println(sectionStyle.Render("Absent Brews:"))
+						for _, item := range diff.Absent {
+							fmt.Println(absentStyle.Render("" + item))
+						}
+					}
+
+					// Excluded items section
+					if len(diff.Extra) > 0 {
+						fmt.Println(sectionStyle.Render("Extra Brews:"))
+						for _, item := range diff.Extra {
+							fmt.Println(excludedStyle.Render("" + item))
+						}
+					}
+
+					// Display summary
+					totalConfig := len(diff.Present) + len(diff.Absent) + len(diff.Extra)
+					summaryText := fmt.Sprintf(
+						"Summary: %d brews in config (%d present, %d absent, %d excluded)",
+						totalConfig,
+						len(diff.Present),
+						len(diff.Absent),
+						len(diff.Extra),
+					)
+					fmt.Println(lipgloss.NewStyle().Italic(true).MarginTop(1).Render(summaryText))
+
+					return nil
 				},
 			},
 			{

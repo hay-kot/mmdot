@@ -16,7 +16,7 @@ type Config struct {
 }
 
 // String returns a shell script to install the taps and brews
-func (c Config) String() string {
+func (c *Config) String() string {
 	var script strings.Builder
 
 	script.WriteString(`#!/bin/bash
