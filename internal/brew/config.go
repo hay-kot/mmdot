@@ -19,6 +19,16 @@ type Config struct {
 func (c Config) String() string {
 	var script strings.Builder
 
+	script.WriteString(`#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+# Exit if any command in a pipeline fails (not just the last one)
+set -o pipefail
+# Treat unset variables as an error when substituting
+set -u
+`)
+
 	actionTap := "tap"
 	actionInstall := "install"
 	if c.Remove {
@@ -26,7 +36,7 @@ func (c Config) String() string {
 		actionInstall = "uninstall"
 	}
 
-	// Add taps
+	// Add taps - all in one command if there are any
 	if len(c.Taps) > 0 {
 		script.WriteString("# Adding Homebrew Taps\n")
 		for _, tap := range c.Taps {
@@ -35,25 +45,43 @@ func (c Config) String() string {
 		script.WriteString("\n")
 	}
 
-	// Install brews
+	// Install brews - all in one command if there are any
 	if len(c.Brews) > 0 {
 		script.WriteString("# Installing Homebrew Packages\n")
-		for _, brew := range c.Brews {
-			script.WriteString(fmt.Sprintf("brew %s %s\n", actionInstall, brew))
+		if len(c.Brews) == 1 {
+			script.WriteString(fmt.Sprintf("brew %s %s\n", actionInstall, c.Brews[0]))
+		} else {
+			script.WriteString(fmt.Sprintf("brew %s \\\n", actionInstall))
+			for i, brew := range c.Brews {
+				if i == len(c.Brews)-1 {
+					script.WriteString(fmt.Sprintf("  %s\n", brew))
+				} else {
+					script.WriteString(fmt.Sprintf("  %s \\\n", brew))
+				}
+			}
 		}
 		script.WriteString("\n")
 	}
 
-	// Install casks
+	// Install casks - all in one command if there are any
 	if len(c.Casks) > 0 {
 		script.WriteString("# Installing Homebrew Casks\n")
-		for _, cask := range c.Casks {
-			script.WriteString(fmt.Sprintf("brew %s --cask %s\n", actionInstall, cask))
+		if len(c.Casks) == 1 {
+			script.WriteString(fmt.Sprintf("brew %s --cask %s\n", actionInstall, c.Casks[0]))
+		} else {
+			script.WriteString(fmt.Sprintf("brew %s --cask \\\n", actionInstall))
+			for i, cask := range c.Casks {
+				if i == len(c.Casks)-1 {
+					script.WriteString(fmt.Sprintf("  %s\n", cask))
+				} else {
+					script.WriteString(fmt.Sprintf("  %s \\\n", cask))
+				}
+			}
 		}
 		script.WriteString("\n")
 	}
 
-	// Install Mac App Store apps
+	// Install Mac App Store apps - unfortunately mas doesn't support batch installs
 	if len(c.MAS) > 0 {
 		script.WriteString("# Installing Mac App Store Apps\n")
 		for _, app := range c.MAS {
