@@ -12,7 +12,7 @@ import (
 	"syscall"
 
 	"github.com/charmbracelet/huh"
-	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/term"
 )
@@ -26,11 +26,17 @@ type Controller struct {
 }
 
 type FlagsRun struct {
-	All  bool
-	Tags []string
+	Tags   []string
+	Action string
 }
 
-func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) error {
+func (c *Controller) Run(
+	ctx context.Context,
+	execs actions.ExecConfig,
+	bundles map[string]actions.Bundle,
+	actionsMap map[string]actions.Action,
+	flags FlagsRun,
+) error {
 	// Get terminal width
 	terminalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
@@ -38,53 +44,72 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 		terminalWidth = 80
 	}
 
-	// Filter scripts based on tags
-	var matchedScripts []core.Script
+	// Gather scripts based on selection mode
+	var matchedScripts []actions.Script
 
 	switch {
-	case flags.All:
-		matchedScripts = execs.Scripts
-	case len(flags.Tags) == 0:
-		options := []huh.Option[string]{}
-
-		for _, s := range execs.Scripts {
-			str := fmt.Sprintf("%s, (%s)", s.Path, strings.Join(s.Tags, ", "))
-			options = append(options, huh.NewOption(str, s.Path))
-		}
-
-		selected := []string{}
-
-		err := huh.NewMultiSelect[string]().
-			Title("Scripts").
-			Options(options...).
-			Value(&selected).
-			Run()
+	case flags.Action != "":
+		// Get scripts for a specific action
+		actionScripts, err := actions.GetScriptsForAction(actionsMap, bundles, flags.Action)
 		if err != nil {
 			return err
 		}
-
-		for _, selected := range selected {
-			for _, script := range execs.Scripts {
-				if script.Path == selected {
-					matchedScripts = append(matchedScripts, script)
-				}
-			}
+		
+		// Apply tag filtering if tags are specified
+		if len(flags.Tags) > 0 {
+			matchedScripts = actions.FilterScriptsByTags(actionScripts, flags.Tags)
+		} else {
+			matchedScripts = actionScripts
 		}
 
+	case len(flags.Tags) > 0:
+		// Collect all scripts from all bundles
+		var allScripts []actions.Script
+		for _, bundle := range bundles {
+			allScripts = append(allScripts, bundle.Scripts...)
+		}
+		
+		// Filter by tags
+		matchedScripts = actions.FilterScriptsByTags(allScripts, flags.Tags)
+
 	default:
-		// Find scripts that match any of the specified tags
-		for _, script := range execs.Scripts {
-			if hasMatchingTag(script.Tags, flags.Tags) {
+		// Interactive selection mode - go straight to individual scripts selection
+		var allScripts []actions.Script
+		
+		// Collect all scripts from all bundles
+		for _, bundle := range bundles {
+			allScripts = append(allScripts, bundle.Scripts...)
+		}
+		
+		options := []huh.Option[string]{}
+		scriptMap := make(map[string]actions.Script)
+		
+		for _, s := range allScripts {
+			displayStr := fmt.Sprintf("%s (%s)", s.Path, strings.Join(s.Tags, ", "))
+			options = append(options, huh.NewOption(displayStr, s.Path))
+			scriptMap[s.Path] = s
+		}
+		
+		selected := []string{}
+		err := huh.NewMultiSelect[string]().
+			Title("Select Scripts to Run").
+			Options(options...).
+			Value(&selected).
+			Run()
+			
+		if err != nil {
+			return err
+		}
+		
+		for _, selectedPath := range selected {
+			if script, ok := scriptMap[selectedPath]; ok {
 				matchedScripts = append(matchedScripts, script)
-				log.Debug().Str("script", script.Path).Strs("tags", script.Tags).Msg("included")
-				continue
 			}
-			log.Debug().Str("script", script.Path).Strs("tags", script.Tags).Msg("filtered")
 		}
 	}
 
 	if len(matchedScripts) == 0 {
-		fmt.Printf("no scripts matched flags: %s\n", strings.Join(flags.Tags, ", "))
+		fmt.Println("No scripts matched the specified criteria")
 		return nil
 	}
 
@@ -103,7 +128,6 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 		defer cancel()
 
 		fmt.Println(dividerPrefix + dividerRemainder)
-
 		log.Debug().Str("path", script.Path).Strs("tags", script.Tags).Msg("Executing script")
 
 		// Make script executable
@@ -112,8 +136,8 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 			return err
 		}
 
-		// Execute script with interactive I/O
-		cmd := exec.CommandContext(scriptCtx, "/bin/sh", script.Path)
+		// Execute script with the configured shell
+		cmd := exec.CommandContext(scriptCtx, execs.Shell, script.Path)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
@@ -128,21 +152,4 @@ func (c *Controller) Run(ctx context.Context, execs core.Exec, flags FlagsRun) e
 	}
 
 	return nil
-}
-
-// hasMatchingTag checks if ALL requested tags are present in the script tags
-func hasMatchingTag(scriptTags, requestedTags []string) bool {
-	for _, reqTag := range scriptTags {
-		found := false
-		for _, scriptTag := range requestedTags {
-			if reqTag == scriptTag {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
 }

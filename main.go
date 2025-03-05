@@ -16,9 +16,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 
+	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/hay-kot/mmdot/internal/brew"
 	"github.com/hay-kot/mmdot/internal/commands"
-	"github.com/hay-kot/mmdot/internal/core"
 )
 
 var (
@@ -80,9 +80,9 @@ func main() {
 				Usage:     "runs scripts from the mmdot.toml file",
 				ArgsUsage: "tags for scripts to run",
 				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:     "all",
-						Usage:    "run all scripts",
+					&cli.StringSliceFlag{
+						Name:     "tags",
+						Usage:    "tags to run",
 						Required: false,
 					},
 				},
@@ -95,11 +95,11 @@ func main() {
 					}
 
 					flags := commands.FlagsRun{
-						All:  c.Bool("all"),
-						Tags: c.Args().Slice(),
+						Tags:   c.StringSlice("tags"),
+						Action: c.Args().First(),
 					}
 
-					return ctrl.Run(ctx, cfg.Exec, flags)
+					return ctrl.Run(ctx, cfg.Exec, cfg.Bundles, cfg.Actions, flags)
 				},
 			},
 			{
@@ -234,10 +234,11 @@ func main() {
 
 func setupEnv(cfgpath string) (ConfigFile, error) {
 	cfg := ConfigFile{
-		Exec:  core.Exec{},
-		Brews: map[string]*brew.Config{},
+		Exec:    actions.ExecConfig{},
+		Brews:   map[string]*brew.Config{},
+		Bundles: map[string]actions.Bundle{},
+		Actions: map[string]actions.Action{},
 	}
-
 	absolutePath, err := filepath.Abs(cfgpath)
 	if err != nil {
 		return cfg, err

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/hay-kot/mmdot/internal/brew"
-	"github.com/hay-kot/mmdot/internal/core"
 )
 
 type ConfigFile struct {
-	Exec  core.Exec      `toml:"exec"`
-	Brews brew.ConfigMap `toml:"brew"`
+	Exec    actions.ExecConfig        `toml:"exec"`
+	Bundles map[string]actions.Bundle `toml:"bundles"`
+	Actions map[string]actions.Action `toml:"actions"`
+	Brews   brew.ConfigMap            `toml:"brew"`
 }
