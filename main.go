@@ -25,7 +25,7 @@ var (
 	// Build information. Populated at build-time via -ldflags flag.
 	version = "dev"
 	commit  = "HEAD"
-	date    = time.Now()
+	date    = time.Now().Format(time.DateTime)
 )
 
 func build() string {
@@ -34,7 +34,7 @@ func build() string {
 		short = commit[:7]
 	}
 
-	return fmt.Sprintf("%s (%s) %s", version, short, date.Format(time.DateTime))
+	return fmt.Sprintf("%s (%s) %s", version, short, date)
 }
 
 func main() {
