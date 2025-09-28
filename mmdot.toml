@@ -2,215 +2,66 @@
 shell = "/bin/bash"
 bin = "./.data/scripts"
 
+[bundles.test]
 scripts = [
   { path = "./.data/scripts/run.sh", tags = ["test"] },
   { path = "./.data/scripts/run2.sh", tags = ["test"] },
-  { path = "./.data/scripts/brew.personal.sh", tags = ["personal", "brew"] },
-  { path = "./.data/scripts/brew.remove.sh", tags = ["cleanup", "brew"] },
-  { path = "./.data/scripts/brew.remove.sh", tags = ["grafana", "brew"] },
 ]
+
+[bundles.personal]
+scripts = [
+  { path = "./.data/scripts/brew.personal.sh", tags = ["brew", "personal"] },
+]
+
+[bundles.work]
+scripts = [
+  { path = "./.data/scripts/brew.work.sh", tags = ["brew", "work"] },
+]
+
+[bundles.cleanup]
+scripts = [
+  { path = "./.data/scripts/brew.remove.sh", tags = ["brew", "cleanup"] },
+]
+
+[actions]
+personal = { bundles = ["personal"] }
+work = { bundles = ["work"] }
+cleanup = { bundles = ["cleanup"] }
+test = { bundles = ["test"] }
+
+[templates]
+jobs = [
+  { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test.txt", vars = { email = "test@example.com", timestamp = "2024-03-27" } },
+  { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test2.txt", vars = { email = "user2@example.com", timestamp = "2024-03-28" } },
+]
+
+  [templates.vars]
+  user = "hayden"
+  brew = { remove = true }
 
 [brew.remove]
 remove = true
 outfile = "./.data/scripts/brew.remove.sh"
-taps = [
-  "bufbuild/buf",
-  "qmk/qmk",
-  "hookdeck/hookdeck",
-]
-brews = [
-  "superfile",
-  "tmux",
-  "pipx",
-  "lf",
-  "cocoapods",
-  "cue",
-  "graphviz",
-  "iftop",
-  "icu4c@75",
-  "nghttp2",
-]
-casks = [
-  "flutter",
-  "android-file-transfer",
-  "android-studio",
-  "angry-ip-scanner",
-  "bettertouchtool",
-]
+taps = ["remove:taps"]
+brews = ["remove:brew"]
+casks = ["remove:cask"]
 
 
-[brew.grafana]
-outfile = "./.data/scripts/brew.grafana.sh"
+[brew.work]
+outfile = "./.data/scripts/brew.work.sh"
 includes = ["all"]
-brews = []
-taps = []
-casks = []
-mas = []
+taps = ["work:taps"]
+brews = ["work:brews"]
+casks = ["work:casks"]
 
 [brew.personal]
 outfile = "./.data/scripts/brew.personal.sh"
 includes = ["all"]
-taps = [
-  "hay-kot/dirwatch-tap",
-  "hay-kot/flint-tap",
-  "axllent/apps",         # mailpit
-  "ariga/tap",            # atlas cli
-  "stripe/stripe-cli",
-  "tinygo-org/tools",
-]
-brews = [
-  "autorestic",
-  "bitwarden-cli",
-  "caddy",
-  "flyctl",
-  "ipython",
-  "mailpit",
-  "rustup",
-  "vhs",
-  "hugo",
-  "gping",
-
-  "tinygo-org/tools/tinygo",
-  "stripe/stripe-cli/stripe",
-
-  # python
-  "poetry",
-  "uv",
-
-  # personal programs
-  "flint",
-  "hay-kot/dirwatch-tap/dirwatch",
-]
-casks = [
-  "orbstack",
-  "private-internet-access",
-  "microsoft-auto-update",
-  "microsoft-office",
-  "steam",
-  "spotify",
-  "transmit",
-  "home-assistant",
-  "discord",
-  "balenaetcher",
-]
+taps = ["personal:taps"]
+brews = ["personal:brews"]
+casks = ["personal:casks"]
 
 [brew.all]
-taps = [
-  "homebrew/bundle",
-  "homebrew/cask",
-  "homebrew/core",
-  "homebrew/services",
-  "dagger/tap",
-  "go-task/tap",
-  "hay-kot/gotmpl-tap",
-  "hay-kot/scaffold-tap",
-  "jdxcode/tap",              # mise
-  "jesseduffield/lazydocker",
-  "osx-cross/arm",
-  "osx-cross/avr",
-]
-brews = [
-  "age",
-  "ansible",
-  "ansible-lint",
-  "apr-util",
-  "atlas",
-  "bash",
-  "bat",
-  "bfg",
-  "btop",
-  "cfitsio",
-  "cmake",
-  "coreutils",
-  "crf++",
-  "ctop",
-  "dagger",
-  "docker",
-  "editorconfig-checker",
-  "eza",
-  "fd",
-  "fftw",
-  "fx",
-  "fzf",
-  "gh",
-  "git-lfs",
-  "gnupg",
-  "go-task/tap/go-task",
-  "gofumpt",
-  "golang-migrate",
-  "golangci-lint",
-  "goose",
-  "goreleaser",
-  "gum",
-  "hay-kot/gotmpl-tap/gotmpl",
-  "hay-kot/scaffold-tap/scaffold",
-  "hyperfine",
-  "ilmbase",
-  "imagemagick",
-  "jesseduffield/lazydocker/lazydocker",
-  "jq",
-  "lazygit",
-  "libexif",
-  "libgit2@1.7",
-  "libgsf",
-  "libimagequant",
-  "libmatio",
-  "libproxy",
-  "libspng",
-  "mage",
-  "mas",
-  "mingw-w64",
-  "mise",
-  "mozjpeg",
-  "neovim",
-  "nss",
-  "openslide",
-  "orc",
-  "pinentry-mac",
-  "pnpm",
-  "pre-commit",
-  "ripgrep",
-  "sqlc",
-  "sqlfmt",
-  "starship",
-  "stow",
-  "stylua",
-  "tmux",
-  "ttyd",
-  "typos-cli",
-  "wget",
-  "wireguard-go",
-  "yank",
-  "yq",
-  "zlib",
-  "zsh-autosuggestions",
-]
-casks = [
-  "bitwarden",
-  "brave-browser",
-  "chromedriver",
-  "docker",
-  "firefox",
-  "font-fira-code",
-  "font-fira-code-nerd-font",
-  "font-hack-nerd-font",
-  "font-jetbrains-mono-nerd-font",
-  "google-chrome",
-  "google-cloud-sdk",
-  "gpg-suite-no-mail",
-  "insomnia",
-  "jordanbaird-ice",
-  "keyboard-cleaner",
-  "obsidian",
-  "raycast",
-  "rectangle-pro",
-  "signal",
-  "slack",
-  "sublime-text",
-  "tableplus",
-  "visual-studio-code",
-  "vlc",
-  "wezterm",
-  "yubico-yubikey-manager",
-  "zoom",
-]
+taps = ["all:taps"]
+brews = ["all:brews"]
+casks = ["all:casks"]
