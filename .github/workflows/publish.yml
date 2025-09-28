@@ -31,6 +31,8 @@ jobs:
       - backend-tests
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions-ecosystem/action-get-latest-tag@v1
         id: get-latest-tag
