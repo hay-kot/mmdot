@@ -1,24 +1,17 @@
 package styles
 
 import (
-	catppuccingo "github.com/catppuccin/go"
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	ThemeColorCharm     = &ThemeColors{Base: "#7571F9", Light: "#F780E2"}
-	ThemeColorDracula   = &ThemeColors{Base: "#6272a4", Light: "#F1FA8C"}
-	ThemeColorsBase16   = &ThemeColors{Base: "6", Light: "3"}
+	ThemeColorCharm    = &ThemeColors{Base: "#7571F9", Light: "#F780E2"}
+	ThemeColorDracula  = &ThemeColors{Base: "#6272a4", Light: "#F1FA8C"}
+	ThemeColorsBase16  = &ThemeColors{Base: "6", Light: "3"}
 	ThemeColorsDefault = &ThemeColors{
 		Base:     "#5A82E0",
 		BaseDark: "#758BF9",
 		Light:    "#059669",
-	}
-	ThemeColorsCatppuccin = &ThemeColors{
-		Base:      catppuccingo.Latte.Mauve().Hex,
-		BaseDark:  catppuccingo.Mocha.Mauve().Hex,
-		Light:     catppuccingo.Latte.Pink().Hex,
-		LightDark: catppuccingo.Mocha.Pink().Hex,
 	}
 )
 
