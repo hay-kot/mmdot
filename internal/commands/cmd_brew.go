@@ -26,20 +26,34 @@ func NewBrewCmd(flags *core.Flags) *BrewCmd {
 
 func (bc *BrewCmd) Register(app *cli.Command) *cli.Command {
 	cmd := &cli.Command{
-		Name: "brew",
+		Name:  "brew",
+		Usage: "Manage Homebrew packages and configurations",
 		Commands: []*cli.Command{
 			{
-				Name: "diff",
+				Name:      "diff",
+				Usage:     "Compare installed Homebrew packages with configuration",
+				ArgsUsage: "<brew-name>",
+				Description: `Compares the specified brew configuration with what's installed on the machine.
+Shows absent packages (in config but not installed), extra packages (installed but not in config),
+and optionally present packages (both in config and installed).
+
+Example: mmdot brew diff personal`,
 				Flags: []cli.Flag{
 					&cli.BoolFlag{
-						Name:  "display-included",
-						Usage: "display brews that are on the machine and config",
+						Name:    "verbose",
+						Aliases: []string{"v"},
+						Usage:   "display packages that are both in config and installed on the machine",
 					},
 				},
 				Action: bc.diff,
 			},
 			{
-				Name:   "compile",
+				Name:  "compile",
+				Usage: "Compile brew configurations to their output files",
+				Description: `Generates Brewfile outputs for all brew configurations that have an 'outfile' specified.
+This is useful for creating Brewfiles that can be used with 'brew bundle'.
+
+The compiled files will be written to the paths specified in each brew configuration's 'outfile' field.`,
 				Action: bc.compile,
 			},
 		},
@@ -86,7 +100,7 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 		MarginLeft(2)
 
 	// Present items section
-	if c.Bool("display-included") {
+	if c.Bool("verbose") {
 		if len(diff.Present) > 0 {
 			fmt.Println(sectionStyle.Render("Present Brews:"))
 			for _, item := range diff.Present {

@@ -36,26 +36,36 @@ func NewScriptsCmd(coreFlags *core.Flags) *RunCmd {
 func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 	cmd := &cli.Command{
 		Name:      "run",
-		Usage:     "runs scripts from the mmdot.toml file",
-		ArgsUsage: "the group of scripts to run",
+		Usage:     "Execute scripts from the mmdot.toml configuration",
+		ArgsUsage: "[group]",
+		Description: `Execute scripts defined in your mmdot.toml configuration file.
+ Scripts can be run by specifying an action/bundle group, filtering by tags,
+ or through interactive selection.
+
+ Examples:
+	 mmdot run setup           # Run all scripts in the 'setup' action
+	 mmdot run --tags install  # Run all scripts tagged with 'install'
+	 mmdot run --list setup    # List scripts in 'setup' without executing
+	 mmdot run                 # Interactive script selection`,
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
 				Name:        "tags",
-				Usage:       "tags to run",
+				Aliases:     []string{"t"},
+				Usage:       "filter scripts by tags (can specify multiple)",
 				Destination: &sc.flags.Tags,
 			},
 			&cli.BoolFlag{
 				Name:        "list",
-				Aliases:     []string{"ls"},
-				Usage:       "list groups scripts without running them",
+				Aliases:     []string{"ls", "l"},
+				Usage:       "list matching scripts without executing them",
 				Destination: &sc.flags.List,
 			},
 		},
 		Arguments: []cli.Argument{
 			&cli.StringArg{
 				Name:        "group",
-				UsageText:   "the group of scripts to run",
-				Min:         1,
+				UsageText:   "action or bundle name containing scripts to execute",
+				Min:         0,
 				Max:         1,
 				Config:      cli.StringConfig{TrimSpace: true},
 				Destination: &sc.group,

@@ -43,14 +43,16 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "log-level",
-				Usage:       "log level (debug, info, warn, error, fatal, panic)",
+				Aliases:     []string{"l"},
+				Usage:       "set the logging verbosity level",
 				Value:       "info",
 				Sources:     envvars("LOG_LEVEL"),
 				Destination: &flags.LogLevel,
 			},
 			&cli.StringFlag{
 				Name:        "config",
-				Usage:       "config file path",
+				Aliases:     []string{"c"},
+				Usage:       "path to the mmdot configuration file",
 				Required:    false,
 				Value:       "mmdot.toml",
 				Sources:     envvars("CONFIG_PATH"),
