@@ -3,22 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"maps"
 	"os"
-	"path/filepath"
-	"slices"
-	"strings"
 	"time"
 
-	"github.com/BurntSushi/toml"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 
-	"github.com/hay-kot/mmdot/internal/actions"
-	"github.com/hay-kot/mmdot/internal/brew"
 	"github.com/hay-kot/mmdot/internal/commands"
+	"github.com/hay-kot/mmdot/internal/core"
 )
 
 var (
@@ -38,9 +31,7 @@ func build() string {
 }
 
 func main() {
-	ctrl := &commands.Controller{
-		Flags: &commands.Flags{},
-	}
+	flags := &core.Flags{}
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
@@ -51,17 +42,19 @@ func main() {
 		Version:               build(),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "log-level",
-				Usage:   "log level (debug, info, warn, error, fatal, panic)",
-				Value:   "info",
-				Sources: cli.EnvVars("MMDOT_LOG_LEVEL"),
+				Name:        "log-level",
+				Usage:       "log level (debug, info, warn, error, fatal, panic)",
+				Value:       "info",
+				Sources:     envvars("LOG_LEVEL"),
+				Destination: &flags.LogLevel,
 			},
 			&cli.StringFlag{
-				Name:     "config",
-				Usage:    "config file path",
-				Required: false,
-				Value:    "mmdot.toml",
-				Sources:  cli.EnvVars("MMDOT_CONFIG_PATH"),
+				Name:        "config",
+				Usage:       "config file path",
+				Required:    false,
+				Value:       "mmdot.toml",
+				Sources:     envvars("CONFIG_PATH"),
+				Destination: &flags.ConfigFilePath,
 			},
 		},
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
@@ -72,159 +65,22 @@ func main() {
 
 			log.Logger = log.Level(level)
 
+			log.Debug().
+				Str("log-level", flags.LogLevel).
+				Str("config", flags.ConfigFilePath).
+				Msg("global flags")
+
 			return ctx, nil
 		},
-		Commands: []*cli.Command{
-			{
-				Name:      "run",
-				Usage:     "runs scripts from the mmdot.toml file",
-				ArgsUsage: "tags for scripts to run",
-				Flags: []cli.Flag{
-					&cli.StringSliceFlag{
-						Name:     "tags",
-						Usage:    "tags to run",
-						Required: false,
-					},
-				},
-				Action: func(ctx context.Context, c *cli.Command) error {
-					cfgpath := c.String("config")
+	}
 
-					cfg, err := setupEnv(cfgpath)
-					if err != nil {
-						return err
-					}
+	subcommands := []subcommand{
+		commands.NewScriptsCmd(flags),
+		commands.NewBrewCmd(flags),
+	}
 
-					flags := commands.FlagsRun{
-						Tags:   c.StringSlice("tags"),
-						Action: c.Args().First(),
-					}
-
-					return ctrl.Run(ctx, cfg.Exec, cfg.Bundles, cfg.Actions, flags)
-				},
-			},
-			{
-				Name: "diff",
-				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:  "display-included",
-						Usage: "display brews that are on the machine and config",
-					},
-				},
-				Action: func(ctx context.Context, c *cli.Command) error {
-					cfgpath := c.String("config")
-					cfg, err := setupEnv(cfgpath)
-					if err != nil {
-						return err
-					}
-					keys := slices.Collect(maps.Keys(cfg.Brews))
-					arg := c.Args().First()
-					if arg == "" || !slices.Contains(keys, arg) {
-						return fmt.Errorf("invalid brew, please provide one of: %v", strings.Join(keys, ", "))
-					}
-					brewCfg := brew.Get(cfg.Brews, arg)
-					if brewCfg == nil {
-						panic("brew config not found")
-					}
-					diff, err := brewCfg.Diff()
-					if err != nil {
-						return err
-					}
-
-					sectionStyle := lipgloss.NewStyle().
-						Bold(true).
-						Underline(true).
-						MarginTop(1)
-
-					presentStyle := lipgloss.NewStyle().
-						Foreground(lipgloss.Color("10")). // Green
-						MarginLeft(2)
-
-					absentStyle := lipgloss.NewStyle().
-						Foreground(lipgloss.Color("9")). // Red
-						MarginLeft(2)
-
-					excludedStyle := lipgloss.NewStyle().
-						Foreground(lipgloss.Color("11")). // Yellow
-						MarginLeft(2)
-
-					// Present items section
-					if c.Bool("display-included") {
-						if len(diff.Present) > 0 {
-							fmt.Println(sectionStyle.Render("Present Brews:"))
-							for _, item := range diff.Present {
-								fmt.Println(presentStyle.Render("✓ " + item))
-							}
-						} else {
-							fmt.Println(sectionStyle.Render("Present Brews:"))
-							fmt.Println(presentStyle.Render("  None"))
-						}
-					}
-
-					// Absent items section
-					if len(diff.Absent) > 0 {
-						fmt.Println(sectionStyle.Render("Absent Brews:"))
-						for _, item := range diff.Absent {
-							fmt.Println(absentStyle.Render("" + item))
-						}
-					}
-
-					// Excluded items section
-					if len(diff.Extra) > 0 {
-						fmt.Println(sectionStyle.Render("Extra Brews:"))
-						for _, item := range diff.Extra {
-							fmt.Println(excludedStyle.Render("" + item))
-						}
-					}
-
-					// Display summary
-					totalConfig := len(diff.Present) + len(diff.Absent) + len(diff.Extra)
-					summaryText := fmt.Sprintf(
-						"Summary: %d brews in config (%d present, %d absent, %d excluded)",
-						totalConfig,
-						len(diff.Present),
-						len(diff.Absent),
-						len(diff.Extra),
-					)
-					fmt.Println(lipgloss.NewStyle().Italic(true).MarginTop(1).Render(summaryText))
-
-					return nil
-				},
-			},
-			{
-				Name: "compile",
-				Action: func(ctx context.Context, c *cli.Command) error {
-					cfgpath := c.String("config")
-
-					cfg, err := setupEnv(cfgpath)
-					if err != nil {
-						return err
-					}
-
-					for v := range maps.Keys(cfg.Brews) {
-						cfg := brew.Get(cfg.Brews, v)
-
-						if cfg.Outfile == "" {
-							continue
-						}
-
-						// Create directory
-						err := os.MkdirAll(filepath.Dir(cfg.Outfile), 0755)
-						if err != nil {
-							return err
-						}
-
-						err = os.WriteFile(cfg.Outfile, []byte(cfg.String()), 0644)
-						if err != nil {
-							return err
-						}
-
-						log.Info().Str("file", cfg.Outfile).Msg("outfile written")
-					}
-
-					return nil
-				},
-			},
-		},
+	for _, s := range subcommands {
+		app = s.Register(app)
 	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
@@ -232,29 +88,17 @@ func main() {
 	}
 }
 
-func setupEnv(cfgpath string) (ConfigFile, error) {
-	cfg := ConfigFile{
-		Exec:    actions.ExecConfig{},
-		Brews:   map[string]*brew.Config{},
-		Bundles: map[string]actions.Bundle{},
-		Actions: map[string]actions.Action{},
-	}
-	absolutePath, err := filepath.Abs(cfgpath)
-	if err != nil {
-		return cfg, err
+// envars adds a namespace prefix for the environment variables of the application
+func envvars(strs ...string) cli.ValueSourceChain {
+	withPrefix := make([]string, len(strs))
+
+	for i, str := range strs {
+		withPrefix[i] = core.EnvPrefix + str
 	}
 
-	err = os.Chdir(filepath.Dir(absolutePath))
-	if err != nil {
-		return cfg, err
-	}
+	return cli.EnvVars(withPrefix...)
+}
 
-	log.Debug().Str("cwd", filepath.Dir(absolutePath)).Msg("setting working directory to config dir")
-
-	_, err = toml.DecodeFile(cfgpath, &cfg)
-	if err != nil {
-		return cfg, err
-	}
-
-	return cfg, nil
+type subcommand interface {
+	Register(*cli.Command) *cli.Command
 }

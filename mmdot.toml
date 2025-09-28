@@ -2,13 +2,32 @@
 shell = "/bin/bash"
 bin = "./.data/scripts"
 
+[bundles.test]
 scripts = [
   { path = "./.data/scripts/run.sh", tags = ["test"] },
   { path = "./.data/scripts/run2.sh", tags = ["test"] },
-  { path = "./.data/scripts/brew.personal.sh", tags = ["personal", "brew"] },
-  { path = "./.data/scripts/brew.remove.sh", tags = ["cleanup", "brew"] },
-  { path = "./.data/scripts/brew.remove.sh", tags = ["grafana", "brew"] },
 ]
+
+[bundles.personal]
+scripts = [
+  { path = "./.data/scripts/brew.personal.sh", tags = ["brew", "personal"] },
+]
+
+[bundles.grafana]
+scripts = [
+  { path = "./.data/scripts/brew.grafana.sh", tags = ["brew", "grafana"] },
+]
+
+[bundles.cleanup]
+scripts = [
+  { path = "./.data/scripts/brew.remove.sh", tags = ["brew", "cleanup"] },
+]
+
+[actions]
+personal = { bundles = ["personal"] }
+grafana = { bundles = ["grafana"] }
+cleanup = { bundles = ["cleanup"] }
+test = { bundles = ["test"] }
 
 [brew.remove]
 remove = true
