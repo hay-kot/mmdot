@@ -8,6 +8,7 @@ import (
 	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/hay-kot/mmdot/internal/brew"
 	"github.com/hay-kot/mmdot/internal/generator"
+	"github.com/hay-kot/mmdot/internal/ssh"
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,6 +18,7 @@ type ConfigFile struct {
 	Actions   map[string]actions.Action `toml:"actions"`
 	Brews     brew.ConfigMap            `toml:"brew"`
 	Templates generator.Config          `toml:"templates"`
+	SSH       ssh.Config                `toml:"ssh"`
 }
 
 func setupEnv(cfgpath string) (ConfigFile, error) {

@@ -80,6 +80,7 @@ func main() {
 		commands.NewScriptsCmd(flags),
 		commands.NewBrewCmd(flags),
 		commands.NewGenerateCmd(flags),
+		commands.NewSSHCmd(flags),
 	}
 
 	for _, s := range subcommands {

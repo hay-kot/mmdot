@@ -80,9 +80,9 @@ tags = ["personal", "home"]
 priority = 10
 # Encryption settings for this host source
 recipients = [
-  # "age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392",
 ]
-identity_file = "~/.age/personal.key"  # Identity for decrypting this file
+identity_file = "./.data/age/key.txt"  # Identity for decrypting this file
 
 # Example: Inline hosts (unencrypted - use for non-sensitive hosts only)
 [[ssh.hosts]]
