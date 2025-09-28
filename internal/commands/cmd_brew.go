@@ -9,9 +9,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/hay-kot/mmdot/internal/brew"
 	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 )
@@ -82,50 +82,51 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 		return err
 	}
 
-	sectionStyle := lipgloss.NewStyle().
-		Bold(true).
-		Underline(true).
-		MarginTop(1)
-
-	presentStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("10")). // Green
-		MarginLeft(2)
-
-	absentStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("9")). // Red
-		MarginLeft(2)
-
-	excludedStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("11")). // Yellow
-		MarginLeft(2)
+	// Process and display results with consistent spacing
+	p := printer.New(os.Stdout)
+	p.LineBreak()
 
 	// Present items section
 	if c.Bool("verbose") {
+		var statusItems []printer.StatusListItem
 		if len(diff.Present) > 0 {
-			fmt.Println(sectionStyle.Render("Present Brews:"))
 			for _, item := range diff.Present {
-				fmt.Println(presentStyle.Render("✓ " + item))
+				statusItems = append(statusItems, printer.StatusListItem{
+					Ok:     true,
+					Status: item,
+				})
 			}
 		} else {
-			fmt.Println(sectionStyle.Render("Present Brews:"))
-			fmt.Println(presentStyle.Render("  None"))
+			statusItems = append(statusItems, printer.StatusListItem{
+				Ok:     true,
+				Status: "None",
+			})
 		}
+		p.StatusList("Present Brews:", statusItems)
+		p.LineBreak()
 	}
 
 	// Absent items section
 	if len(diff.Absent) > 0 {
-		fmt.Println(sectionStyle.Render("Absent Brews:"))
+		var statusItems []printer.StatusListItem
 		for _, item := range diff.Absent {
-			fmt.Println(absentStyle.Render("" + item))
+			statusItems = append(statusItems, printer.StatusListItem{
+				Ok:     false,
+				Status: item,
+			})
 		}
+		p.StatusList("Absent Brews:", statusItems)
+		p.LineBreak()
 	}
 
-	// Excluded items section
+	// Extra items section
 	if len(diff.Extra) > 0 {
-		fmt.Println(sectionStyle.Render("Extra Brews:"))
+		var items []string
 		for _, item := range diff.Extra {
-			fmt.Println(excludedStyle.Render("" + item))
+			items = append(items, item)
 		}
+		p.List("Extra Brews:", items)
+		p.LineBreak()
 	}
 
 	// Display summary
@@ -137,7 +138,7 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 		len(diff.Absent),
 		len(diff.Extra),
 	)
-	fmt.Println(lipgloss.NewStyle().Italic(true).MarginTop(1).Render(summaryText))
+	fmt.Println(summaryText)
 
 	return nil
 }

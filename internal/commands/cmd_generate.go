@@ -7,6 +7,7 @@ import (
 
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/internal/generator"
+	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 )
@@ -59,7 +60,9 @@ func (gc *GenerateCmd) generate(ctx context.Context, c *cli.Command) error {
 	if err := gen.Generate(); err != nil {
 		// Check if it's a template error with formatted output
 		if te, ok := err.(*generator.TemplateError); ok {
-			fmt.Fprint(os.Stderr, "\n" + te.Error() + "\n")
+			p := printer.New(os.Stderr)
+			p.LineBreak()
+			p.FatalError(te)
 			return fmt.Errorf("template generation failed")
 		}
 		return err

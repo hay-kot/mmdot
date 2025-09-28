@@ -9,6 +9,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/internal/ssh"
+	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 )
@@ -68,22 +69,24 @@ func (sc *SSHCmd) encrypt(ctx context.Context, c *cli.Command) error {
 		return fmt.Errorf("no age recipients found in configuration")
 	}
 
-	fmt.Printf("Found %d age recipients\n", len(recipients))
+	log.Debug().Int("recipients", len(recipients)).Msg("found age recipients")
 
 	encryptor := core.NewEncryptor(recipients, "")
 	var encrypted int
+	var statusItems []printer.StatusListItem
+	var warnings []string
 
 	// Process each host source
 	for _, source := range cfg.SSH.Hosts {
 		// Skip if it has inline hosts (nothing to encrypt)
 		if len(source.Hosts) > 0 {
-			fmt.Printf("⚠ Source %s uses inline hosts (no file to encrypt)\n", source.Name)
+			warnings = append(warnings, fmt.Sprintf("Source %s uses inline hosts (no file to encrypt)", source.Name))
 			continue
 		}
 
 		// Skip if no encryption configured (no recipients)
 		if len(source.Recipients) == 0 {
-			fmt.Printf("⚠ Source %s has no recipients configured for encryption\n", source.Name)
+			warnings = append(warnings, fmt.Sprintf("Source %s has no recipients configured for encryption", source.Name))
 			continue
 		}
 
@@ -93,7 +96,7 @@ func (sc *SSHCmd) encrypt(ctx context.Context, c *cli.Command) error {
 				// Encrypted file exists, check if source file also exists
 				sourceFile := strings.TrimSuffix(source.EncryptedFile, ".age")
 				if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
-					fmt.Printf("⚠ Source %s already encrypted (no source file found)\n", source.Name)
+					warnings = append(warnings, fmt.Sprintf("Source %s already encrypted (no source file found)", source.Name))
 					continue
 				}
 			}
@@ -150,17 +153,41 @@ func (sc *SSHCmd) encrypt(ctx context.Context, c *cli.Command) error {
 		// Delete the source file after successful encryption
 		if err := os.Remove(tomlFile); err != nil {
 			log.Error().Str("file", tomlFile).Err(err).Msg("failed to remove source file after encryption")
+			statusItems = append(statusItems, printer.StatusListItem{
+				Ok:     false,
+				Status: fmt.Sprintf("%s (%d hosts) - failed to remove source file", source.Name, len(hostsFile.Hosts)),
+			})
 			continue
 		}
 
-		fmt.Printf("✓ Encrypted %s -> %s (%d hosts)\n", tomlFile, outputFile, len(hostsFile.Hosts))
+		statusItems = append(statusItems, printer.StatusListItem{
+			Ok:     true,
+			Status: fmt.Sprintf("%s (%d hosts) - %s", source.Name, len(hostsFile.Hosts), outputFile),
+		})
 		encrypted++
 	}
 
+	// Now display the nice formatted output at the end
+	p := printer.New(os.Stdout)
+	p.LineBreak()
+
+	// Display warnings if any
+	if len(warnings) > 0 {
+		p.List("Warnings:", warnings)
+		p.LineBreak()
+	}
+
+	// Display encryption results
+	if len(statusItems) > 0 {
+		p.StatusList("Encryption Results:", statusItems)
+		p.LineBreak()
+	}
+
+	// Summary
 	if encrypted == 0 {
 		fmt.Println("No files found to encrypt")
 	} else {
-		fmt.Printf("\nSuccessfully encrypted %d files\n", encrypted)
+		fmt.Printf("Successfully encrypted %d files\n", encrypted)
 	}
 
 	return nil
@@ -177,8 +204,11 @@ func (sc *SSHCmd) decrypt(ctx context.Context, c *cli.Command) error {
 		return nil
 	}
 
-	fmt.Printf("Processing encrypted SSH host sources\n")
+	log.Debug().Msg("processing encrypted SSH host sources")
+
 	var decrypted int
+	var statusItems []printer.StatusListItem
+	var warnings []string
 
 	// Process each encrypted host source
 	for _, source := range cfg.SSH.Hosts {
@@ -190,7 +220,7 @@ func (sc *SSHCmd) decrypt(ctx context.Context, c *cli.Command) error {
 
 		// Check if encrypted file exists
 		if _, err := os.Stat(source.EncryptedFile); os.IsNotExist(err) {
-			log.Warn().Str("source", source.Name).Str("file", source.EncryptedFile).Msg("encrypted file not found")
+			warnings = append(warnings, fmt.Sprintf("Source %s encrypted file not found: %s", source.Name, source.EncryptedFile))
 			continue
 		}
 
@@ -210,7 +240,7 @@ func (sc *SSHCmd) decrypt(ctx context.Context, c *cli.Command) error {
 
 		// Use source-specific identity file
 		if source.IdentityFile == "" {
-			log.Warn().Str("source", source.Name).Msg("no identity file specified for encrypted source")
+			warnings = append(warnings, fmt.Sprintf("Source %s has no identity file specified for decryption", source.Name))
 			continue
 		}
 
@@ -218,31 +248,61 @@ func (sc *SSHCmd) decrypt(ctx context.Context, c *cli.Command) error {
 
 		// Try to decrypt
 		if err := sourceEncryptor.DecryptFile(source.EncryptedFile, outputFile); err != nil {
-			log.Warn().Str("source", source.Name).Str("file", source.EncryptedFile).Err(err).Msg("failed to decrypt file")
+			statusItems = append(statusItems, printer.StatusListItem{
+				Ok:     false,
+				Status: fmt.Sprintf("%s - failed to decrypt: %v", source.Name, err),
+			})
 			continue
 		}
 
 		// Validate it's a valid hosts file
 		var hostsFile ssh.HostsFile
 		if _, err := toml.DecodeFile(outputFile, &hostsFile); err != nil {
-			log.Warn().Str("file", outputFile).Err(err).Msg("decrypted file is not a valid hosts file")
+			statusItems = append(statusItems, printer.StatusListItem{
+				Ok:     false,
+				Status: fmt.Sprintf("%s - decrypted file is not valid: %v", source.Name, err),
+			})
 			continue
 		}
 
 		// Delete the encrypted file after successful decryption
 		if err := os.Remove(source.EncryptedFile); err != nil {
 			log.Error().Str("file", source.EncryptedFile).Err(err).Msg("failed to remove encrypted file after decryption")
+			statusItems = append(statusItems, printer.StatusListItem{
+				Ok:     false,
+				Status: fmt.Sprintf("%s (%d hosts) - failed to remove encrypted file", source.Name, len(hostsFile.Hosts)),
+			})
 			continue
 		}
 
-		fmt.Printf("✓ Decrypted %s -> %s (%d hosts)\n", source.EncryptedFile, outputFile, len(hostsFile.Hosts))
+		statusItems = append(statusItems, printer.StatusListItem{
+			Ok:     true,
+			Status: fmt.Sprintf("%s (%d hosts) - %s", source.Name, len(hostsFile.Hosts), outputFile),
+		})
 		decrypted++
 	}
 
+	// Now display the nice formatted output at the end
+	p := printer.New(os.Stdout)
+	p.LineBreak()
+
+	// Display warnings if any
+	if len(warnings) > 0 {
+		p.List("Warnings:", warnings)
+		p.LineBreak()
+	}
+
+	// Display decryption results
+	if len(statusItems) > 0 {
+		p.StatusList("Decryption Results:", statusItems)
+		p.LineBreak()
+	}
+
+	// Summary
 	if decrypted == 0 {
 		fmt.Println("No encrypted files could be decrypted")
 	} else {
-		fmt.Printf("\nSuccessfully decrypted %d files\n", decrypted)
+		fmt.Printf("Successfully decrypted %d files\n", decrypted)
 	}
 
 	return nil

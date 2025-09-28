@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
@@ -175,10 +176,13 @@ func (sc *RunCmd) run(
 
 	// If list flag is set, just list the scripts without executing
 	if sc.flags.List {
-		fmt.Println("Scripts to run:")
+		p := printer.New(os.Stdout)
+		p.LineBreak()
+		var items []string
 		for _, script := range matchedScripts {
-			fmt.Printf("  %s (tags: %s)\n", script.Path, strings.Join(script.Tags, ", "))
+			items = append(items, fmt.Sprintf("%s (tags: %s)", script.Path, strings.Join(script.Tags, ", ")))
 		}
+		p.List("Scripts to run:", items)
 		return nil
 	}
 
