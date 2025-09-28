@@ -60,7 +60,7 @@ func main() {
 			},
 		},
 		Before: func(ctx context.Context, c *cli.Command) (context.Context, error) {
-			level, err := zerolog.ParseLevel(c.String("log-level"))
+			level, err := zerolog.ParseLevel(flags.LogLevel)
 			if err != nil {
 				return ctx, fmt.Errorf("failed to parse log level: %w", err)
 			}
@@ -79,6 +79,7 @@ func main() {
 	subcommands := []subcommand{
 		commands.NewScriptsCmd(flags),
 		commands.NewBrewCmd(flags),
+		commands.NewGenerateCmd(flags),
 	}
 
 	for _, s := range subcommands {

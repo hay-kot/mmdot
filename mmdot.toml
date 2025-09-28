@@ -29,6 +29,16 @@ grafana = { bundles = ["grafana"] }
 cleanup = { bundles = ["cleanup"] }
 test = { bundles = ["test"] }
 
+[templates]
+jobs = [
+  { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test.txt", vars = { email = "test@example.com", timestamp = "2024-03-27" } },
+  { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test2.txt", vars = { email = "user2@example.com", timestamp = "2024-03-28" } },
+]
+
+  [templates.vars]
+  user = "hayden"
+  brew = { remove = true }
+
 [brew.remove]
 remove = true
 outfile = "./.data/scripts/brew.remove.sh"
