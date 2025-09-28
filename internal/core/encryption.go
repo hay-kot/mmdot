@@ -44,14 +44,14 @@ func (e *Encryptor) EncryptFile(inputPath, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open input file: %w", err)
 	}
-	defer inputFile.Close()
+	defer func() { _ = inputFile.Close() }()
 
 	// Create output file
 	outputFile, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer outputFile.Close()
+	defer func() { _ = outputFile.Close() }()
 
 	// Create age writer
 	w, err := age.Encrypt(outputFile, recipients...)
@@ -89,7 +89,7 @@ func (e *Encryptor) DecryptFile(inputPath, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open encrypted file: %w", err)
 	}
-	defer inputFile.Close()
+	defer func() { _ = inputFile.Close() }()
 
 	// Create age reader
 	r, err := age.Decrypt(inputFile, identity)
@@ -102,7 +102,7 @@ func (e *Encryptor) DecryptFile(inputPath, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer outputFile.Close()
+	defer func() { _ = outputFile.Close() }()
 
 	// Copy decrypted content to output
 	if _, err := io.Copy(outputFile, r); err != nil {
@@ -129,7 +129,7 @@ func (e *Encryptor) DecryptToBytes(inputPath string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open encrypted file: %w", err)
 	}
-	defer inputFile.Close()
+	defer func() { _ = inputFile.Close() }()
 
 	// Create age reader
 	r, err := age.Decrypt(inputFile, identity)
@@ -163,7 +163,7 @@ func (e *Encryptor) EncryptBytes(data []byte, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer outputFile.Close()
+	defer func() { _ = outputFile.Close() }()
 
 	// Create age writer
 	w, err := age.Encrypt(outputFile, recipients...)
@@ -219,7 +219,7 @@ func (e *Encryptor) loadIdentity() (age.Identity, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open identity file: %w", err)
 	}
-	defer identityFile.Close()
+	defer func() { _ = identityFile.Close() }()
 
 	// Parse as age identity
 	identities, err := age.ParseIdentities(identityFile)
@@ -240,7 +240,7 @@ func LoadIdentitiesFromFile(path string) ([]age.Identity, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open identity file: %w", err)
 	}
-	defer identityFile.Close()
+	defer func() { _ = identityFile.Close() }()
 
 	// Parse as age identities
 	identities, err := age.ParseIdentities(identityFile)
@@ -261,7 +261,7 @@ func ParseRecipientsFromFile(path string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open recipients file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var recipients []string
 	scanner := bufio.NewScanner(file)

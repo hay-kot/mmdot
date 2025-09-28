@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -265,43 +264,4 @@ func (sc *SSHCmd) findAgeRecipientsFromConfig(sources []ssh.HostSource) ([]strin
 	}
 
 	return allRecipients, nil
-}
-
-// findAgeIdentity finds the age identity file on the system
-func (sc *SSHCmd) findAgeIdentity() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get home directory: %w", err)
-	}
-
-	possiblePaths := []string{
-		filepath.Join(home, ".config", "age", "key.txt"),
-		filepath.Join(home, ".age", "key.txt"),
-	}
-
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			return path, nil
-		}
-	}
-
-	return "", fmt.Errorf("no age identity file found in common locations")
-}
-
-// extractPublicKeyFromIdentity extracts the public key from an age identity file
-func (sc *SSHCmd) extractPublicKeyFromIdentity(identityPath string) (string, error) {
-	content, err := os.ReadFile(identityPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read identity file: %w", err)
-	}
-
-	lines := strings.Split(string(content), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "# public key: ") {
-			return strings.TrimPrefix(line, "# public key: "), nil
-		}
-	}
-
-	return "", fmt.Errorf("could not extract public key from identity file")
 }
