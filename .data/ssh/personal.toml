@@ -1,0 +1,47 @@
+# Personal SSH Hosts Configuration
+# This file should be encrypted with age before committing
+# Run: mmdot ssh encrypt .data/ssh/personal.toml --out .data/ssh/personal.toml.age
+
+[[hosts]]
+name = "homelab"
+hostname = "192.168.1.100"
+user = "admin"
+port = 22
+identity_file = "~/.ssh/homelab_ed25519"
+forward_agent = true
+custom = [
+    "ServerAliveInterval 60",
+    "ServerAliveCountMax 3",
+]
+
+[[hosts]]
+name = "nas"
+hostname = "nas.local"
+user = "admin"
+identity_file = "~/.ssh/nas_rsa"
+custom = [
+    "Compression yes",
+]
+
+[[hosts]]
+name = "pi-cluster-*"
+hostname = "10.0.0.%h"
+user = "pi"
+identity_file = "~/.ssh/pi_cluster"
+proxy_jump = "homelab"
+custom = [
+    "StrictHostKeyChecking ask",
+]
+
+[[hosts]]
+name = "dev-vm"
+hostname = "localhost"
+user = "developer"
+port = 2222
+identity_file = "~/.ssh/dev_vm"
+forward_x11 = true
+local_forward = [
+    "8080:localhost:80",
+    "3000:localhost:3000",
+    "5432:localhost:5432",
+]

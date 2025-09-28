@@ -65,3 +65,31 @@ casks = ["personal:casks"]
 taps = ["all:taps"]
 brews = ["all:brews"]
 casks = ["all:casks"]
+
+# SSH Configuration Management
+[ssh]
+config_file = "~/.ssh/config"  # Target SSH config file
+backup = true                   # Create backup before modifying
+preserve_local = true           # Preserve local-only entries
+
+# SSH host sources - can be encrypted files or inline hosts
+[[ssh.hosts]]
+name = "personal"
+encrypted_file = "./.data/ssh/personal.toml.age"
+tags = ["personal", "home"]
+priority = 10
+# Encryption settings for this host source
+recipients = [
+  # "age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+]
+identity_file = "~/.age/personal.key"  # Identity for decrypting this file
+
+# Example: Inline hosts (unencrypted - use for non-sensitive hosts only)
+[[ssh.hosts]]
+name = "public"
+tags = ["public", "github"]
+priority = 5
+hosts = [
+  { name = "github.com", hostname = "github.com", user = "git", identity_file = "~/.ssh/github" },
+  { name = "gitlab.com", hostname = "gitlab.com", user = "git", identity_file = "~/.ssh/gitlab" },
+]
