@@ -121,11 +121,7 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 
 	// Extra items section
 	if len(diff.Extra) > 0 {
-		var items []string
-		for _, item := range diff.Extra {
-			items = append(items, item)
-		}
-		p.List("Extra Brews:", items)
+		p.List("Extra Brews:", diff.Extra)
 		p.LineBreak()
 	}
 
