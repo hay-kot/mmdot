@@ -8,84 +8,33 @@ recipients = [
 ]
 identity_file = "./.data/age/key.txt"
 
-[bundles.test]
-scripts = [
-  { path = "./.data/scripts/run.sh", tags = ["test"] },
-  { path = "./.data/scripts/run2.sh", tags = ["test"] },
+
+[variables]
+var_files = [
+  "./.data/vars/vault.toml",
+  "./.data/vars/vault.toml?vault=true",
+  "./.data/vars/vars.toml",
 ]
 
-[bundles.personal]
-scripts = [
-  { path = "./.data/scripts/brew.personal.sh", tags = ["brew", "personal"] },
-]
+[[actions]]
+name = "template"
+template = "./.data/templates/test.txt.tmpl"
+destination = "./.data/generated/test.txt"
+mode = "0600"
+vars = { var1 = "local.var1", var2 = "local.var2" }
 
-[bundles.work]
-scripts = [
-  { path = "./.data/scripts/brew.work.sh", tags = ["brew", "work"] },
-]
+[[actions]]
+name = "template"
+template = "./.data/templates/ssh_config.tmpl"
+destination = "~/.ssh/config"
+mode = "0600"
 
-[bundles.cleanup]
-scripts = [
-  { path = "./.data/scripts/brew.remove.sh", tags = ["brew", "cleanup"] },
-]
-
-[actions]
-personal = { bundles = ["personal"] }
-work = { bundles = ["work"] }
-cleanup = { bundles = ["cleanup"] }
-test = { bundles = ["test"] }
-
-[templates]
-  [[templates.jobs]]
-  template = ".data/templates/test.txt.tmpl"
-  output = ".data/generated/test3.txt"
-  vars_file = "./.data/templates/vars.toml"
-  vars = { email = "user2@example.com", timestamp = "2024-03-28" }
-
-
-  [templates.vars]
-  user = "hayden"
-  brew = { remove = true }
-
-[brew.remove]
-remove = true
-outfile = "./.data/scripts/brew.remove.sh"
-taps = ["remove:taps"]
-brews = ["remove:brew"]
-casks = ["remove:cask"]
-
-
-[brew.work]
-outfile = "./.data/scripts/brew.work.sh"
-includes = ["all"]
-taps = ["work:taps"]
-brews = ["work:brews"]
-casks = ["work:casks"]
-
-[brew.personal]
-outfile = "./.data/scripts/brew.personal.sh"
-includes = ["all"]
-taps = ["personal:taps"]
-brews = ["personal:brews"]
-casks = ["personal:casks"]
-
-[brew.all]
-taps = ["all:taps"]
-brews = ["all:brews"]
-casks = ["all:casks"]
-
-# SSH Configuration Management
-[ssh]
-config_file = "~/.ssh/config" # Target SSH config file
-backup = true                 # Create backup before modifying
-preserve_local = true         # Preserve local-only entries
-
-  # Example: Inline hosts (unencrypted - use for non-sensitive hosts only)
-  [[ssh.hosts]]
-  name = "public"
-  tags = ["public", "github"]
-  priority = 5
-  hosts = [
-    { name = "github.com", hostname = "github.com", user = "git", identity_file = "~/.ssh/github" },
-    { name = "gitlab.com", hostname = "gitlab.com", user = "git", identity_file = "~/.ssh/gitlab" },
-  ]
+[[actions]]
+name = "file.includes_text"
+invert = false # when true it ensure the text is not present"
+desc = "ensure ssh config file contains mmdot config"
+file = "~/.ssh/config"
+content = """
+Host *
+    include ~/.ssh/mmdot_config
+"""

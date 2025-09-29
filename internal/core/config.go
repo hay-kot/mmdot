@@ -1,4 +1,4 @@
-package commands
+package core
 
 import (
 	"fmt"
@@ -8,49 +8,21 @@ import (
 
 	"filippo.io/age"
 	"github.com/BurntSushi/toml"
-	"github.com/hay-kot/mmdot/internal/actions"
-	"github.com/hay-kot/mmdot/internal/brew"
-	"github.com/hay-kot/mmdot/internal/generator"
 	"github.com/hay-kot/mmdot/pkgs/fcrypt"
 	"github.com/rs/zerolog/log"
 )
 
 type ConfigFile struct {
-	Exec      actions.ExecConfig        `toml:"exec"`
-	Bundles   map[string]actions.Bundle `toml:"bundles"`
-	Actions   map[string]actions.Action `toml:"actions"`
-	Brews     brew.ConfigMap            `toml:"brew"`
-	Templates generator.Config          `toml:"templates"`
-	Age       Age                       `toml:"age"`
-	Variables Variables                 `toml:"variables"`
+	Age       Age              `toml:"age"`
+	Variables Variables        `toml:"variables"`
+	Actions   []Action         `toml:"actions"`
+	metadata  toml.MetaData    // stored for action creation
 }
 
-// Returns a list of all files that should to be encrypted
-func (c ConfigFile) EncryptedFiles() []string {
-	files := []string{}
-
-	// Collect encrypted template vars files
-	for _, job := range c.Templates.Jobs {
-		if job.VarsFile != "" {
-			files = append(files, job.VarsFile)
-		}
-	}
-
-	for _, vf := range c.Variables.VarFiles {
-		if vf.IsVault {
-			files = append(files, vf.Path)
-		}
-	}
-
-	return files
-}
-
-func setupEnv(cfgpath string) (ConfigFile, error) {
+func SetupEnv(cfgpath string) (ConfigFile, error) {
 	cfg := ConfigFile{
-		Exec:    actions.ExecConfig{},
-		Brews:   map[string]*brew.Config{},
-		Bundles: map[string]actions.Bundle{},
-		Actions: map[string]actions.Action{},
+		Age:       Age{},
+		Variables: Variables{},
 	}
 	absolutePath, err := filepath.Abs(cfgpath)
 	if err != nil {
@@ -65,29 +37,32 @@ func setupEnv(cfgpath string) (ConfigFile, error) {
 
 	log.Debug().Str("cwd", configDir).Msg("setting working directory to config dir")
 
-	// Set default for strict mode before decoding
-	cfg.Templates.StrictMode = true
-
-	_, err = toml.DecodeFile(cfgpath, &cfg)
+	md, err := toml.DecodeFile(cfgpath, &cfg)
 	if err != nil {
 		return cfg, err
 	}
 
-	// Resolve template paths relative to config directory
-	for i := range cfg.Templates.Jobs {
-		job := &cfg.Templates.Jobs[i]
+	cfg.metadata = md
 
-		// Convert relative paths to absolute based on config directory
-		if !filepath.IsAbs(job.Template) {
-			job.Template = filepath.Join(configDir, job.Template)
-		}
+	return cfg, nil
+}
 
-		if !filepath.IsAbs(job.Output) {
-			job.Output = filepath.Join(configDir, job.Output)
+// MetaData returns the TOML metadata for the config file
+func (c ConfigFile) MetaData() toml.MetaData {
+	return c.metadata
+}
+
+// Returns a list of all files that should to be encrypted
+func (c ConfigFile) EncryptedFiles() []string {
+	files := []string{}
+
+	for _, vf := range c.Variables.VarFiles {
+		if vf.IsVault {
+			files = append(files, vf.Path)
 		}
 	}
 
-	return cfg, nil
+	return files
 }
 
 type Age struct {

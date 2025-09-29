@@ -2,11 +2,13 @@
 package printer
 
 import (
+	"context"
 	"io"
 	"strings"
 
 	"github.com/hay-kot/mmdot/pkgs/styles"
 )
+
 
 type ConsoleOutput interface {
 	ConsoleOutput() string
@@ -25,6 +27,19 @@ func New(writer io.Writer) *Printer {
 		base:   base,
 		light:  light,
 	}
+}
+
+func (c *Printer) Ctx(ctx context.Context) *Printer {
+	w, ok := GetWriter(ctx)
+	if ok {
+		return &Printer{
+			writer: w,
+			base:   c.base,
+			light:  c.light,
+		}
+	}
+
+	return c
 }
 
 func (c *Printer) WithBase(style styles.RenderFunc) *Printer {
@@ -106,19 +121,19 @@ func (c *Printer) StatusList(title string, items []StatusListItem) {
 	c.write(bldr.String())
 }
 
-type ListTree struct {
+type Tree struct {
 	Text     string
-	Children []ListTree
+	Children []Tree
 }
 
-func (c *Printer) ListTree(title string, list []ListTree) {
+func (c *Printer) ListTree(title string, list []Tree) {
 	bldr := strings.Builder{}
 
 	bldr.WriteString(styles.Padding(styles.Bold(c.base(title))))
 	bldr.WriteString("\n")
 
-	var printTree func(tree ListTree, depth int)
-	printTree = func(tree ListTree, depth int) {
+	var printTree func(tree Tree, depth int)
+	printTree = func(tree Tree, depth int) {
 		bldr.WriteString(strings.Repeat("   ", depth))
 		bldr.WriteString(styles.Dot)
 		bldr.WriteString(" ")

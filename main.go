@@ -12,6 +12,7 @@ import (
 
 	"github.com/hay-kot/mmdot/internal/commands"
 	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/pkgs/printer"
 )
 
 var (
@@ -34,6 +35,14 @@ func main() {
 	flags := &core.Flags{}
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	var (
+		ctx    = context.Background()
+		writer = printer.NewDeferedWriter(os.Stdout)
+	)
+
+	ctx = printer.WithWriter(ctx, writer)
+	printer.ConsolePrinter = printer.Ctx(ctx)
 
 	app := &cli.Command{
 		EnableShellCompletion: true,
@@ -80,7 +89,6 @@ func main() {
 		commands.NewScriptsCmd(flags),
 		commands.NewBrewCmd(flags),
 		commands.NewGenerateCmd(flags),
-		commands.NewSSHCmd(flags),
 		commands.NewEncryptCmd(flags),
 	}
 
@@ -88,10 +96,18 @@ func main() {
 		app = s.Register(app)
 	}
 
+	exitCode := 0
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		fmt.Printf("\n")
-		fmt.Println(err.Error())
+		printer.Ctx(ctx).LineBreak()
+		printer.Ctx(ctx).FatalError(err)
+		exitCode = 1
 	}
+
+	err := writer.Flush()
+	if err != nil {
+		panic(err)
+	}
+	os.Exit(exitCode)
 }
 
 // envars adds a namespace prefix for the environment variables of the application
