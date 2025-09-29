@@ -330,21 +330,3 @@ func equalStringSlices(a, b []string) bool {
 	}
 	return true
 }
-
-// findAgeRecipientsFromConfig finds age recipients from SSH host sources configuration
-func (sc *SSHCmd) findAgeRecipientsFromConfig(sources []ssh.HostSource) ([]string, error) {
-	var allRecipients []string
-	recipientSet := make(map[string]bool)
-
-	for _, source := range sources {
-		// Collect recipients from each source
-		for _, recipient := range source.Recipients {
-			if recipient != "" && !recipientSet[recipient] {
-				allRecipients = append(allRecipients, recipient)
-				recipientSet[recipient] = true
-			}
-		}
-	}
-
-	return allRecipients, nil
-}
