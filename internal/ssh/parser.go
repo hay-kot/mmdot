@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -338,4 +339,15 @@ func DeduplicateHosts(hosts []Host) []Host {
 	}
 
 	return result
+}
+
+// SortHostsByPriority sorts hosts by priority (higher first)
+func SortHostsByPriority(hosts []Host) {
+	sort.Slice(hosts, func(i, j int) bool {
+		if hosts[i].Priority == hosts[j].Priority {
+			// Secondary sort by source name for consistency
+			return hosts[i].Source < hosts[j].Source
+		}
+		return hosts[i].Priority > hosts[j].Priority
+	})
 }
