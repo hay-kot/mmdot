@@ -12,6 +12,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type Age struct {
+	Recipients   []string `toml:"recipients"`
+	IdentityFile string   `toml:"identity_file"`
+}
+
 type ConfigFile struct {
 	Exec      actions.ExecConfig        `toml:"exec"`
 	Bundles   map[string]actions.Bundle `toml:"bundles"`
@@ -19,6 +24,28 @@ type ConfigFile struct {
 	Brews     brew.ConfigMap            `toml:"brew"`
 	Templates generator.Config          `toml:"templates"`
 	SSH       ssh.Config                `toml:"ssh"`
+	Age       Age                       `toml:"age"`
+}
+
+// Returns a list of all files that should to be encrypted
+func (c ConfigFile) EncryptedFiles() []string {
+	files := []string{}
+
+	// Collect encrypted SSH host files
+	for _, host := range c.SSH.Hosts {
+		if host.EncryptedFile != "" {
+			files = append(files, host.EncryptedFile)
+		}
+	}
+
+	// Collect encrypted template vars files
+	for _, job := range c.Templates.Jobs {
+		if job.VarsFile != "" {
+			files = append(files, job.VarsFile)
+		}
+	}
+
+	return files
 }
 
 func setupEnv(cfgpath string) (ConfigFile, error) {

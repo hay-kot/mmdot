@@ -2,6 +2,13 @@
 shell = "/bin/bash"
 bin = "./.data/scripts"
 
+[age]
+recipients = [
+  "age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392",
+]
+identity_file = "./.data/age/key.txt"
+
+
 [bundles.test]
 scripts = [
   { path = "./.data/scripts/run.sh", tags = ["test"] },
@@ -33,6 +40,7 @@ test = { bundles = ["test"] }
 jobs = [
   { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test.txt", vars = { email = "test@example.com", timestamp = "2024-03-27" } },
   { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test2.txt", vars = { email = "user2@example.com", timestamp = "2024-03-28" } },
+  { template = ".data/templates/test.txt.tmpl", output = ".data/generated/test3.txt", vars_file = "./.data/templates/vars.toml", vars = { email = "user2@example.com", timestamp = "2024-03-28" } },
 ]
 
   [templates.vars]
@@ -68,28 +76,28 @@ casks = ["all:casks"]
 
 # SSH Configuration Management
 [ssh]
-config_file = "~/.ssh/config"  # Target SSH config file
-backup = true                   # Create backup before modifying
-preserve_local = true           # Preserve local-only entries
+config_file = "~/.ssh/config" # Target SSH config file
+backup = true                 # Create backup before modifying
+preserve_local = true         # Preserve local-only entries
 
-# SSH host sources - can be encrypted files or inline hosts
-[[ssh.hosts]]
-name = "personal"
-encrypted_file = "./.data/ssh/personal.toml.age"
-tags = ["personal", "home"]
-priority = 10
-# Encryption settings for this host source
-recipients = [
-  "age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392",
-]
-identity_file = "./.data/age/key.txt"  # Identity for decrypting this file
+  # SSH host sources - can be encrypted files or inline hosts
+  [[ssh.hosts]]
+  name = "personal"
+  encrypted_file = "./.data/ssh/personal.toml.age"
+  tags = ["personal", "home"]
+  priority = 10
+  # Encryption settings for this host source
+  recipients = [
+    "age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392",
+  ]
+  identity_file = "./.data/age/key.txt" # Identity for decrypting this file
 
-# Example: Inline hosts (unencrypted - use for non-sensitive hosts only)
-[[ssh.hosts]]
-name = "public"
-tags = ["public", "github"]
-priority = 5
-hosts = [
-  { name = "github.com", hostname = "github.com", user = "git", identity_file = "~/.ssh/github" },
-  { name = "gitlab.com", hostname = "gitlab.com", user = "git", identity_file = "~/.ssh/gitlab" },
-]
+  # Example: Inline hosts (unencrypted - use for non-sensitive hosts only)
+  [[ssh.hosts]]
+  name = "public"
+  tags = ["public", "github"]
+  priority = 5
+  hosts = [
+    { name = "github.com", hostname = "github.com", user = "git", identity_file = "~/.ssh/github" },
+    { name = "gitlab.com", hostname = "gitlab.com", user = "git", identity_file = "~/.ssh/gitlab" },
+  ]

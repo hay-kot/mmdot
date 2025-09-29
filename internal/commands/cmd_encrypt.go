@@ -1,0 +1,201 @@
+package commands
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/pkgs/fcrypt"
+	"github.com/rs/zerolog/log"
+	"github.com/urfave/cli/v3"
+)
+
+type EncryptCmd struct {
+	coreFlags *core.Flags
+}
+
+func NewEncryptCmd(coreFlags *core.Flags) *EncryptCmd {
+	return &EncryptCmd{coreFlags: coreFlags}
+}
+
+func (ec *EncryptCmd) Register(app *cli.Command) *cli.Command {
+	cmds := []*cli.Command{
+		{
+			Name:        "encrypt",
+			Usage:       "encrypt all secrets files in-place",
+			Description: "",
+			Action:      ec.encrypt,
+		},
+		{
+			Name:        "decrypt",
+			Usage:       "decrypt all secrets files in-place",
+			Description: "",
+			Action:      ec.decrypt,
+		},
+	}
+
+	app.Commands = append(app.Commands, cmds...)
+	return app
+}
+
+func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
+	cfg, err := setupEnv(ec.coreFlags.ConfigFilePath)
+	if err != nil {
+		return err
+	}
+
+	// Load the public key
+	if len(cfg.Age.Recipients) == 0 {
+		return fmt.Errorf("no age recipients configured in mmdot.toml")
+	}
+
+	recipient, err := fcrypt.LoadPublicKey(cfg.Age.Recipients[0])
+	if err != nil {
+		return fmt.Errorf("failed to load public key: %w", err)
+	}
+
+	files := cfg.EncryptedFiles()
+	if len(files) == 0 {
+		log.Info().Msg("No files configured for encryption")
+		return nil
+	}
+
+	log.Info().Int("count", len(files)).Msg("Found files to encrypt")
+
+	encryptedCount := 0
+	for _, file := range files {
+		var sourceFile, targetFile string
+
+		// Determine source and target based on whether the configured file has .age extension
+		if strings.HasSuffix(file, ".age") {
+			// Config specifies encrypted file path
+			sourceFile = strings.TrimSuffix(file, ".age")
+			targetFile = file
+		} else {
+			// Config specifies plain file path
+			sourceFile = file
+			targetFile = file + ".age"
+		}
+
+		// Check if source file exists
+		if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
+			log.Debug().Str("file", sourceFile).Msg("Source file doesn't exist, skipping")
+			continue
+		}
+
+		// Check if target file already exists
+		if _, err := os.Stat(targetFile); err == nil {
+			log.Debug().Str("file", targetFile).Msg("Encrypted file already exists, skipping")
+			continue
+		}
+
+		// Encrypt the file
+		log.Info().Str("source", sourceFile).Str("target", targetFile).Msg("Encrypting file")
+		if err := fcrypt.EncryptFile(sourceFile, targetFile, recipient); err != nil {
+			return fmt.Errorf("failed to encrypt %s: %w", sourceFile, err)
+		}
+
+		// Remove the source file after successful encryption
+		if err := os.Remove(sourceFile); err != nil {
+			log.Warn().Str("file", sourceFile).Err(err).Msg("Failed to remove source file after encryption")
+		}
+
+		encryptedCount++
+		log.Info().Str("file", targetFile).Msg("File encrypted successfully")
+	}
+
+	log.Info().Int("count", encryptedCount).Msg("Encryption complete")
+	return nil
+}
+
+func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
+	cfg, err := setupEnv(ec.coreFlags.ConfigFilePath)
+	if err != nil {
+		return err
+	}
+
+	// Check if identity file is configured
+	if cfg.Age.IdentityFile == "" {
+		return fmt.Errorf("no age identity_file configured in mmdot.toml")
+	}
+
+	// Read the private key from the identity file
+	identityData, err := os.ReadFile(cfg.Age.IdentityFile)
+	if err != nil {
+		return fmt.Errorf("failed to read identity file %s: %w", cfg.Age.IdentityFile, err)
+	}
+
+	// Parse the identity file, skipping comments and empty lines
+	var keyLine string
+	for _, line := range strings.Split(string(identityData), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" && !strings.HasPrefix(line, "#") {
+			keyLine = line
+			break
+		}
+	}
+
+	if keyLine == "" {
+		return fmt.Errorf("no valid key found in identity file %s", cfg.Age.IdentityFile)
+	}
+
+	identity, err := fcrypt.LoadPrivateKey(keyLine)
+	if err != nil {
+		return fmt.Errorf("failed to load private key: %w", err)
+	}
+
+	files := cfg.EncryptedFiles()
+	if len(files) == 0 {
+		log.Info().Msg("No files configured for decryption")
+		return nil
+	}
+
+	log.Info().Int("count", len(files)).Msg("Found files to decrypt")
+
+	decryptedCount := 0
+	for _, file := range files {
+		var sourceFile, targetFile string
+
+		// Determine source and target based on whether the configured file has .age extension
+		if strings.HasSuffix(file, ".age") {
+			// Config specifies encrypted file path
+			sourceFile = file
+			targetFile = strings.TrimSuffix(file, ".age")
+		} else {
+			// Config specifies plain file path - look for .age version
+			sourceFile = file + ".age"
+			targetFile = file
+		}
+
+		// Check if source file exists
+		if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
+			log.Debug().Str("file", sourceFile).Msg("Encrypted file doesn't exist, skipping")
+			continue
+		}
+
+		// Check if target file already exists
+		if _, err := os.Stat(targetFile); err == nil {
+			log.Debug().Str("file", targetFile).Msg("Decrypted file already exists, skipping")
+			continue
+		}
+
+		// Decrypt the file
+		log.Info().Str("source", sourceFile).Str("target", targetFile).Msg("Decrypting file")
+		if err := fcrypt.DecryptFile(sourceFile, targetFile, identity); err != nil {
+			return fmt.Errorf("failed to decrypt %s: %w", sourceFile, err)
+		}
+
+		// Remove the encrypted file after successful decryption
+		if err := os.Remove(sourceFile); err != nil {
+			log.Warn().Str("file", sourceFile).Err(err).Msg("Failed to remove encrypted file after decryption")
+		}
+
+		decryptedCount++
+		log.Info().Str("file", targetFile).Msg("File decrypted successfully")
+	}
+
+	log.Info().Int("count", decryptedCount).Msg("Decryption complete")
+	return nil
+}

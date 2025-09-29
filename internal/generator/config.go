@@ -14,6 +14,7 @@ type Job struct {
 	Template string         `toml:"template"`
 	Output   string         `toml:"output"`
 	Vars     map[string]any `toml:"vars,omitempty"`
+	VarsFile string         `toml:"vars_file"` // VarsFile assumed to be an encrypted file
 }
 
 func (j *Job) MergeVars(globalVars map[string]any) map[string]any {
@@ -22,3 +23,4 @@ func (j *Job) MergeVars(globalVars map[string]any) map[string]any {
 	maps.Copy(merged, j.Vars)
 	return merged
 }
+

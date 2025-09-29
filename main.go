@@ -81,6 +81,7 @@ func main() {
 		commands.NewBrewCmd(flags),
 		commands.NewGenerateCmd(flags),
 		commands.NewSSHCmd(flags),
+		commands.NewEncryptCmd(flags),
 	}
 
 	for _, s := range subcommands {
