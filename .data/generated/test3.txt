@@ -1,0 +1,14 @@
+Hello hayden!
+
+This is a test template.
+Email: user2@example.com
+
+
+Brew settings:
+  Remove: true
+
+
+Generated at: 2024-03-28
+
+var_1 = "var_1"
+var_2 = "var_2"

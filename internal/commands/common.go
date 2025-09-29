@@ -1,21 +1,20 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"filippo.io/age"
 	"github.com/BurntSushi/toml"
 	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/hay-kot/mmdot/internal/brew"
 	"github.com/hay-kot/mmdot/internal/generator"
 	"github.com/hay-kot/mmdot/internal/ssh"
+	"github.com/hay-kot/mmdot/pkgs/fcrypt"
 	"github.com/rs/zerolog/log"
 )
-
-type Age struct {
-	Recipients   []string `toml:"recipients"`
-	IdentityFile string   `toml:"identity_file"`
-}
 
 type ConfigFile struct {
 	Exec      actions.ExecConfig        `toml:"exec"`
@@ -91,4 +90,38 @@ func setupEnv(cfgpath string) (ConfigFile, error) {
 	}
 
 	return cfg, nil
+}
+
+type Age struct {
+	Recipients   []string `toml:"recipients"`
+	IdentityFile string   `toml:"identity_file"`
+}
+
+func (a Age) ReadIdentity() (age.Identity, error) {
+	// Read the private key from the identity file
+	identityData, err := os.ReadFile(a.IdentityFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read identity file %s: %w", a.IdentityFile, err)
+	}
+
+	// Parse the identity file, skipping comments and empty lines
+	var keyLine string
+	for _, line := range strings.Split(string(identityData), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" && !strings.HasPrefix(line, "#") {
+			keyLine = line
+			break
+		}
+	}
+
+	if keyLine == "" {
+		return nil, fmt.Errorf("no valid key found in identity file %s", a.IdentityFile)
+	}
+
+	identity, err := fcrypt.LoadPrivateKey(keyLine)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load private key: %w", err)
+	}
+
+	return identity, nil
 }

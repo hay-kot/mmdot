@@ -89,7 +89,8 @@ func main() {
 	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		log.Fatal().Err(err).Msg("failed to run mmdot")
+		fmt.Printf("\n")
+		fmt.Println(err.Error())
 	}
 }
 

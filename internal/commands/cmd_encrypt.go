@@ -97,11 +97,6 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to encrypt %s: %w", sourceFile, err)
 		}
 
-		// Remove the source file after successful encryption
-		if err := os.Remove(sourceFile); err != nil {
-			log.Warn().Str("file", sourceFile).Err(err).Msg("Failed to remove source file after encryption")
-		}
-
 		encryptedCount++
 		log.Info().Str("file", targetFile).Msg("File encrypted successfully")
 	}
@@ -116,35 +111,10 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	// Check if identity file is configured
-	if cfg.Age.IdentityFile == "" {
-		return fmt.Errorf("no age identity_file configured in mmdot.toml")
-	}
-
-	// Read the private key from the identity file
-	identityData, err := os.ReadFile(cfg.Age.IdentityFile)
-	if err != nil {
-		return fmt.Errorf("failed to read identity file %s: %w", cfg.Age.IdentityFile, err)
-	}
-
-	// Parse the identity file, skipping comments and empty lines
-	var keyLine string
-	for _, line := range strings.Split(string(identityData), "\n") {
-		line = strings.TrimSpace(line)
-		if line != "" && !strings.HasPrefix(line, "#") {
-			keyLine = line
-			break
-		}
-	}
-
-	if keyLine == "" {
-		return fmt.Errorf("no valid key found in identity file %s", cfg.Age.IdentityFile)
-	}
-
-	identity, err := fcrypt.LoadPrivateKey(keyLine)
-	if err != nil {
-		return fmt.Errorf("failed to load private key: %w", err)
-	}
+	identity, err := cfg.Age.ReadIdentity()
+  if err != nil {
+  	return err
+  }
 
 	files := cfg.EncryptedFiles()
 	if len(files) == 0 {
