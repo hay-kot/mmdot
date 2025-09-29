@@ -8,7 +8,6 @@ recipients = [
 ]
 identity_file = "./.data/age/key.txt"
 
-
 [bundles.test]
 scripts = [
   { path = "./.data/scripts/run.sh", tags = ["test"] },
