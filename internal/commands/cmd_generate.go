@@ -37,10 +37,15 @@ Templates are configured in the mmdot.toml file under the [templates] section.
 Each job specifies a template file and output location, with optional variables.
 All paths are relative to the configuration file directory.
 
+Variables can be loaded from encrypted files using the varsFile option. Encrypted
+files must have a .age extension and will be decrypted using your configured age
+identity. The decrypted content should be in TOML format.
+
 Example configuration:
   [templates]
   jobs = [
-    { template = "templates/gitconfig.tmpl", output = "configs/.gitconfig", vars = { email = "user@example.com" } }
+    { template = "templates/gitconfig.tmpl", output = "configs/.gitconfig", vars = { email = "user@example.com" } },
+    { template = "templates/ssh_config.tmpl", output = "configs/.ssh/config", vars_file = "vars/secrets.toml" }
   ]
 
   [templates.vars]

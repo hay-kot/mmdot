@@ -25,13 +25,35 @@ func (ec *EncryptCmd) Register(app *cli.Command) *cli.Command {
 		{
 			Name:        "encrypt",
 			Usage:       "encrypt all secrets files in-place",
-			Description: "",
+			Description: `Encrypts all configured secret files using age encryption.
+
+Files to encrypt are specified in mmdot.toml under various sections like:
+- [ssh.secrets] for SSH private keys and configurations
+- Template varsFile references
+
+The command will:
+- Use the configured age recipient (public key) for encryption
+- Create .age encrypted versions of the files
+- Skip files that are already encrypted
+- Preserve original files after encryption
+
+Encrypted files use the age format and can only be decrypted with the
+corresponding age identity (private key).`,
 			Action:      ec.encrypt,
 		},
 		{
 			Name:        "decrypt",
 			Usage:       "decrypt all secrets files in-place",
-			Description: "",
+			Description: `Decrypts all configured .age encrypted files.
+
+The command will:
+- Use your configured age identity (private key) for decryption
+- Restore the original unencrypted files
+- Remove the .age encrypted versions after successful decryption
+- Skip files that are already decrypted
+
+This is typically used when you need to edit secret files or when setting up
+a new machine from encrypted configuration files.`,
 			Action:      ec.decrypt,
 		},
 	}
