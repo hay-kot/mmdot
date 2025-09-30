@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	"github.com/goccy/go-yaml"
 	"github.com/hay-kot/mmdot/internal/core"
 )
 
@@ -14,17 +14,18 @@ func init() {
 }
 
 type TemplateAction struct {
-	Name        core.ActionType `toml:"name"`
-	Template    string          `toml:"template"`    // Inline template or file path
-	Destination string          `toml:"destination"` // path
-	Mode        string          `toml:"mode"`        // Permissions to render as
-	Vars        map[string]any  `toml:"vars"`
+	Name        core.ActionType `yaml:"name"`
+	Template    string          `yaml:"template"`    // Inline template or file path
+	Destination string          `yaml:"destination"` // path
+	Mode        string          `yaml:"mode"`        // Permissions to render as
+	Vars        map[string]any  `yaml:"vars"`
 }
 
-// NewTemplateAction creates a new TemplateAction from a TOML primitive
-func NewTemplateAction(primitive toml.Primitive, md toml.MetaData) (core.ActionExecutor, error) {
+// NewTemplateAction creates a new TemplateAction from a YAML node
+func NewTemplateAction(node yaml.Node) (core.ActionExecutor, error) {
 	var action TemplateAction
-	if err := md.PrimitiveDecode(primitive, &action); err != nil {
+
+	if err := yaml.NodeToValue(node, &action); err != nil {
 		return nil, fmt.Errorf("failed to decode template action: %w", err)
 	}
 	return &action, nil

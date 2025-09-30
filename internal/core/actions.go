@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	"github.com/goccy/go-yaml"
+	"github.com/goccy/go-yaml/ast"
 )
 
 type ActionType string
@@ -33,32 +34,30 @@ type ActionResult struct {
 	Duration time.Duration
 }
 
-// ActionFactory is a function that creates an ActionExecutor from a TOML primitive
-type ActionFactory func(toml.Primitive, toml.MetaData) (ActionExecutor, error)
+// ActionFactory is a function that creates an ActionExecutor from a YAML node
+type ActionFactory func(ast.Node) (ActionExecutor, error)
 
 type Action struct {
-	Name ActionType `toml:"name"`
-	Body toml.Primitive
+	Name ActionType `yaml:"name"`
+	Body ast.Node
 }
 
-// UnmarshalTOML implements custom unmarshaling for Action
-func (a *Action) UnmarshalTOML(data interface{}) error {
-	// Create a temporary struct to decode just the name
+// UnmarshalYAML implements custom unmarshaling for Action
+func (a *Action) UnmarshalYAML(node ast.Node) error {
+	// Decode just the name field
 	var temp struct {
-		Name ActionType `toml:"name"`
+		Name ActionType `yaml:"name"`
 	}
 
-	// First, decode just the name field
-	md := toml.MetaData{}
-	if err := md.PrimitiveDecode(data.(toml.Primitive), &temp); err != nil {
+	if err := yaml.NodeToValue(node, &temp); err != nil {
 		return err
 	}
 
 	// Set the name
 	a.Name = temp.Name
 
-	// Store the entire primitive for later decoding
-	a.Body = data.(toml.Primitive)
+	// Store the entire node for later decoding
+	a.Body = node
 
 	return nil
 }

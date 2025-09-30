@@ -7,16 +7,15 @@ import (
 	"strings"
 
 	"filippo.io/age"
-	"github.com/BurntSushi/toml"
+	"github.com/goccy/go-yaml"
 	"github.com/hay-kot/mmdot/pkgs/fcrypt"
 	"github.com/rs/zerolog/log"
 )
 
 type ConfigFile struct {
-	Age       Age              `toml:"age"`
-	Variables Variables        `toml:"variables"`
-	Actions   []Action         `toml:"actions"`
-	metadata  toml.MetaData    // stored for action creation
+	Age       Age       `yaml:"age"`
+	Variables Variables `yaml:"variables"`
+	Actions   []Action  `yaml:"actions"`
 }
 
 func SetupEnv(cfgpath string) (ConfigFile, error) {
@@ -37,19 +36,17 @@ func SetupEnv(cfgpath string) (ConfigFile, error) {
 
 	log.Debug().Str("cwd", configDir).Msg("setting working directory to config dir")
 
-	md, err := toml.DecodeFile(cfgpath, &cfg)
+	data, err := os.ReadFile(cfgpath)
 	if err != nil {
 		return cfg, err
 	}
 
-	cfg.metadata = md
+	err = yaml.Unmarshal(data, &cfg)
+	if err != nil {
+		return cfg, err
+	}
 
 	return cfg, nil
-}
-
-// MetaData returns the TOML metadata for the config file
-func (c ConfigFile) MetaData() toml.MetaData {
-	return c.metadata
 }
 
 // Returns a list of all files that should to be encrypted
@@ -66,8 +63,8 @@ func (c ConfigFile) EncryptedFiles() []string {
 }
 
 type Age struct {
-	Recipients   []string `toml:"recipients"`
-	IdentityFile string   `toml:"identity_file"`
+	Recipients   []string `yaml:"recipients"`
+	IdentityFile string   `yaml:"identity_file"`
 }
 
 func (a Age) ReadIdentity() (age.Identity, error) {
@@ -100,37 +97,11 @@ func (a Age) ReadIdentity() (age.Identity, error) {
 }
 
 type Variables struct {
-	VarFiles []VarFile      `toml:"var_files"`
-	Vars     map[string]any `toml:"vars"`
+	VarFiles []VarFile      `yaml:"var_files"`
+	Vars     map[string]any `yaml:"vars"`
 }
 
 type VarFile struct {
-	Path    string
-	IsVault bool
-}
-
-// UnmarshalText implements custom unmarshaling for VarFile
-func (vf *VarFile) UnmarshalText(data []byte) error {
-	s := string(data)
-
-	// Check if the path contains vault parameter
-	if idx := strings.Index(s, "?vault="); idx != -1 {
-		vf.Path = s[:idx]
-		vaultValue := s[idx+7:] // Skip "?vault="
-		vf.IsVault = vaultValue == "true"
-	} else {
-		vf.Path = s
-		vf.IsVault = false
-	}
-
-	return nil
-}
-
-// MarshalText implements custom marshaling for VarFile
-func (vf VarFile) MarshalText() ([]byte, error) {
-	s := vf.Path
-	if vf.IsVault {
-		s += "?vault=true"
-	}
-	return []byte(s), nil
+	Path    string `yaml:"path"`
+	IsVault bool   `yaml:"vault"`
 }

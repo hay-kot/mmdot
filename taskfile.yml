@@ -7,7 +7,7 @@ tasks:
   run:
     desc: Runs the main application and supports passing CLI args
     cmds:
-      - go run *.go --config="./mmdot.toml" {{ .CLI_ARGS }}
+      - go run *.go --config="./mmdot.yml" {{ .CLI_ARGS }}
     silent: false
 
   build:

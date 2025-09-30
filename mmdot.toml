@@ -16,7 +16,7 @@ var_files = [
   "./.data/vars/vars.toml",
 ]
 
-[[actions]]
+[[group.personal.actions]]
 name = "template"
 template = "./.data/templates/test.txt.tmpl"
 destination = "./.data/generated/test.txt"

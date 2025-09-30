@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20250228115947-334300b07206
 	github.com/charmbracelet/lipgloss v1.0.0
+	github.com/goccy/go-yaml v1.18.0
 	github.com/rs/zerolog v1.31.0
 	github.com/urfave/cli/v3 v3.0.0-beta1
 	golang.org/x/term v0.28.0
