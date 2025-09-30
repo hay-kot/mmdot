@@ -12,3 +12,4 @@ type Job struct {
 	Vars     map[string]any `toml:"vars,omitempty"`
 	VarsFile string         `toml:"vars_file"` // VarsFile assumed to be an encrypted file
 }
+

@@ -6,14 +6,9 @@ exec:
     - { path: ./setup/git.sh, tags: [work] }
 
 age:
+  identity_file: ./.data/age/key.txt
   recipients:
     - age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392
-
-variables:
-  var_files:
-    - ./.data/vars/vault.toml
-    - ./.data/vars/vault.toml?vault=true
-    - ./.data/vars/vars.toml
 
 # Groups allow you to include different actions based on tag selectors
 # These tags are always present event when another tag is provided via
@@ -21,15 +16,23 @@ variables:
 #
 # mmdot run personal
 groups:
-  name: personal
-  tags: [personal]
+  personal: [personal]
+  work: [work]
 
-# Actions are the tasks that done with mmdot. Generally they are called
-# by groups.
-actions:
-  - name: Render Encrypted SSH Config
-    action: template
-    tags: [personal, ssh]
-    template: ./.data/templates/ssh_config.tmpl
-    destination: ~/.ssh/config
-    mode: "0600"
+variables:
+  vars:
+    var1: global values
+  var_files:
+    - ./.data/vars/vault.toml
+    - ./.data/vars/vault.toml?vault=true
+    - ./.data/vars/vars.toml
+
+templates:
+  - name: Host File template
+    tags: [personal]
+    template: |
+      # Host file template
+    output: ./.data/
+    perm: 0600
+    vars:
+      vars_local: value local

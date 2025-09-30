@@ -13,9 +13,9 @@ import (
 )
 
 type ConfigFile struct {
-	Age       Age       `yaml:"age"`
-	Variables Variables `yaml:"variables"`
-	Actions   []Action  `yaml:"actions"`
+	Age       Age        `yaml:"age"`
+	Variables Variables  `yaml:"variables"`
+	Templates []Template `yaml:"templates"`
 }
 
 func SetupEnv(cfgpath string) (ConfigFile, error) {
@@ -102,6 +102,45 @@ type Variables struct {
 }
 
 type VarFile struct {
-	Path    string `yaml:"path"`
-	IsVault bool   `yaml:"vault"`
+	Path    string
+	IsVault bool
+}
+
+func (vf *VarFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Try unmarshaling as a string first
+	var path string
+	if err := unmarshal(&path); err == nil {
+		// Parse query parameters if present
+		if idx := strings.Index(path, "?"); idx != -1 {
+			vf.Path = path[:idx]
+			query := path[idx+1:]
+			// Check for vault=true
+			vf.IsVault = strings.Contains(query, "vault=true")
+		} else {
+			vf.Path = path
+			vf.IsVault = false
+		}
+		return nil
+	}
+
+	// Fall back to struct format
+	var v struct {
+		Path    string `yaml:"path"`
+		IsVault bool   `yaml:"vault"`
+	}
+	if err := unmarshal(&v); err != nil {
+		return err
+	}
+	vf.Path = v.Path
+	vf.IsVault = v.IsVault
+	return nil
+}
+
+type Template struct {
+	Name        string         `yaml:"name"`
+	Tags        []string       `yaml:"tags"`
+	Template    string         `yaml:"template"` // File or Template
+	Output      string         `yaml:"output"`
+	Permissions string         `yaml:"perm"` // Must be valid permissions
+	Vars        map[string]any `yaml:"vars"`
 }

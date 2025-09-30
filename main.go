@@ -63,7 +63,7 @@ func main() {
 				Aliases:     []string{"c"},
 				Usage:       "path to the mmdot configuration file",
 				Required:    false,
-				Value:       "mmdot.toml",
+				Value:       "mmdot.yml",
 				Sources:     envvars("CONFIG_PATH"),
 				Destination: &flags.ConfigFilePath,
 			},
