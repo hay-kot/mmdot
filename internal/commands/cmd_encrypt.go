@@ -23,8 +23,8 @@ func NewEncryptCmd(coreFlags *core.Flags) *EncryptCmd {
 func (ec *EncryptCmd) Register(app *cli.Command) *cli.Command {
 	cmds := []*cli.Command{
 		{
-			Name:        "encrypt",
-			Usage:       "encrypt all secrets files in-place",
+			Name:  "encrypt",
+			Usage: "encrypt all secrets files in-place",
 			Description: `Encrypts all configured secret files using age encryption.
 
 Files to encrypt are specified in mmdot.toml under various sections like:
@@ -39,11 +39,11 @@ The command will:
 
 Encrypted files use the age format and can only be decrypted with the
 corresponding age identity (private key).`,
-			Action:      ec.encrypt,
+			Action: ec.encrypt,
 		},
 		{
-			Name:        "decrypt",
-			Usage:       "decrypt all secrets files in-place",
+			Name:  "decrypt",
+			Usage: "decrypt all secrets files in-place",
 			Description: `Decrypts all configured .age encrypted files.
 
 The command will:
@@ -54,7 +54,7 @@ The command will:
 
 This is typically used when you need to edit secret files or when setting up
 a new machine from encrypted configuration files.`,
-			Action:      ec.decrypt,
+			Action: ec.decrypt,
 		},
 	}
 
@@ -63,7 +63,7 @@ a new machine from encrypted configuration files.`,
 }
 
 func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
-	cfg, err := setupEnv(ec.coreFlags.ConfigFilePath)
+	cfg, err := core.SetupEnv(ec.coreFlags.ConfigFilePath)
 	if err != nil {
 		return err
 	}
@@ -128,15 +128,15 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 }
 
 func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
-	cfg, err := setupEnv(ec.coreFlags.ConfigFilePath)
+	cfg, err := core.SetupEnv(ec.coreFlags.ConfigFilePath)
 	if err != nil {
 		return err
 	}
 
 	identity, err := cfg.Age.ReadIdentity()
-  if err != nil {
-  	return err
-  }
+	if err != nil {
+		return err
+	}
 
 	files := cfg.EncryptedFiles()
 	if len(files) == 0 {

@@ -119,7 +119,7 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 
 	// If it's a vault file, expect .age extension
 	if vf.IsVault {
-		if !filepath.Ext(path) == ".age" {
+		if filepath.Ext(path) != ".age" {
 			path = path + ".age"
 		}
 
@@ -137,7 +137,7 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 		if err != nil {
 			return nil, err
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 
 		err = fcrypt.DecryptReader(file, buff, identity)
 		if err != nil {

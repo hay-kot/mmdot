@@ -1,4 +1,4 @@
-package brew
+package core
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ type DiffResult struct {
 // - Present: Items in config and installed on the machine
 // - Absent: Items in config but not installed on the machine
 // - Extra: Items installed on the machine but not in the config (drift detection)
-func (c *Config) Diff() (*DiffResult, error) {
+func (c *Brews) Diff() (*DiffResult, error) {
 	// Get the list of brews installed on the machine with spinner UI
 	installedBrews := getInstalledBrews()
 

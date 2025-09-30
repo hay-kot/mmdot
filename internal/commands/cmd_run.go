@@ -65,7 +65,7 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 		Arguments: []cli.Argument{
 			&cli.StringArg{
 				Name:        "group",
-				UsageText:   "action or bundle name containing scripts to execute",
+				UsageText:   "group name to be applied to arguments",
 				Min:         0,
 				Max:         1,
 				Config:      cli.StringConfig{TrimSpace: true},
@@ -73,7 +73,7 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
-			cfg, err := setupEnv(sc.coreFlags.ConfigFilePath)
+			cfg, err := core.SetupEnv(sc.coreFlags.ConfigFilePath)
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,8 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 				Str("args:group", sc.group).
 				Msg("run cmd")
 
-			return sc.run(ctx, cfg.Exec, cfg.Bundles, cfg.Actions)
+			return sc.run(ctx, cfg.Exec, nil, nil)
+			// return sc.run(ctx, cfg.Exec, cfg.Bundles, cfg.Actions)
 		},
 	}
 
@@ -94,7 +95,7 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 
 func (sc *RunCmd) run(
 	ctx context.Context,
-	execs actions.ExecConfig,
+	execs core.Exec,
 	bundles map[string]actions.Bundle,
 	actionsMap map[string]actions.Action,
 ) error {
@@ -157,7 +158,6 @@ func (sc *RunCmd) run(
 			Options(options...).
 			Value(&selected).
 			Run()
-
 		if err != nil {
 			return err
 		}
@@ -204,7 +204,7 @@ func (sc *RunCmd) run(
 		log.Debug().Str("path", script.Path).Strs("tags", script.Tags).Msg("Executing script")
 
 		// Make script executable
-		if err := os.Chmod(script.Path, 0755); err != nil {
+		if err := os.Chmod(script.Path, 0o755); err != nil {
 			log.Error().Err(err).Str("path", script.Path).Msg("Failed to set script permissions")
 			return err
 		}

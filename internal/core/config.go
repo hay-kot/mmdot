@@ -13,9 +13,23 @@ import (
 )
 
 type ConfigFile struct {
+	Exec      Exec       `yaml:"exec"`
 	Age       Age        `yaml:"age"`
+	Brews     ConfigMap  `yaml:"brews"`
 	Variables Variables  `yaml:"variables"`
 	Templates []Template `yaml:"templates"`
+}
+
+// ExecConfig represents the shell execution configuration
+type Exec struct {
+	Shell   string   `toml:"shell"`
+	Scripts []Script `toml:"scripts"`
+}
+
+// Script represents a single executable script with associated tags
+type Script struct {
+	Path string   `toml:"path"`
+	Tags []string `toml:"tags"`
 }
 
 func SetupEnv(cfgpath string) (ConfigFile, error) {

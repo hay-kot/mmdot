@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/hay-kot/mmdot/internal/brew"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
@@ -64,7 +63,7 @@ The compiled files will be written to the paths specified in each brew configura
 }
 
 func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
-	cfg, err := setupEnv(bc.flags.ConfigFilePath)
+	cfg, err := core.SetupEnv(bc.flags.ConfigFilePath)
 	if err != nil {
 		return err
 	}
@@ -73,7 +72,7 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 	if arg == "" || !slices.Contains(keys, arg) {
 		return fmt.Errorf("invalid brew, please provide one of: %v", strings.Join(keys, ", "))
 	}
-	brewCfg := brew.Get(cfg.Brews, arg)
+	brewCfg := cfg.Brews.Get(arg)
 	if brewCfg == nil {
 		panic("brew config not found")
 	}
@@ -140,13 +139,13 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 }
 
 func (bc *BrewCmd) compile(ctx context.Context, c *cli.Command) error {
-	cfg, err := setupEnv(bc.flags.ConfigFilePath)
+	cfg, err := core.SetupEnv(bc.flags.ConfigFilePath)
 	if err != nil {
 		return err
 	}
 
 	for v := range cfg.Brews {
-		cfg := brew.Get(cfg.Brews, v)
+		cfg := cfg.Brews.Get(v)
 
 		if cfg.Outfile == "" {
 			continue
