@@ -10,7 +10,7 @@ variables:
 
 templates:
   - name: Host File Template
-    tags: [personal]
+    tags: [personal, test]
     template: |-
       {{- range $key, $value := .homelab_ssh_config }}
       Host {{ $key }}
@@ -33,9 +33,9 @@ exec:
   shell: /bin/bash
   scripts:
     # dev
-    - { path: "data/scripts/script1.sh", tags: ["personal"] }
-    - { path: "data/scripts/script2.sh", tags: ["work"] }
-    - { path: "data/scripts/script3.sh", tags: ["personal", "mac"] }
+    - { path: ".data/scripts/script1.sh", tags: ["personal"] }
+    - { path: ".data/scripts/script2.sh", tags: ["work"] }
+    - { path: ".data/scripts/test_script.sh", tags: ["personal", "test"] }
 
 brew:
   grafana:

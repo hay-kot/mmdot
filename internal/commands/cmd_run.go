@@ -11,7 +11,9 @@ import (
 	"syscall"
 
 	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/internal/generator"
 	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
@@ -99,8 +101,9 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		terminalWidth = 80
 	}
 
-	// Gather scripts based on selection mode
+	// Gather scripts and templates based on selection mode
 	var matchedScripts []core.Script
+	var matchedTemplates []core.Template
 	var tagsToFilter []string
 
 	switch {
@@ -117,56 +120,128 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 			tagsToFilter = append(tagsToFilter, sc.flags.Tags...)
 		}
 
-		// Filter scripts by tags
+		// Filter scripts and templates by tags
 		matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, tagsToFilter)
+		matchedTemplates = filterTemplatesByTags(cfg.Templates, tagsToFilter)
 
 	case len(sc.flags.Tags) > 0:
 		// Filter by tags from flags
 		matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, sc.flags.Tags)
+		matchedTemplates = filterTemplatesByTags(cfg.Templates, sc.flags.Tags)
 
 	default:
-		// Interactive selection mode
-		options := []huh.Option[string]{}
+		// Interactive selection mode with form for templates and scripts
+		templateOptions := []huh.Option[string]{}
+		templateMap := make(map[string]core.Template)
+
+		for _, t := range cfg.Templates {
+			displayStr := fmt.Sprintf("%s (%s)", t.Name, strings.Join(t.Tags, ", "))
+			templateOptions = append(templateOptions, huh.NewOption(displayStr, t.Name))
+			templateMap[t.Name] = t
+		}
+
+		scriptOptions := []huh.Option[string]{}
 		scriptMap := make(map[string]core.Script)
 
 		for _, s := range cfg.Exec.Scripts {
 			displayStr := fmt.Sprintf("%s (%s)", s.Path, strings.Join(s.Tags, ", "))
-			options = append(options, huh.NewOption(displayStr, s.Path))
+			scriptOptions = append(scriptOptions, huh.NewOption(displayStr, s.Path))
 			scriptMap[s.Path] = s
 		}
 
-		selected := []string{}
-		err := huh.NewMultiSelect[string]().
-			Title("Select Scripts to Run").
-			Options(options...).
-			Value(&selected).
-			Run()
-		if err != nil {
+		selectedTemplates := []string{}
+		selectedScripts := []string{}
+
+		form := huh.NewForm(
+			huh.NewGroup(
+				huh.NewMultiSelect[string]().
+					Title("Select Templates to Generate").
+					Options(templateOptions...).
+					Value(&selectedTemplates),
+				huh.NewMultiSelect[string]().
+					Title("Select Scripts to Run").
+					Options(scriptOptions...).
+					Value(&selectedScripts),
+			),
+		)
+
+		if err := form.Run(); err != nil {
 			return err
 		}
 
-		for _, selectedPath := range selected {
+		for _, selectedName := range selectedTemplates {
+			if template, ok := templateMap[selectedName]; ok {
+				matchedTemplates = append(matchedTemplates, template)
+			}
+		}
+
+		for _, selectedPath := range selectedScripts {
 			if script, ok := scriptMap[selectedPath]; ok {
 				matchedScripts = append(matchedScripts, script)
 			}
 		}
 	}
 
-	if len(matchedScripts) == 0 {
-		fmt.Println("No scripts matched the specified criteria")
+	if len(matchedScripts) == 0 && len(matchedTemplates) == 0 {
+		fmt.Println("No scripts or templates matched the specified criteria")
 		return nil
 	}
 
-	// If list flag is set, just list the scripts without executing
+	// If list flag is set, just list the templates and scripts without executing
 	if sc.flags.List {
 		p := printer.New(os.Stdout)
 		p.LineBreak()
-		var items []string
-		for _, script := range matchedScripts {
-			items = append(items, fmt.Sprintf("%s (tags: %s)", script.Path, strings.Join(script.Tags, ", ")))
+
+		if len(matchedTemplates) > 0 {
+			var items []string
+			for _, template := range matchedTemplates {
+				items = append(items, fmt.Sprintf("%s (tags: %s)", template.Name, strings.Join(template.Tags, ", ")))
+			}
+			p.List("Templates to generate:", items)
+			p.LineBreak()
 		}
-		p.List("Scripts to run:", items)
+
+		if len(matchedScripts) > 0 {
+			var items []string
+			for _, script := range matchedScripts {
+				items = append(items, fmt.Sprintf("%s (tags: %s)", script.Path, strings.Join(script.Tags, ", ")))
+			}
+			p.List("Scripts to run:", items)
+		}
 		return nil
+	}
+
+	// Generate templates FIRST before running scripts
+	if len(matchedTemplates) > 0 {
+		engine := generator.NewEngine(&cfg)
+
+		for _, tmpl := range matchedTemplates {
+			// Print styled header for template
+			fmt.Println(createStyledHeader("TEMPLATE", tmpl.Name, terminalWidth))
+
+			if err := engine.RenderTemplate(ctx, tmpl); err != nil {
+				return fmt.Errorf("failed to generate template %s: %w", tmpl.Name, err)
+			}
+
+			// Print template section
+			pathStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#bb9af7"))
+			successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e"))
+			templateContentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#9aa5ce"))
+
+			// Print Output Path and Status
+			fmt.Printf("Status       %s\n", successStyle.Render("Rendered"))
+			fmt.Printf("Output Path  %s\n", pathStyle.Render(tmpl.Output))
+			fmt.Println()
+
+			// Print Template Body label and content
+			fmt.Println("Template Body:")
+			templateLines := strings.Split(tmpl.Template, "\n")
+			for _, line := range templateLines {
+				fmt.Println(templateContentStyle.Render("  " + line))
+			}
+
+			fmt.Println() // Add blank line after template generation
+		}
 	}
 
 	// Create a cancellation context with signal handling
@@ -175,15 +250,12 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 
 	// Execute matched scripts
 	for _, script := range matchedScripts {
-		// Create dividing line
-		dividerPrefix := fmt.Sprintf("-- [SCRIPT] %s ", filepath.Base(script.Path))
-		dividerRemainder := strings.Repeat("-", terminalWidth-len(dividerPrefix))
-
 		// Create a cancelable context for each script
 		scriptCtx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		fmt.Println(dividerPrefix + dividerRemainder)
+		// Print styled header for script
+		fmt.Println(createStyledHeader("SCRIPT", filepath.Base(script.Path), terminalWidth))
 		log.Debug().Str("path", script.Path).Strs("tags", script.Tags).Msg("Executing script")
 
 		// Make script executable
@@ -240,4 +312,77 @@ func filterScriptsByTags(scripts []core.Script, tags []string) []core.Script {
 	}
 
 	return filtered
+}
+
+// filterTemplatesByTags returns templates that match all specified tags
+func filterTemplatesByTags(templates []core.Template, tags []string) []core.Template {
+	if len(tags) == 0 {
+		return templates
+	}
+
+	var filtered []core.Template
+
+	for _, template := range templates {
+		// Check if template has all the required tags
+		hasAllTags := true
+		for _, requiredTag := range tags {
+			found := false
+			for _, templateTag := range template.Tags {
+				if templateTag == requiredTag {
+					found = true
+					break
+				}
+			}
+			if !found {
+				hasAllTags = false
+				break
+			}
+		}
+
+		if hasAllTags {
+			filtered = append(filtered, template)
+		}
+	}
+
+	return filtered
+}
+
+// createStyledHeader creates a styled header for templates and scripts
+func createStyledHeader(label, name string, terminalWidth int) string {
+	// Create styled label with brackets and color
+	labelStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#7aa2f7")).
+		Bold(true)
+
+	bracketStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#565f89"))
+
+	nameStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#c0caf5"))
+
+	dividerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#565f89"))
+
+	// Build the header parts
+	leftPart := fmt.Sprintf("%s %s%s%s %s ",
+		dividerStyle.Render("--"),
+		bracketStyle.Render("["),
+		labelStyle.Render(label),
+		bracketStyle.Render("]"),
+		nameStyle.Render(name),
+	)
+
+	// Calculate visible length (excluding ANSI codes)
+	// Approximate: "-- [LABEL] name "
+	visibleLength := 4 + len(label) + len(name) + 4 // "-- " + "[" + label + "]" + " " + name + " "
+
+	// Fill remaining space with dashes
+	remainingSpace := terminalWidth - visibleLength
+	if remainingSpace < 0 {
+		remainingSpace = 0
+	}
+
+	divider := dividerStyle.Render(strings.Repeat("-", remainingSpace))
+
+	return leftPart + divider
 }
