@@ -4,7 +4,6 @@ go 1.23
 
 require (
 	filippo.io/age v1.2.1
-	github.com/BurntSushi/toml v1.4.0
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20250228115947-334300b07206
 	github.com/charmbracelet/lipgloss v1.0.0
