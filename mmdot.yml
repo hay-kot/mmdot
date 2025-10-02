@@ -1,6 +1,8 @@
 groups:
-  personal: [personal]
-  grafana: [work]
+  personal:
+    tags: [personal]
+  grafana:
+    tags: [work]
 
 variables:
   var_files:
