@@ -11,7 +11,6 @@ import (
 	"syscall"
 
 	"github.com/charmbracelet/huh"
-	"github.com/hay-kot/mmdot/internal/actions"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
@@ -40,13 +39,13 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 		Usage:     "Execute scripts from the mmdot.yaml configuration",
 		ArgsUsage: "[group]",
 		Description: `Execute scripts defined in your mmdot.yaml configuration file.
- Scripts can be run by specifying an action/bundle group, filtering by tags,
+ Scripts can be run by specifying a group (which resolves to tags), filtering by tags,
  or through interactive selection.
 
  Examples:
-	 mmdot run setup           # Run all scripts in the 'setup' action
-	 mmdot run --tags install  # Run all scripts tagged with 'install'
-	 mmdot run --list setup    # List scripts in 'setup' without executing
+	 mmdot run personal        # Run all scripts with tags from 'personal' group
+	 mmdot run --tags work     # Run all scripts tagged with 'work'
+	 mmdot run --list personal # List scripts in 'personal' without executing
 	 mmdot run                 # Interactive script selection`,
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
@@ -84,8 +83,7 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 				Str("args:group", sc.group).
 				Msg("run cmd")
 
-			return sc.run(ctx, cfg.Exec, nil, nil)
-			// return sc.run(ctx, cfg.Exec, cfg.Bundles, cfg.Actions)
+			return sc.run(ctx, cfg)
 		},
 	}
 
@@ -93,12 +91,7 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 	return app
 }
 
-func (sc *RunCmd) run(
-	ctx context.Context,
-	execs core.Exec,
-	bundles map[string]actions.Bundle,
-	actionsMap map[string]actions.Action,
-) error {
+func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 	// Get terminal width
 	terminalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
@@ -107,46 +100,36 @@ func (sc *RunCmd) run(
 	}
 
 	// Gather scripts based on selection mode
-	var matchedScripts []actions.Script
+	var matchedScripts []core.Script
+	var tagsToFilter []string
 
 	switch {
 	case sc.group != "":
-		// Get scripts for a specific action
-		actionScripts, err := actions.GetScriptsForAction(actionsMap, bundles, sc.group)
-		if err != nil {
-			return err
+		// Get tags for the specified group
+		group, exists := cfg.Groups[sc.group]
+		if !exists {
+			return fmt.Errorf("group '%s' not found in configuration", sc.group)
+		}
+		tagsToFilter = group.Tags
+
+		// Apply additional tag filtering if tags are specified via flags
+		if len(sc.flags.Tags) > 0 {
+			tagsToFilter = append(tagsToFilter, sc.flags.Tags...)
 		}
 
-		// Apply tag filtering if tags are specified
-		if len(sc.flags.Tags) > 0 {
-			matchedScripts = actions.FilterScriptsByTags(actionScripts, sc.flags.Tags)
-		} else {
-			matchedScripts = actionScripts
-		}
+		// Filter scripts by tags
+		matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, tagsToFilter)
 
 	case len(sc.flags.Tags) > 0:
-		// Collect all scripts from all bundles
-		var allScripts []actions.Script
-		for _, bundle := range bundles {
-			allScripts = append(allScripts, bundle.Scripts...)
-		}
-
-		// Filter by tags
-		matchedScripts = actions.FilterScriptsByTags(allScripts, sc.flags.Tags)
+		// Filter by tags from flags
+		matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, sc.flags.Tags)
 
 	default:
-		// Interactive selection mode - go straight to individual scripts selection
-		var allScripts []actions.Script
-
-		// Collect all scripts from all bundles
-		for _, bundle := range bundles {
-			allScripts = append(allScripts, bundle.Scripts...)
-		}
-
+		// Interactive selection mode
 		options := []huh.Option[string]{}
-		scriptMap := make(map[string]actions.Script)
+		scriptMap := make(map[string]core.Script)
 
-		for _, s := range allScripts {
+		for _, s := range cfg.Exec.Scripts {
 			displayStr := fmt.Sprintf("%s (%s)", s.Path, strings.Join(s.Tags, ", "))
 			options = append(options, huh.NewOption(displayStr, s.Path))
 			scriptMap[s.Path] = s
@@ -210,7 +193,7 @@ func (sc *RunCmd) run(
 		}
 
 		// Execute script with the configured shell
-		cmd := exec.CommandContext(scriptCtx, execs.Shell, script.Path)
+		cmd := exec.CommandContext(scriptCtx, cfg.Exec.Shell, script.Path)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
@@ -224,4 +207,37 @@ func (sc *RunCmd) run(
 		fmt.Println()
 	}
 	return nil
+}
+
+// filterScriptsByTags returns scripts that match all specified tags
+func filterScriptsByTags(scripts []core.Script, tags []string) []core.Script {
+	if len(tags) == 0 {
+		return scripts
+	}
+
+	var filtered []core.Script
+
+	for _, script := range scripts {
+		// Check if script has all the required tags
+		hasAllTags := true
+		for _, requiredTag := range tags {
+			found := false
+			for _, scriptTag := range script.Tags {
+				if scriptTag == requiredTag {
+					found = true
+					break
+				}
+			}
+			if !found {
+				hasAllTags = false
+				break
+			}
+		}
+
+		if hasAllTags {
+			filtered = append(filtered, script)
+		}
+	}
+
+	return filtered
 }

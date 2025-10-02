@@ -13,11 +13,20 @@ import (
 )
 
 type ConfigFile struct {
+	Groups    Groups     `yaml:"groups"`
 	Exec      Exec       `yaml:"exec"`
 	Age       Age        `yaml:"age"`
 	Brews     ConfigMap  `yaml:"brews"`
 	Variables Variables  `yaml:"variables"`
 	Templates []Template `yaml:"templates"`
+}
+
+// Groups maps group names to their configuration
+type Groups map[string]Group
+
+// Group represents a named group with associated tags
+type Group struct {
+	Tags []string `yaml:"tags"`
 }
 
 // ExecConfig represents the shell execution configuration

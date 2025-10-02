@@ -35,6 +35,7 @@ exec:
     # dev
     - { path: "data/scripts/script1.sh", tags: ["personal"] }
     - { path: "data/scripts/script2.sh", tags: ["work"] }
+    - { path: "data/scripts/script3.sh", tags: ["personal", "mac"] }
 
 brew:
   grafana:
