@@ -11,7 +11,7 @@ import (
 	"text/template"
 
 	"filippo.io/age"
-	"github.com/BurntSushi/toml"
+	"github.com/goccy/go-yaml"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/pkgs/fcrypt"
 	"github.com/rs/zerolog/log"
@@ -55,6 +55,14 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 		return NewTemplateError(tmpl.Name, err)
 	}
 
+	// Get output bytes
+	output := buf.Bytes()
+
+	// Trim leading and trailing whitespace if requested
+	if tmpl.ShouldTrim() {
+		output = bytes.TrimSpace(output)
+	}
+
 	// Create output directory if needed
 	if err := os.MkdirAll(filepath.Dir(tmpl.Output), 0o755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
@@ -71,7 +79,7 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 	}
 
 	// Write output file
-	if err := os.WriteFile(tmpl.Output, buf.Bytes(), perm); err != nil {
+	if err := os.WriteFile(tmpl.Output, output, perm); err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
@@ -145,7 +153,7 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 		}
 
 		vars := map[string]any{}
-		if _, err = toml.Decode(buff.String(), &vars); err != nil {
+		if err = yaml.Unmarshal(buff.Bytes(), &vars); err != nil {
 			return nil, err
 		}
 
@@ -164,7 +172,7 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 	}
 
 	vars := map[string]any{}
-	if _, err = toml.Decode(string(data), &vars); err != nil {
+	if err = yaml.Unmarshal(data, &vars); err != nil {
 		return nil, err
 	}
 

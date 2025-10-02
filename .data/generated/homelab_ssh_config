@@ -1,0 +1,9 @@
+Host homelab-server
+    HostName 192.168.1.100
+    IdentityFile ~/.ssh/homelab_key
+    User admin
+
+Host nas
+    HostName 192.168.1.50
+    Port 2222
+    User admin

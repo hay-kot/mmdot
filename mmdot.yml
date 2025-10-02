@@ -1,38 +1,76 @@
-exec:
-  shell: /bin/bash
-  bin: ./.data/scripts
-  scripts:
-    - { path: ./setup/git.sh, tags: [personal] }
-    - { path: ./setup/git.sh, tags: [work] }
-
-age:
-  identity_file: ./.data/age/key.txt
-  recipients:
-    - age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392
-
-# Groups allow you to include different actions based on tag selectors
-# These tags are always present event when another tag is provided via
-# --tags command line argument
-#
-# mmdot run personal
 groups:
   personal: [personal]
-  work: [work]
+  grafana: [work]
 
 variables:
-  vars:
-    var1: global values
   var_files:
-    - ./.data/vars/vault.toml
-    - ./.data/vars/vault.toml?vault=true
-    - ./.data/vars/vars.toml
+    - .data/vars/vault.yml?vault=true
 
 templates:
-  - name: Host File template
+  - name: Host File Template
     tags: [personal]
-    template: |
-      # Host file template
-    output: ./.data/
-    perm: 0600
-    vars:
-      vars_local: value local
+    template: |-
+      {{- range $key, $value := .homelab_ssh_config }}
+      Host {{ $key }}
+      {{- range $k2, $v2 := $value }}
+          {{ $k2 }} {{ $v2 }}
+      {{- end }}
+      {{ end -}}
+    output: .data/generated/homelab_ssh_config
+    perm: "0600"
+  - name: Secrets File
+    tags: [personal]
+    template: |-
+      {{- range $key, $value := .personal_env_secrets }}
+      {{ $key }}={{ $value }}
+      {{- end }}
+    output: .data/generated/.env.local
+    perm: "0600"
+
+exec:
+  shell: /bin/bash
+  scripts:
+    # dev
+    - { path: "data/scripts/script1.sh", tags: ["personal"] }
+    - { path: "data/scripts/script2.sh", tags: ["work"] }
+
+brew:
+  grafana:
+    outfile: .data/generated/brew.grafana.sh
+    includes:
+      - all
+    brews:
+      - terraform
+      - helm
+    taps:
+      - hashicorp/tap
+    casks:
+      - goland
+      - google-cloud-sdk
+    mas: []
+  personal:
+    outfile: .data/generated/brew.personal.sh
+    includes:
+      - all
+    taps:
+      - stripe/stripe-cli
+    brews:
+      - caddy
+      - hugo
+    casks:
+      - obsidian
+      - spotify
+  all:
+    taps:
+      - go-task/tap
+    brews:
+      - git
+      - neovim
+    casks:
+      - wezterm
+      - visual-studio-code
+
+age:
+  identity_file: .data/age/key.txt
+  recipients:
+    - age17tvujaxf04ecgatw483s90zcfssq62lnvgupsyc7pjf8paezwd7sdmt392

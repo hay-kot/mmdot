@@ -157,4 +157,12 @@ type Template struct {
 	Output      string         `yaml:"output"`
 	Permissions string         `yaml:"perm"` // Must be valid permissions
 	Vars        map[string]any `yaml:"vars"`
+	Trim        *bool          `yaml:"trim"` // Trim leading/trailing whitespace from output (default: true)
+}
+
+func (t Template) ShouldTrim() bool {
+	if t.Trim == nil {
+		return true // Default to true
+	}
+	return *t.Trim
 }
