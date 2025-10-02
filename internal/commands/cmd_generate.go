@@ -35,8 +35,8 @@ Example configuration:
     vars:
       user: myusername
     var_files:
-      - ./.data/vars/secrets.toml?vault=true
-      - ./.data/vars/plain.toml
+      - ./.data/vars/secrets.yaml?vault=true
+      - ./.data/vars/plain.yaml
 
   templates:
     - name: SSH Config

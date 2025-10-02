@@ -22,14 +22,14 @@ type ConfigFile struct {
 
 // ExecConfig represents the shell execution configuration
 type Exec struct {
-	Shell   string   `toml:"shell"`
-	Scripts []Script `toml:"scripts"`
+	Shell   string   `yaml:"shell"`
+	Scripts []Script `yaml:"scripts"`
 }
 
 // Script represents a single executable script with associated tags
 type Script struct {
-	Path string   `toml:"path"`
-	Tags []string `toml:"tags"`
+	Path string   `yaml:"path"`
+	Tags []string `yaml:"tags"`
 }
 
 func SetupEnv(cfgpath string) (ConfigFile, error) {

@@ -9,7 +9,6 @@ import (
 	"github.com/hay-kot/mmdot/pkgs/styles"
 )
 
-
 type ConsoleOutput interface {
 	ConsoleOutput() string
 }

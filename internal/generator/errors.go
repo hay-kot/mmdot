@@ -172,4 +172,3 @@ func (te *TemplateError) format() string {
 
 	return sb.String()
 }
-

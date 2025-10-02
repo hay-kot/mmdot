@@ -6,13 +6,13 @@ import (
 )
 
 type Brews struct {
-	Remove   bool     `toml:"remove"`
-	Outfile  string   `toml:"outfile"`
-	Includes []string `toml:"includes"`
-	Brews    []string `toml:"brews"`
-	Taps     []string `toml:"taps"`
-	Casks    []string `toml:"casks"`
-	MAS      []string `toml:"mas"`
+	Remove   bool     `yaml:"remove"`
+	Outfile  string   `yaml:"outfile"`
+	Includes []string `yaml:"includes"`
+	Brews    []string `yaml:"brews"`
+	Taps     []string `yaml:"taps"`
+	Casks    []string `yaml:"casks"`
+	MAS      []string `yaml:"mas"`
 }
 
 // String returns a shell script to install the taps and brews

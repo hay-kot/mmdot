@@ -37,9 +37,9 @@ func NewScriptsCmd(coreFlags *core.Flags) *RunCmd {
 func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 	cmd := &cli.Command{
 		Name:      "run",
-		Usage:     "Execute scripts from the mmdot.toml configuration",
+		Usage:     "Execute scripts from the mmdot.yaml configuration",
 		ArgsUsage: "[group]",
-		Description: `Execute scripts defined in your mmdot.toml configuration file.
+		Description: `Execute scripts defined in your mmdot.yaml configuration file.
  Scripts can be run by specifying an action/bundle group, filtering by tags,
  or through interactive selection.
 

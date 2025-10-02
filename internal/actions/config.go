@@ -7,28 +7,28 @@ import (
 
 // Script represents a single executable script with associated tags
 type Script struct {
-	Path string   `toml:"path"`
-	Tags []string `toml:"tags"`
+	Path string   `yaml:"path"`
+	Tags []string `yaml:"tags"`
 }
 
 // Bundle represents a collection of scripts
 type Bundle struct {
-	Scripts []Script `toml:"scripts"`
+	Scripts []Script `yaml:"scripts"`
 }
 
 // Action represents a collection of bundles to be executed together
 type Action struct {
-	Bundles []string `toml:"bundles"`
+	Bundles []string `yaml:"bundles"`
 }
 
 // ExecConfig represents the shell execution configuration
 type ExecConfig struct {
-	Shell string `toml:"shell"`
+	Shell string `yaml:"shell"`
 }
 
 // Config represents the top-level configuration structure
 type Config struct {
-	Exec ExecConfig `toml:"exec"`
+	Exec ExecConfig `yaml:"exec"`
 }
 
 // GetScriptsForBundle returns all scripts for a given bundle name

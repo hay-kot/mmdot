@@ -27,7 +27,7 @@ func (ec *EncryptCmd) Register(app *cli.Command) *cli.Command {
 			Usage: "encrypt all secrets files in-place",
 			Description: `Encrypts all configured secret files using age encryption.
 
-Files to encrypt are specified in mmdot.toml under various sections like:
+Files to encrypt are specified in mmdot.yaml under various sections like:
 - [ssh.secrets] for SSH private keys and configurations
 - Template varsFile references
 
@@ -70,7 +70,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 
 	// Load the public key
 	if len(cfg.Age.Recipients) == 0 {
-		return fmt.Errorf("no age recipients configured in mmdot.toml")
+		return fmt.Errorf("no age recipients configured in mmdot.yaml")
 	}
 
 	recipient, err := fcrypt.LoadPublicKey(cfg.Age.Recipients[0])
