@@ -64,10 +64,10 @@ jobs:
           git add main.go
           git commit -m "Release ${{ steps.bump-semver.outputs.new_version }}"
 
-      - uses: actions-ecosystem/action-push-tag@v1
-        with:
-          tag: ${{ steps.bump-semver.outputs.new_version }}
-          message: "${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}"
+      - name: "Push tag"
+        run: |
+          git tag -a "${{ steps.bump-semver.outputs.new_version }}" -m "${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}"
+          git push origin "${{ steps.bump-semver.outputs.new_version }}"
 
   goreleaser:
     name: "Release"
