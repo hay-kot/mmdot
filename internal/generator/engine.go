@@ -125,42 +125,44 @@ func (e *Engine) preloadVars() error {
 func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[string]any, error) {
 	path := vf.Path
 
-	// If it's a vault file, expect .age extension
+	// If it's a vault file, try encrypted version first, then fall back to unencrypted
 	if vf.IsVault {
+		encryptedPath := path
 		if filepath.Ext(path) != ".age" {
-			path = path + ".age"
+			encryptedPath = path + ".age"
 		}
 
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			log.Warn().Str("path", path).Msg("vault file does not exist, skipping")
-			return nil, nil
+		// Try encrypted file first
+		if _, err := os.Stat(encryptedPath); err == nil {
+			if identity == nil {
+				return nil, fmt.Errorf("no identity loaded for encrypted file %s", encryptedPath)
+			}
+
+			buff := bytes.NewBuffer([]byte{})
+			file, err := os.Open(encryptedPath)
+			if err != nil {
+				return nil, err
+			}
+			defer func() { _ = file.Close() }()
+
+			err = fcrypt.DecryptReader(file, buff, identity)
+			if err != nil {
+				return nil, err
+			}
+
+			vars := map[string]any{}
+			if err = yaml.Unmarshal(buff.Bytes(), &vars); err != nil {
+				return nil, err
+			}
+
+			return vars, nil
 		}
 
-		if identity == nil {
-			return nil, fmt.Errorf("no identity loaded for encrypted file %s", path)
-		}
-
-		buff := bytes.NewBuffer([]byte{})
-		file, err := os.Open(path)
-		if err != nil {
-			return nil, err
-		}
-		defer func() { _ = file.Close() }()
-
-		err = fcrypt.DecryptReader(file, buff, identity)
-		if err != nil {
-			return nil, err
-		}
-
-		vars := map[string]any{}
-		if err = yaml.Unmarshal(buff.Bytes(), &vars); err != nil {
-			return nil, err
-		}
-
-		return vars, nil
+		// Fall back to unencrypted file
+		log.Debug().Str("encrypted_path", encryptedPath).Str("fallback_path", path).Msg("encrypted vault not found, trying unencrypted")
 	}
 
-	// Non-encrypted file
+	// Non-encrypted file (or vault fallback)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.Warn().Str("path", path).Msg("vars file does not exist, skipping")
 		return nil, nil

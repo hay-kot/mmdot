@@ -69,7 +69,65 @@ func SetupEnv(cfgpath string) (ConfigFile, error) {
 		return cfg, err
 	}
 
+	// Create path resolver and resolve all paths in config
+	pr := PathResolver{configDir: configDir}
+	err = cfg.resolvePaths(pr)
+	if err != nil {
+		return cfg, err
+	}
+
 	return cfg, nil
+}
+
+// resolvePaths resolves all path properties in the config using the PathResolver
+func (c *ConfigFile) resolvePaths(pr PathResolver) error {
+	// Resolve Age identity file path
+	if c.Age.IdentityFile != "" {
+		resolved, err := pr.Resolve(c.Age.IdentityFile)
+		if err != nil {
+			return fmt.Errorf("failed to resolve age identity file path: %w", err)
+		}
+		c.Age.IdentityFile = resolved
+	}
+
+	// Resolve variable file paths
+	for i := range c.Variables.VarFiles {
+		resolved, err := pr.Resolve(c.Variables.VarFiles[i].Path)
+		if err != nil {
+			return fmt.Errorf("failed to resolve var file path: %w", err)
+		}
+		c.Variables.VarFiles[i].Path = resolved
+	}
+
+	// Resolve template paths (template input and output)
+	for i := range c.Templates {
+
+		if c.Templates[i].Template != "" && !strings.Contains(c.Templates[i].Template, "{{") {
+			resolved, err := pr.Resolve(c.Templates[i].Template)
+			if err != nil {
+				return fmt.Errorf("failed to resolve template path: %w", err)
+			}
+			c.Templates[i].Template = resolved
+		}
+		if c.Templates[i].Output != "" {
+			resolved, err := pr.Resolve(c.Templates[i].Output)
+			if err != nil {
+				return fmt.Errorf("failed to resolve template output path: %w", err)
+			}
+			c.Templates[i].Output = resolved
+		}
+	}
+
+	// Resolve exec script paths
+	for i := range c.Exec.Scripts {
+		resolved, err := pr.Resolve(c.Exec.Scripts[i].Path)
+		if err != nil {
+			return fmt.Errorf("failed to resolve exec script path: %w", err)
+		}
+		c.Exec.Scripts[i].Path = resolved
+	}
+
+	return nil
 }
 
 // Returns a list of all files that should to be encrypted
