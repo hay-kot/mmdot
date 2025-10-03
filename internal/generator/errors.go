@@ -95,10 +95,10 @@ func (te *TemplateError) loadContext() {
 func (te *TemplateError) cleanMessage() {
 	// Clean up common template error messages
 	replacements := map[string]string{
-		"can't evaluate field": "unknown field",
+		"can't evaluate field":     "unknown field",
 		"map has no entry for key": "missing key",
-		"executing": "error in",
-		"at <": "accessing variable <",
+		"executing":                "error in",
+		"at <":                     "accessing variable <",
 	}
 
 	for old, new := range replacements {
@@ -121,12 +121,12 @@ func (te *TemplateError) format() string {
 	}
 
 	// Styles using more muted, theme-friendly colors
-	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Bold(true)    // Muted red
+	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Bold(true)     // Muted red
 	fileStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Underline(true) // Blue
 	lineNumStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("8"))              // Dark gray
-	errorLineStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("1"))           // Dark red
-	contextStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))             // Light gray
-	pointerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)  // Yellow
+	errorLineStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("1"))            // Dark red
+	contextStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))              // Light gray
+	pointerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Bold(true)   // Yellow
 
 	var sb strings.Builder
 
@@ -142,10 +142,7 @@ func (te *TemplateError) format() string {
 
 	// Context with error line highlighted
 	if len(te.Context) > 0 {
-		startLine := te.Line - 2
-		if startLine < 1 {
-			startLine = 1
-		}
+		startLine := max(te.Line-2, 1)
 
 		for i, line := range te.Context {
 			currentLine := startLine + i
@@ -158,7 +155,7 @@ func (te *TemplateError) format() string {
 
 				// Add pointer if we have column info
 				if te.Column > 0 && te.Column <= len(line) {
-					spaces := strings.Repeat(" ", 6 + te.Column - 1)
+					spaces := strings.Repeat(" ", 6+te.Column-1)
 					sb.WriteString(spaces + pointerStyle.Render("^") + "\n")
 				}
 			} else {

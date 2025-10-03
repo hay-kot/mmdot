@@ -12,6 +12,7 @@ import (
 
 	"github.com/hay-kot/mmdot/internal/commands"
 	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/pkgs/printer"
 )
 
 var (
@@ -35,6 +36,14 @@ func main() {
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	var (
+		ctx    = context.Background()
+		writer = printer.NewDeferedWriter(os.Stdout)
+	)
+
+	ctx = printer.WithWriter(ctx, writer)
+	printer.ConsolePrinter = printer.Ctx(ctx)
+
 	app := &cli.Command{
 		EnableShellCompletion: true,
 		Name:                  "mmdot",
@@ -54,7 +63,7 @@ func main() {
 				Aliases:     []string{"c"},
 				Usage:       "path to the mmdot configuration file",
 				Required:    false,
-				Value:       "mmdot.toml",
+				Value:       "mmdot.yml",
 				Sources:     envvars("CONFIG_PATH"),
 				Destination: &flags.ConfigFilePath,
 			},
@@ -79,16 +88,26 @@ func main() {
 	subcommands := []subcommand{
 		commands.NewScriptsCmd(flags),
 		commands.NewBrewCmd(flags),
-		commands.NewGenerateCmd(flags),
+		commands.NewEncryptCmd(flags),
+		commands.NewHookCmd(flags),
 	}
 
 	for _, s := range subcommands {
 		app = s.Register(app)
 	}
 
+	exitCode := 0
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		log.Fatal().Err(err).Msg("failed to run mmdot")
+		printer.Ctx(ctx).LineBreak()
+		printer.Ctx(ctx).FatalError(err)
+		exitCode = 1
 	}
+
+	err := writer.Flush()
+	if err != nil {
+		panic(err)
+	}
+	os.Exit(exitCode)
 }
 
 // envars adds a namespace prefix for the environment variables of the application

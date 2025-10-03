@@ -3,10 +3,11 @@ module github.com/hay-kot/mmdot
 go 1.23
 
 require (
-	github.com/BurntSushi/toml v1.4.0
+	filippo.io/age v1.2.1
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20250228115947-334300b07206
 	github.com/charmbracelet/lipgloss v1.0.0
+	github.com/goccy/go-yaml v1.18.0
 	github.com/rs/zerolog v1.31.0
 	github.com/urfave/cli/v3 v3.0.0-beta1
 	golang.org/x/term v0.28.0
@@ -33,6 +34,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.18.0 // indirect

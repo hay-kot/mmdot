@@ -1,22 +1,22 @@
-package brew
+package core
 
 import (
 	"fmt"
 	"strings"
 )
 
-type Config struct {
-	Remove   bool     `toml:"remove"`
-	Outfile  string   `toml:"outfile"`
-	Includes []string `toml:"includes"`
-	Brews    []string `toml:"brews"`
-	Taps     []string `toml:"taps"`
-	Casks    []string `toml:"casks"`
-	MAS      []string `toml:"mas"`
+type Brews struct {
+	Remove   bool     `yaml:"remove"`
+	Outfile  string   `yaml:"outfile"`
+	Includes []string `yaml:"includes"`
+	Brews    []string `yaml:"brews"`
+	Taps     []string `yaml:"taps"`
+	Casks    []string `yaml:"casks"`
+	MAS      []string `yaml:"mas"`
 }
 
 // String returns a shell script to install the taps and brews
-func (c *Config) String() string {
+func (c *Brews) String() string {
 	var script strings.Builder
 
 	script.WriteString(`#!/bin/bash
@@ -92,9 +92,9 @@ set -u
 	return script.String()
 }
 
-type ConfigMap = map[string]*Config
+type ConfigMap map[string]*Brews
 
-func Get(cm map[string]*Config, key string) *Config {
+func (cm ConfigMap) Get(key string) *Brews {
 	// If the key doesn't exist, return nil
 	if _, exists := cm[key]; !exists {
 		return nil
@@ -108,7 +108,7 @@ func Get(cm map[string]*Config, key string) *Config {
 	processedConfigs[key] = true
 
 	// Merge included configurations
-	mergedConfig := &Config{
+	mergedConfig := &Brews{
 		Remove:  baseConfig.Remove,
 		Outfile: baseConfig.Outfile,
 		Brews:   make([]string, 0),
@@ -138,7 +138,7 @@ func Get(cm map[string]*Config, key string) *Config {
 }
 
 // Helper method to recursively merge included configurations
-func mergeIncludes(cm map[string]*Config, key string, processed map[string]bool) *Config {
+func mergeIncludes(cm map[string]*Brews, key string, processed map[string]bool) *Brews {
 	// Check for circular dependency
 	if processed[key] {
 		return nil
@@ -154,7 +154,7 @@ func mergeIncludes(cm map[string]*Config, key string, processed map[string]bool)
 	processed[key] = true
 
 	// Create a merged configuration
-	mergedConfig := &Config{
+	mergedConfig := &Brews{
 		Brews: make([]string, 0),
 		Taps:  make([]string, 0),
 		Casks: make([]string, 0),
