@@ -88,7 +88,6 @@ func main() {
 	subcommands := []subcommand{
 		commands.NewScriptsCmd(flags),
 		commands.NewBrewCmd(flags),
-		commands.NewGenerateCmd(flags),
 		commands.NewEncryptCmd(flags),
 	}
 

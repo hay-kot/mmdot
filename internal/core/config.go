@@ -129,7 +129,7 @@ type VarFile struct {
 	IsVault bool
 }
 
-func (vf *VarFile) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (vf *VarFile) UnmarshalYAML(unmarshal func(any) error) error {
 	// Try unmarshaling as a string first
 	var path string
 	if err := unmarshal(&path); err == nil {

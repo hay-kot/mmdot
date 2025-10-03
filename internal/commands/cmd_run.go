@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -23,8 +24,9 @@ import (
 type RunCmd struct {
 	coreFlags *core.Flags
 	flags     struct {
-		Tags []string
-		List bool
+		Tags  []string
+		Types []string
+		List  bool
 	}
 	group string
 }
@@ -38,28 +40,36 @@ func NewScriptsCmd(coreFlags *core.Flags) *RunCmd {
 func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 	cmd := &cli.Command{
 		Name:      "run",
-		Usage:     "Execute scripts from the mmdot.yaml configuration",
+		Usage:     "Execute scripts and generate templates from the mmdot.yaml configuration",
 		ArgsUsage: "[group]",
-		Description: `Execute scripts defined in your mmdot.yaml configuration file.
- Scripts can be run by specifying a group (which resolves to tags), filtering by tags,
+		Description: `Execute scripts and generate templates defined in your mmdot.yaml configuration file.
+ Items can be run by specifying a group (which resolves to tags), filtering by tags and type,
  or through interactive selection.
 
  Examples:
-	 mmdot run personal        # Run all scripts with tags from 'personal' group
-	 mmdot run --tags work     # Run all scripts tagged with 'work'
-	 mmdot run --list personal # List scripts in 'personal' without executing
-	 mmdot run                 # Interactive script selection`,
+	 mmdot run personal                  # Run all templates and scripts from 'personal' group
+	 mmdot run --tags work               # Run all items tagged with 'work'
+	 mmdot run --type template           # Generate all templates
+	 mmdot run --type script             # Run all scripts
+	 mmdot run personal --type template  # Generate templates from 'personal' group
+	 mmdot run --list personal           # List items in 'personal' without executing
+	 mmdot run                           # Interactive selection`,
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
 				Name:        "tags",
 				Aliases:     []string{"t"},
-				Usage:       "filter scripts by tags (can specify multiple)",
+				Usage:       "filter scripts and templates by tags (can specify multiple)",
 				Destination: &sc.flags.Tags,
+			},
+			&cli.StringSliceFlag{
+				Name:        "type",
+				Usage:       "filter by type: 'template' or 'script' (default: both)",
+				Destination: &sc.flags.Types,
 			},
 			&cli.BoolFlag{
 				Name:        "list",
 				Aliases:     []string{"ls", "l"},
-				Usage:       "list matching scripts without executing them",
+				Usage:       "list matching items without executing them",
 				Destination: &sc.flags.List,
 			},
 		},
@@ -101,6 +111,10 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		terminalWidth = 80
 	}
 
+	// Determine which types to include
+	includeTemplates := sc.shouldIncludeType("template")
+	includeScripts := sc.shouldIncludeType("script")
+
 	// Gather scripts and templates based on selection mode
 	var matchedScripts []core.Script
 	var matchedTemplates []core.Template
@@ -121,63 +135,91 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		}
 
 		// Filter scripts and templates by tags
-		matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, tagsToFilter)
-		matchedTemplates = filterTemplatesByTags(cfg.Templates, tagsToFilter)
+		if includeScripts {
+			matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, tagsToFilter)
+		}
+		if includeTemplates {
+			matchedTemplates = filterTemplatesByTags(cfg.Templates, tagsToFilter)
+		}
 
 	case len(sc.flags.Tags) > 0:
 		// Filter by tags from flags
-		matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, sc.flags.Tags)
-		matchedTemplates = filterTemplatesByTags(cfg.Templates, sc.flags.Tags)
+		if includeScripts {
+			matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, sc.flags.Tags)
+		}
+		if includeTemplates {
+			matchedTemplates = filterTemplatesByTags(cfg.Templates, sc.flags.Tags)
+		}
 
 	default:
 		// Interactive selection mode with form for templates and scripts
-		templateOptions := []huh.Option[string]{}
-		templateMap := make(map[string]core.Template)
-
-		for _, t := range cfg.Templates {
-			displayStr := fmt.Sprintf("%s (%s)", t.Name, strings.Join(t.Tags, ", "))
-			templateOptions = append(templateOptions, huh.NewOption(displayStr, t.Name))
-			templateMap[t.Name] = t
-		}
-
-		scriptOptions := []huh.Option[string]{}
-		scriptMap := make(map[string]core.Script)
-
-		for _, s := range cfg.Exec.Scripts {
-			displayStr := fmt.Sprintf("%s (%s)", s.Path, strings.Join(s.Tags, ", "))
-			scriptOptions = append(scriptOptions, huh.NewOption(displayStr, s.Path))
-			scriptMap[s.Path] = s
-		}
+		var formGroups []*huh.Group
 
 		selectedTemplates := []string{}
 		selectedScripts := []string{}
 
-		form := huh.NewForm(
-			huh.NewGroup(
-				huh.NewMultiSelect[string]().
-					Title("Select Templates to Generate").
-					Options(templateOptions...).
-					Value(&selectedTemplates),
-				huh.NewMultiSelect[string]().
-					Title("Select Scripts to Run").
-					Options(scriptOptions...).
-					Value(&selectedScripts),
-			),
-		)
+		if includeTemplates {
+			templateOptions := []huh.Option[string]{}
+			templateMap := make(map[string]core.Template)
 
-		if err := form.Run(); err != nil {
-			return err
-		}
-
-		for _, selectedName := range selectedTemplates {
-			if template, ok := templateMap[selectedName]; ok {
-				matchedTemplates = append(matchedTemplates, template)
+			for _, t := range cfg.Templates {
+				displayStr := fmt.Sprintf("%s (%s)", t.Name, strings.Join(t.Tags, ", "))
+				templateOptions = append(templateOptions, huh.NewOption(displayStr, t.Name))
+				templateMap[t.Name] = t
 			}
+
+			if len(templateOptions) > 0 {
+				formGroups = append(formGroups, huh.NewGroup(
+					huh.NewMultiSelect[string]().
+						Title("Select Templates to Generate").
+						Options(templateOptions...).
+						Value(&selectedTemplates),
+				))
+			}
+
+			// Store template map for later use
+			defer func() {
+				for _, selectedName := range selectedTemplates {
+					if template, ok := templateMap[selectedName]; ok {
+						matchedTemplates = append(matchedTemplates, template)
+					}
+				}
+			}()
 		}
 
-		for _, selectedPath := range selectedScripts {
-			if script, ok := scriptMap[selectedPath]; ok {
-				matchedScripts = append(matchedScripts, script)
+		if includeScripts {
+			scriptOptions := []huh.Option[string]{}
+			scriptMap := make(map[string]core.Script)
+
+			for _, s := range cfg.Exec.Scripts {
+				displayStr := fmt.Sprintf("%s (%s)", s.Path, strings.Join(s.Tags, ", "))
+				scriptOptions = append(scriptOptions, huh.NewOption(displayStr, s.Path))
+				scriptMap[s.Path] = s
+			}
+
+			if len(scriptOptions) > 0 {
+				formGroups = append(formGroups, huh.NewGroup(
+					huh.NewMultiSelect[string]().
+						Title("Select Scripts to Run").
+						Options(scriptOptions...).
+						Value(&selectedScripts),
+				))
+			}
+
+			// Store script map for later use
+			defer func() {
+				for _, selectedPath := range selectedScripts {
+					if script, ok := scriptMap[selectedPath]; ok {
+						matchedScripts = append(matchedScripts, script)
+					}
+				}
+			}()
+		}
+
+		if len(formGroups) > 0 {
+			form := huh.NewForm(formGroups...)
+			if err := form.Run(); err != nil {
+				return err
 			}
 		}
 	}
@@ -281,6 +323,17 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 	return nil
 }
 
+// shouldIncludeType determines if the given type should be included based on --type flags
+func (sc *RunCmd) shouldIncludeType(typeName string) bool {
+	// If no types specified, include everything
+	if len(sc.flags.Types) == 0 {
+		return true
+	}
+
+	// Check if the type is in the list
+	return slices.Contains(sc.flags.Types, typeName)
+}
+
 // filterScriptsByTags returns scripts that match all specified tags
 func filterScriptsByTags(scripts []core.Script, tags []string) []core.Script {
 	if len(tags) == 0 {
@@ -293,13 +346,7 @@ func filterScriptsByTags(scripts []core.Script, tags []string) []core.Script {
 		// Check if script has all the required tags
 		hasAllTags := true
 		for _, requiredTag := range tags {
-			found := false
-			for _, scriptTag := range script.Tags {
-				if scriptTag == requiredTag {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(script.Tags, requiredTag)
 			if !found {
 				hasAllTags = false
 				break
@@ -326,13 +373,7 @@ func filterTemplatesByTags(templates []core.Template, tags []string) []core.Temp
 		// Check if template has all the required tags
 		hasAllTags := true
 		for _, requiredTag := range tags {
-			found := false
-			for _, templateTag := range template.Tags {
-				if templateTag == requiredTag {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(template.Tags, requiredTag)
 			if !found {
 				hasAllTags = false
 				break
@@ -377,10 +418,7 @@ func createStyledHeader(label, name string, terminalWidth int) string {
 	visibleLength := 4 + len(label) + len(name) + 4 // "-- " + "[" + label + "]" + " " + name + " "
 
 	// Fill remaining space with dashes
-	remainingSpace := terminalWidth - visibleLength
-	if remainingSpace < 0 {
-		remainingSpace = 0
-	}
+	remainingSpace := max(terminalWidth-visibleLength, 0)
 
 	divider := dividerStyle.Render(strings.Repeat("-", remainingSpace))
 
