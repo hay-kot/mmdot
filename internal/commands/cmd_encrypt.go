@@ -14,6 +14,7 @@ import (
 
 type EncryptCmd struct {
 	coreFlags *core.Flags
+	dryRun    bool
 }
 
 func NewEncryptCmd(coreFlags *core.Flags) *EncryptCmd {
@@ -39,6 +40,13 @@ The command will:
 
 Encrypted files use the age format and can only be decrypted with the
 corresponding age identity (private key).`,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:        "dry-run",
+					Usage:       "check if files need encryption without encrypting them",
+					Destination: &ec.dryRun,
+				},
+			},
 			Action: ec.encrypt,
 		},
 		{
@@ -68,25 +76,14 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	// Load the public key
-	if len(cfg.Age.Recipients) == 0 {
-		return fmt.Errorf("no age recipients configured in mmdot.yaml")
-	}
-
-	recipient, err := fcrypt.LoadPublicKey(cfg.Age.Recipients[0])
-	if err != nil {
-		return fmt.Errorf("failed to load public key: %w", err)
-	}
-
 	files := cfg.EncryptedFiles()
 	if len(files) == 0 {
 		log.Info().Msg("No files configured for encryption")
 		return nil
 	}
 
-	log.Info().Int("count", len(files)).Msg("Found files to encrypt")
-
-	encryptedCount := 0
+	// Collect files that need encryption
+	filesToEncrypt := []string{}
 	for _, file := range files {
 		var sourceFile, targetFile string
 
@@ -113,17 +110,57 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 			continue
 		}
 
+		filesToEncrypt = append(filesToEncrypt, sourceFile)
+	}
+
+	// Dry-run mode: just check and report
+	if ec.dryRun {
+		if len(filesToEncrypt) > 0 {
+			log.Error().Msg("Found unencrypted vault files:")
+			for _, file := range filesToEncrypt {
+				log.Error().Str("file", file).Msg("  - needs encryption")
+			}
+			return fmt.Errorf("found %d unencrypted vault file(s)", len(filesToEncrypt))
+		}
+		log.Info().Msg("All vault files are encrypted")
+		return nil
+	}
+
+	// Normal mode: encrypt files
+	if len(filesToEncrypt) == 0 {
+		log.Info().Msg("All vault files are already encrypted")
+		return nil
+	}
+
+	// Load the public key
+	if len(cfg.Age.Recipients) == 0 {
+		return fmt.Errorf("no age recipients configured in mmdot.yaml")
+	}
+
+	recipient, err := fcrypt.LoadPublicKey(cfg.Age.Recipients[0])
+	if err != nil {
+		return fmt.Errorf("failed to load public key: %w", err)
+	}
+
+	log.Info().Int("count", len(filesToEncrypt)).Msg("Encrypting files")
+
+	for _, sourceFile := range filesToEncrypt {
+		targetFile := sourceFile + ".age"
+		if strings.HasSuffix(sourceFile, ".age") {
+			targetFile = sourceFile
+			sourceFile = strings.TrimSuffix(sourceFile, ".age")
+		}
+
 		// Encrypt the file
 		log.Info().Str("source", sourceFile).Str("target", targetFile).Msg("Encrypting file")
 		if err := fcrypt.EncryptFile(sourceFile, targetFile, recipient); err != nil {
 			return fmt.Errorf("failed to encrypt %s: %w", sourceFile, err)
 		}
 
-		encryptedCount++
 		log.Info().Str("file", targetFile).Msg("File encrypted successfully")
 	}
 
-	log.Info().Int("count", encryptedCount).Msg("Encryption complete")
+	log.Info().Int("count", len(filesToEncrypt)).Msg("Encryption complete")
 	return nil
 }
 
