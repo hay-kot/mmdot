@@ -77,8 +77,6 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 			&cli.StringArg{
 				Name:        "group",
 				UsageText:   "group name to be applied to arguments",
-				Min:         0,
-				Max:         1,
 				Config:      cli.StringConfig{TrimSpace: true},
 				Destination: &sc.group,
 			},
@@ -277,8 +275,8 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 
 			// Print Template Body label and content
 			fmt.Println("Template Body:")
-			templateLines := strings.Split(tmpl.Template, "\n")
-			for _, line := range templateLines {
+			templateLines := strings.SplitSeq(tmpl.Template, "\n")
+			for line := range templateLines {
 				fmt.Println(templateContentStyle.Render("  " + line))
 			}
 
