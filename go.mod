@@ -7,6 +7,7 @@ require (
 	github.com/charmbracelet/huh v0.7.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20250929091620-889bfce58d1e
 	github.com/charmbracelet/lipgloss v1.1.0
+	github.com/expr-lang/expr v1.17.6
 	github.com/goccy/go-yaml v1.18.0
 	github.com/rs/zerolog v1.34.0
 	github.com/urfave/cli/v3 v3.4.1
