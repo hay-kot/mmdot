@@ -4,18 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
-	"os/signal"
-	"path/filepath"
-	"slices"
-	"strings"
-	"syscall"
 
 	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/hay-kot/mmdot/internal/core"
-	"github.com/hay-kot/mmdot/internal/generator"
-	"github.com/hay-kot/mmdot/pkgs/printer"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
@@ -24,11 +15,10 @@ import (
 type RunCmd struct {
 	coreFlags *core.Flags
 	flags     struct {
-		Tags  []string
 		Types []string
 		List  bool
 	}
-	group string
+	expr string
 }
 
 func NewScriptsCmd(coreFlags *core.Flags) *RunCmd {
@@ -41,30 +31,29 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 	cmd := &cli.Command{
 		Name:      "run",
 		Usage:     "Execute scripts and generate templates from the mmdot.yaml configuration",
-		ArgsUsage: "[group]",
+		ArgsUsage: "[expression]",
 		Description: `Execute scripts and generate templates defined in your mmdot.yaml configuration file.
- Items can be run by specifying a group (which resolves to tags), filtering by tags and type,
- or through interactive selection.
+ Items can be filtered using expressions or selected interactively.
 
  Examples:
-	 mmdot run personal                  # Run all templates and scripts from 'personal' group
-	 mmdot run --tags work               # Run all items tagged with 'work'
-	 mmdot run --type template           # Generate all templates
-	 mmdot run --type script             # Run all scripts
-	 mmdot run personal --type template  # Generate templates from 'personal' group
-	 mmdot run --list personal           # List items in 'personal' without executing
-	 mmdot run                           # Interactive selection`,
+	 mmdot run                                    # Interactive selection
+	 mmdot run "true"                             # Run all templates and scripts
+	 mmdot run '"work" in tags'                   # Run items tagged with 'work'
+	 mmdot run 'name == "mytemplate"'             # Run specific item by name
+	 mmdot run --type template                    # Generate all templates
+	 mmdot run --type script '"deploy" in tags'   # Run scripts tagged with 'deploy'
+	 mmdot run --list '"prod" in tags'            # List items without executing
+
+ Expression variables:
+	 - name: Item name (template name or script basename)
+	 - path: Full path (scripts only)
+	 - tags: Array of tags`,
 		Flags: []cli.Flag{
-			&cli.StringSliceFlag{
-				Name:        "tags",
-				Aliases:     []string{"t"},
-				Usage:       "filter scripts and templates by tags (can specify multiple)",
-				Destination: &sc.flags.Tags,
-			},
 			&cli.StringSliceFlag{
 				Name:        "type",
 				Usage:       "filter by type: 'template' or 'script' (default: both)",
 				Destination: &sc.flags.Types,
+				Value:       []string{RunnerTypeTemplate, RunnerTypeScript},
 			},
 			&cli.BoolFlag{
 				Name:        "list",
@@ -75,10 +64,10 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 		},
 		Arguments: []cli.Argument{
 			&cli.StringArg{
-				Name:        "group",
-				UsageText:   "group name to be applied to arguments",
+				Name:        "expression",
+				UsageText:   "expression to filter items (e.g., '\"tag\" in tags')",
 				Config:      cli.StringConfig{TrimSpace: true},
-				Destination: &sc.group,
+				Destination: &sc.expr,
 			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
@@ -88,9 +77,9 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 			}
 
 			log.Debug().
-				Strs("tags", sc.flags.Tags).
 				Bool("list", sc.flags.List).
-				Str("args:group", sc.group).
+				Str("expr", sc.expr).
+				Strs("types", sc.flags.Types).
 				Msg("run cmd")
 
 			return sc.run(ctx, cfg)
@@ -102,6 +91,13 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 }
 
 func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
+	// TODO: Missing functionality:
+	// - --list flag: runners don't expose a list-only mode yet
+	types, err := RunnerTypeFromStrings(sc.flags.Types)
+	if err != nil {
+		return err
+	}
+
 	// Get terminal width
 	terminalWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
@@ -109,109 +105,25 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		terminalWidth = 80
 	}
 
-	// Determine which types to include
-	includeTemplates := sc.shouldIncludeType("template")
-	includeScripts := sc.shouldIncludeType("script")
+	// Order matters, they will be executed in the order that they are set here.
+	runners := []Runner{
+		NewTemplateRunner(&cfg),
+		NewScriptRunner(&cfg),
+	}
 
-	// Gather scripts and templates based on selection mode
-	var matchedScripts []core.Script
-	var matchedTemplates []core.Template
-	var tagsToFilter []string
+	// Determine execution mode: interactive vs expression-based
+	useInteractiveMode := sc.expr == ""
 
-	switch {
-	case sc.group != "":
-		// Get tags for the specified group
-		group, exists := cfg.Groups[sc.group]
-		if !exists {
-			return fmt.Errorf("group '%s' not found in configuration", sc.group)
-		}
-		tagsToFilter = group.Tags
-
-		// Apply additional tag filtering if tags are specified via flags
-		if len(sc.flags.Tags) > 0 {
-			tagsToFilter = append(tagsToFilter, sc.flags.Tags...)
-		}
-
-		// Filter scripts and templates by tags
-		if includeScripts {
-			matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, tagsToFilter)
-		}
-		if includeTemplates {
-			matchedTemplates = filterTemplatesByTags(cfg.Templates, tagsToFilter)
-		}
-
-	case len(sc.flags.Tags) > 0:
-		// Filter by tags from flags
-		if includeScripts {
-			matchedScripts = filterScriptsByTags(cfg.Exec.Scripts, sc.flags.Tags)
-		}
-		if includeTemplates {
-			matchedTemplates = filterTemplatesByTags(cfg.Templates, sc.flags.Tags)
-		}
-
-	default:
-		// Interactive selection mode with form for templates and scripts
+	if useInteractiveMode {
+		// Interactive selection mode
 		var formGroups []*huh.Group
 
-		selectedTemplates := []string{}
-		selectedScripts := []string{}
-
-		if includeTemplates {
-			templateOptions := []huh.Option[string]{}
-			templateMap := make(map[string]core.Template)
-
-			for _, t := range cfg.Templates {
-				displayStr := fmt.Sprintf("%s (%s)", t.Name, strings.Join(t.Tags, ", "))
-				templateOptions = append(templateOptions, huh.NewOption(displayStr, t.Name))
-				templateMap[t.Name] = t
+		for _, r := range runners {
+			g := r.Form(ctx)
+			if g != nil {
+				formGroups = append(formGroups, g)
 			}
 
-			if len(templateOptions) > 0 {
-				formGroups = append(formGroups, huh.NewGroup(
-					huh.NewMultiSelect[string]().
-						Title("Select Templates to Generate").
-						Options(templateOptions...).
-						Value(&selectedTemplates),
-				))
-			}
-
-			// Store template map for later use
-			defer func() {
-				for _, selectedName := range selectedTemplates {
-					if template, ok := templateMap[selectedName]; ok {
-						matchedTemplates = append(matchedTemplates, template)
-					}
-				}
-			}()
-		}
-
-		if includeScripts {
-			scriptOptions := []huh.Option[string]{}
-			scriptMap := make(map[string]core.Script)
-
-			for _, s := range cfg.Exec.Scripts {
-				displayStr := fmt.Sprintf("%s (%s)", s.Path, strings.Join(s.Tags, ", "))
-				scriptOptions = append(scriptOptions, huh.NewOption(displayStr, s.Path))
-				scriptMap[s.Path] = s
-			}
-
-			if len(scriptOptions) > 0 {
-				formGroups = append(formGroups, huh.NewGroup(
-					huh.NewMultiSelect[string]().
-						Title("Select Scripts to Run").
-						Options(scriptOptions...).
-						Value(&selectedScripts),
-				))
-			}
-
-			// Store script map for later use
-			defer func() {
-				for _, selectedPath := range selectedScripts {
-					if script, ok := scriptMap[selectedPath]; ok {
-						matchedScripts = append(matchedScripts, script)
-					}
-				}
-			}()
 		}
 
 		if len(formGroups) > 0 {
@@ -219,175 +131,25 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 			if err := form.Run(); err != nil {
 				return err
 			}
+		} else {
+			fmt.Println("No templates or scripts available")
+			return nil
 		}
 	}
 
-	if len(matchedScripts) == 0 && len(matchedTemplates) == 0 {
-		fmt.Println("No scripts or templates matched the specified criteria")
-		return nil
+	// Execute args
+	executeArgs := ExecuteArgs{
+		Types:         types,
+		TerminalWidth: terminalWidth,
+		Expr:          sc.expr,
 	}
 
-	// If list flag is set, just list the templates and scripts without executing
-	if sc.flags.List {
-		p := printer.New(os.Stdout)
-		p.LineBreak()
-
-		if len(matchedTemplates) > 0 {
-			var items []string
-			for _, template := range matchedTemplates {
-				items = append(items, fmt.Sprintf("%s (tags: %s)", template.Name, strings.Join(template.Tags, ", ")))
-			}
-			p.List("Templates to generate:", items)
-			p.LineBreak()
-		}
-
-		if len(matchedScripts) > 0 {
-			var items []string
-			for _, script := range matchedScripts {
-				items = append(items, fmt.Sprintf("%s (tags: %s)", script.Path, strings.Join(script.Tags, ", ")))
-			}
-			p.List("Scripts to run:", items)
-		}
-		return nil
-	}
-
-	// Generate templates FIRST before running scripts
-	if len(matchedTemplates) > 0 {
-		engine := generator.NewEngine(&cfg)
-
-		for _, tmpl := range matchedTemplates {
-			// Print styled header for template
-			fmt.Println(createStyledHeader("TEMPLATE", tmpl.Name, terminalWidth))
-
-			if err := engine.RenderTemplate(ctx, tmpl); err != nil {
-				return fmt.Errorf("failed to generate template %s: %w", tmpl.Name, err)
-			}
-
-			// Print template section
-			pathStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#bb9af7"))
-			successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e"))
-			templateContentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#9aa5ce"))
-
-			// Print Output Path and Status
-			fmt.Printf("Status       %s\n", successStyle.Render("Rendered"))
-			fmt.Printf("Output Path  %s\n", pathStyle.Render(tmpl.Output))
-			fmt.Println()
-
-			// Print Template Body label and content
-			fmt.Println("Template Body:")
-			templateLines := strings.SplitSeq(tmpl.Template, "\n")
-			for line := range templateLines {
-				fmt.Println(templateContentStyle.Render("  " + line))
-			}
-
-			fmt.Println() // Add blank line after template generation
-		}
-	}
-
-	// Create a cancellation context with signal handling
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	// Execute matched scripts
-	for _, script := range matchedScripts {
-		// Create a cancelable context for each script
-		scriptCtx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
-		// Print styled header for script
-		fmt.Println(createStyledHeader("SCRIPT", filepath.Base(script.Path), terminalWidth))
-		log.Debug().
-			Str("path", script.Path).
-			Str("workdir", cfg.ConfigDir).
-			Strs("tags", script.Tags).
-			Msg("Executing script")
-
-		// Make script executable
-		if err := os.Chmod(script.Path, 0o755); err != nil {
-			log.Error().Err(err).Str("path", script.Path).Msg("Failed to set script permissions")
+	for _, r := range runners {
+		// Execute templates first (they may generate files that scripts need)
+		if err := r.Execute(ctx, executeArgs); err != nil {
 			return err
 		}
-
-		// Execute script with the configured shell
-		cmd := exec.CommandContext(scriptCtx, cfg.Exec.Shell, script.Path)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		cmd.Dir = cfg.ConfigDir // Run script in config directory
-
-		if err := cmd.Run(); err != nil {
-			log.Error().Err(err).Str("path", script.Path).Msg("Script execution failed")
-			return err
-		}
-
-		// Add a newline after script execution for readability
-		fmt.Println()
 	}
+
 	return nil
 }
-
-// shouldIncludeType determines if the given type should be included based on --type flags
-func (sc *RunCmd) shouldIncludeType(typeName string) bool {
-	// If no types specified, include everything
-	if len(sc.flags.Types) == 0 {
-		return true
-	}
-
-	// Check if the type is in the list
-	return slices.Contains(sc.flags.Types, typeName)
-}
-
-// filterScriptsByTags returns scripts that match all specified tags
-func filterScriptsByTags(scripts []core.Script, tags []string) []core.Script {
-	if len(tags) == 0 {
-		return scripts
-	}
-
-	var filtered []core.Script
-
-	for _, script := range scripts {
-		// Check if script has all the required tags
-		hasAllTags := true
-		for _, requiredTag := range tags {
-			found := slices.Contains(script.Tags, requiredTag)
-			if !found {
-				hasAllTags = false
-				break
-			}
-		}
-
-		if hasAllTags {
-			filtered = append(filtered, script)
-		}
-	}
-
-	return filtered
-}
-
-// filterTemplatesByTags returns templates that match all specified tags
-func filterTemplatesByTags(templates []core.Template, tags []string) []core.Template {
-	if len(tags) == 0 {
-		return templates
-	}
-
-	var filtered []core.Template
-
-	for _, template := range templates {
-		// Check if template has all the required tags
-		hasAllTags := true
-		for _, requiredTag := range tags {
-			found := slices.Contains(template.Tags, requiredTag)
-			if !found {
-				hasAllTags = false
-				break
-			}
-		}
-
-		if hasAllTags {
-			filtered = append(filtered, template)
-		}
-	}
-
-	return filtered
-}
-

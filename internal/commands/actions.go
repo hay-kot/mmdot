@@ -11,12 +11,32 @@ import (
 	"github.com/expr-lang/expr/vm"
 )
 
-type RunnerType string
+type RunnerType = string
 
 const (
-	RunnerTypeTemplate = "template"
-	RunnerTypeScript   = "script"
+	RunnerTypeTemplate RunnerType = "template"
+	RunnerTypeScript   RunnerType = "script"
 )
+
+// RunnerTypeFromStrings converts a slice of strings to a slice of RunnerType values.
+// Returns an error if any string is not a valid RunnerType.
+func RunnerTypeFromStrings(strs []string) ([]RunnerType, error) {
+	result := make([]RunnerType, 0, len(strs))
+
+	for i, str := range strs {
+		rt := RunnerType(str)
+
+		// Validate that the string is a valid RunnerType
+		if rt != RunnerTypeTemplate && rt != RunnerTypeScript {
+			return nil, fmt.Errorf("invalid runner type at index %d: %q (expected %q or %q)",
+				i, str, RunnerTypeTemplate, RunnerTypeScript)
+		}
+
+		result = append(result, rt)
+	}
+
+	return result, nil
+}
 
 type ExecuteArgs struct {
 	Types         []RunnerType
