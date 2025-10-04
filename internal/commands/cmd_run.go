@@ -296,7 +296,11 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 
 		// Print styled header for script
 		fmt.Println(createStyledHeader("SCRIPT", filepath.Base(script.Path), terminalWidth))
-		log.Debug().Str("path", script.Path).Strs("tags", script.Tags).Msg("Executing script")
+		log.Debug().
+			Str("path", script.Path).
+			Str("workdir", cfg.ConfigDir).
+			Strs("tags", script.Tags).
+			Msg("Executing script")
 
 		// Make script executable
 		if err := os.Chmod(script.Path, 0o755); err != nil {
@@ -309,6 +313,7 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
+		cmd.Dir = cfg.ConfigDir // Run script in config directory
 
 		if err := cmd.Run(); err != nil {
 			log.Error().Err(err).Str("path", script.Path).Msg("Script execution failed")

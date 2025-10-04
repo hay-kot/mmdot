@@ -19,6 +19,7 @@ type ConfigFile struct {
 	Brews     ConfigMap  `yaml:"brews"`
 	Variables Variables  `yaml:"variables"`
 	Templates []Template `yaml:"templates"`
+	ConfigDir string     `yaml:"-"` // Directory containing the config file (not serialized)
 }
 
 // Groups maps group names to their configuration
@@ -52,6 +53,8 @@ func SetupEnv(cfgpath string) (ConfigFile, error) {
 	}
 
 	configDir := filepath.Dir(absolutePath)
+	cfg.ConfigDir = configDir
+
 	err = os.Chdir(configDir)
 	if err != nil {
 		return cfg, err
