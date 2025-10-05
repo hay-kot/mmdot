@@ -18,6 +18,7 @@ const (
 const (
 	ColorSuccess = "#22c55e"
 	ColorError   = "#d75f6b"
+	ColorSubtle  = "#a3a3a3"
 )
 
 var (
@@ -27,5 +28,19 @@ var (
 
 	Error   = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorError)).Render
 	Success = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorSuccess)).PaddingLeft(1).Render
-	Subtle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#a3a3a3")).PaddingLeft(1).Render
+	Subtle  = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorSubtle)).PaddingLeft(1).Render
 )
+
+// ErrorBox creates a bordered error box with title and message
+func ErrorBox(title, message string) string {
+	redStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(ColorError))
+	subtleStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(ColorSubtle))
+
+	lines := []string{
+		redStyle.Render("╭ " + title),
+		redStyle.Render("│") + " " + subtleStyle.Render(message),
+		redStyle.Render("╵"),
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, lines...)
+}

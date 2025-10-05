@@ -71,8 +71,9 @@ func (c *Printer) FatalError(err error) {
 		return
 	}
 
-	bldr.WriteString("fatal: ")
-	bldr.WriteString(styles.Error(err.Error()))
+	// Create error box with red border
+	errorBox := styles.ErrorBox("An error occurred", err.Error())
+	bldr.WriteString(errorBox)
 	bldr.WriteString("\n")
 
 	c.write(bldr.String())
