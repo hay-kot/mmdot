@@ -51,7 +51,7 @@ func (sr *ScriptRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 		}
 	default:
 		// Compile expression once before loop
-		program, err := compileExpr(args.Expr)
+		program, err := compileExpr(args.Expr, args.Macros)
 		if err != nil {
 			return fmt.Errorf("invalid expression: %w", err)
 		}

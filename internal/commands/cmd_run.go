@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 	"github.com/hay-kot/mmdot/internal/core"
@@ -62,19 +63,13 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 				Destination: &sc.flags.List,
 			},
 		},
-		Arguments: []cli.Argument{
-			&cli.StringArg{
-				Name:        "expression",
-				UsageText:   "expression to filter items (e.g., '\"tag\" in tags')",
-				Config:      cli.StringConfig{TrimSpace: true},
-				Destination: &sc.expr,
-			},
-		},
 		Action: func(ctx context.Context, c *cli.Command) error {
 			cfg, err := core.SetupEnv(sc.coreFlags.ConfigFilePath)
 			if err != nil {
 				return err
 			}
+
+			sc.expr = strings.Join(c.Args().Slice(), " ")
 
 			log.Debug().
 				Bool("list", sc.flags.List).
@@ -142,6 +137,7 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		Types:         types,
 		TerminalWidth: terminalWidth,
 		Expr:          sc.expr,
+		Macros:        cfg.Macros,
 	}
 
 	for _, r := range runners {

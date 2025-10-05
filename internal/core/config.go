@@ -13,21 +13,13 @@ import (
 )
 
 type ConfigFile struct {
-	Groups    Groups     `yaml:"groups"`
-	Exec      Exec       `yaml:"exec"`
-	Age       Age        `yaml:"age"`
-	Brews     ConfigMap  `yaml:"brews"`
-	Variables Variables  `yaml:"variables"`
-	Templates []Template `yaml:"templates"`
-	ConfigDir string     `yaml:"-"` // Directory containing the config file (not serialized)
-}
-
-// Groups maps group names to their configuration
-type Groups map[string]Group
-
-// Group represents a named group with associated tags
-type Group struct {
-	Tags []string `yaml:"tags"`
+	Macros    map[string]string `yaml:"macros"`
+	Exec      Exec              `yaml:"exec"`
+	Age       Age               `yaml:"age"`
+	Brews     ConfigMap         `yaml:"brews"`
+	Variables Variables         `yaml:"variables"`
+	Templates []Template        `yaml:"templates"`
+	ConfigDir string            `yaml:"-"` // Directory containing the config file (not serialized)
 }
 
 // ExecConfig represents the shell execution configuration
@@ -160,7 +152,7 @@ func (a Age) ReadIdentity() (age.Identity, error) {
 
 	// Parse the identity file, skipping comments and empty lines
 	var keyLine string
-	for _, line := range strings.Split(string(identityData), "\n") {
+	for line := range strings.SplitSeq(string(identityData), "\n") {
 		line = strings.TrimSpace(line)
 		if line != "" && !strings.HasPrefix(line, "#") {
 			keyLine = line

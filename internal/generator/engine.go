@@ -83,11 +83,6 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
-	log.Debug().
-		Str("template", tmpl.Name).
-		Str("output", tmpl.Output).
-		Msg("rendered template")
-
 	return nil
 }
 

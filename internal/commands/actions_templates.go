@@ -50,7 +50,7 @@ func (tr *TemplateRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 		}
 	default:
 		// Compile expression once before loop
-		program, err := compileExpr(args.Expr)
+		program, err := compileExpr(args.Expr, args.Macros)
 		if err != nil {
 			return fmt.Errorf("invalid expression: %w", err)
 		}
@@ -88,6 +88,12 @@ func (tr *TemplateRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 		if err := tr.engine.RenderTemplate(ctx, tmpl); err != nil {
 			return fmt.Errorf("failed to generate template %s: %w", tmpl.Name, err)
 		}
+
+		log.Debug().
+			Str("template", tmpl.Name).
+			Str("output", tmpl.Output).
+			Strs("tags", tmpl.Tags).
+			Msg("rendered template")
 
 		// Print Output Path and Status
 		fmt.Printf("Status       %s\n", successStyle.Render("Rendered"))

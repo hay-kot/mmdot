@@ -40,8 +40,9 @@ func RunnerTypeFromStrings(strs []string) ([]RunnerType, error) {
 
 type ExecuteArgs struct {
 	Types         []RunnerType
-	TerminalWidth int    // Width of the Terminal
-	Expr          string // Evaluation Expression
+	TerminalWidth int               // Width of the Terminal
+	Expr          string            // Evaluation Expression
+	Macros        map[string]string // Macro definitions for expression expansion
 }
 
 type Runner interface {
@@ -54,13 +55,53 @@ type Runner interface {
 	Execute(ctx context.Context, args ExecuteArgs) error
 }
 
+// expandMacros replaces @macroname references with their values from the macros map
+func expandMacros(code string, macros map[string]string) (string, error) {
+	if code == "" {
+		return code, nil
+	}
+
+	// Check for macro references in the code
+	if strings.Contains(code, "@") {
+		// Find all @macroname references and validate they exist
+		words := strings.FieldsFunc(code, func(r rune) bool {
+			return r == ' ' || r == '(' || r == ')' || r == '&' || r == '|' || r == '!' || r == '=' || r == '"' || r == '\''
+		})
+
+		for _, word := range words {
+			if strings.HasPrefix(word, "@") {
+				macroName := strings.TrimPrefix(word, "@")
+				if _, exists := macros[macroName]; !exists {
+					return "", fmt.Errorf("undefined macro: @%s", macroName)
+				}
+			}
+		}
+	}
+
+	result := code
+	for key, value := range macros {
+		// Replace @macroname with the macro value
+		// Use strings.ReplaceAll to replace all occurrences
+		placeholder := "@" + key
+		result = strings.ReplaceAll(result, placeholder, "("+value+")")
+	}
+
+	return result, nil
+}
+
 // compileExpr compiles an expression string once for reuse
-func compileExpr(code string) (*vm.Program, error) {
+func compileExpr(code string, macros map[string]string) (*vm.Program, error) {
 	if code == "" {
 		code = "true" // default: match everything
 	}
 
-	return expr.Compile(code, expr.AsBool())
+	// Expand macros before compiling
+	expanded, err := expandMacros(code, macros)
+	if err != nil {
+		return nil, fmt.Errorf("failed to expand macros: %w", err)
+	}
+
+	return expr.Compile(expanded, expr.AsBool())
 }
 
 // evalCompiledExpr evaluates a pre-compiled expression with given context
