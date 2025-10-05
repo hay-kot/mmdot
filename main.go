@@ -83,6 +83,9 @@ func main() {
 
 			return ctx, nil
 		},
+		OnUsageError: func(ctx context.Context, cmd *cli.Command, err error, isSubcommand bool) error {
+			return err
+		},
 	}
 
 	subcommands := []subcommand{
@@ -98,7 +101,6 @@ func main() {
 
 	exitCode := 0
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		printer.Ctx(ctx).LineBreak()
 		printer.Ctx(ctx).FatalError(err)
 		exitCode = 1
 	}

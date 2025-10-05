@@ -47,3 +47,8 @@ tasks:
       - task: tidy
       - task: lint
       - task: test
+
+  release:
+    desc: Creates a new release (only works on main branch)
+    cmds:
+      - ./release.sh
