@@ -50,14 +50,8 @@ func (sr *ScriptRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 			scriptsToRun = append(scriptsToRun, sr.formsScriptMap[selected])
 		}
 	default:
-		// Compile expression once before loop
-		program, err := compileExpr(args.Expr, args.Macros)
-		if err != nil {
-			return fmt.Errorf("invalid expression: %w", err)
-		}
-
 		for _, script := range sr.cfg.Exec.Scripts {
-			enabled, err := evalCompiledExpr(program, map[string]any{
+			enabled, err := evalCompiledExpr(args.Program, map[string]any{
 				"tags": script.Tags,
 				"name": filepath.Base(script.Path),
 				"path": script.Path,

@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
+	"github.com/rs/zerolog/log"
 )
 
 type RunnerType = string
@@ -44,6 +45,7 @@ type ExecuteArgs struct {
 	Expr          string            // Evaluation Expression
 	Macros        map[string]string // Macro definitions for expression expansion
 	List          bool              // List matching items without executing
+	Program       *vm.Program       // Pre-compiled expression program (optional, compiled if nil)
 }
 
 type Runner interface {
@@ -70,8 +72,8 @@ func expandMacros(code string, macros map[string]string) (string, error) {
 		})
 
 		for _, word := range words {
-			if strings.HasPrefix(word, "@") {
-				macroName := strings.TrimPrefix(word, "@")
+			if after, ok :=strings.CutPrefix(word, "@"); ok  {
+				macroName := after
 				if _, exists := macros[macroName]; !exists {
 					return "", fmt.Errorf("undefined macro: @%s", macroName)
 				}
@@ -90,17 +92,82 @@ func expandMacros(code string, macros map[string]string) (string, error) {
 	return result, nil
 }
 
-// compileExpr compiles an expression string once for reuse
-func compileExpr(code string, macros map[string]string) (*vm.Program, error) {
+// expandTagShortcuts extracts +tag and !tag shortcuts and converts them to tag match expressions
+// +tag becomes "tag" in tags (inclusion)
+// !tag becomes not ("tag" in tags) (exclusion)
+// Returns the modified expression and a slice of tag match expressions
+func expandTagShortcuts(code string) (string, []string) {
 	if code == "" {
-		code = "true" // default: match everything
+		return code, nil
 	}
 
-	// Expand macros before compiling
-	expanded, err := expandMacros(code, macros)
-	if err != nil {
-		return nil, fmt.Errorf("failed to expand macros: %w", err)
+	// Split on whitespace to find +tag and !tag patterns
+	words := strings.Fields(code)
+	var tagExprs []string
+	var remainingParts []string
+
+	for _, word := range words {
+		if after, ok := strings.CutPrefix(word, "+"); ok {
+			// Extract tag name for inclusion
+			tag := after
+			if tag != "" {
+				tagExprs = append(tagExprs, fmt.Sprintf(`"%s" in tags`, tag))
+			}
+		} else if after0, ok0 := strings.CutPrefix(word, "!"); ok0 {
+			// Extract tag name for exclusion
+			tag := after0
+			if tag != "" {
+				tagExprs = append(tagExprs, fmt.Sprintf(`not ("%s" in tags)`, tag))
+			}
+		} else {
+			remainingParts = append(remainingParts, word)
+		}
 	}
+
+	// Reconstruct expression without +tag/!tag shortcuts
+	result := strings.Join(remainingParts, " ")
+
+	return result, tagExprs
+}
+
+// compileExpr compiles an expression string once for reuse
+func compileExpr(code string, macros map[string]string, enableExpansions bool) (*vm.Program, error) {
+	expanded := code
+
+	// Only perform expansions if enabled
+	if enableExpansions {
+		// Extract tag shortcuts first
+		expression, tagExprs := expandTagShortcuts(code)
+
+		if expression == "" && len(tagExprs) == 0 {
+			expression = "true" // default: match everything
+		}
+
+		// Expand macros on the remaining expression
+		var err error
+		expanded, err = expandMacros(expression, macros)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand macros: %w", err)
+		}
+
+		// Combine with tag expressions using AND logic
+		if len(tagExprs) > 0 {
+			tagExpr := strings.Join(tagExprs, " && ")
+			if expanded != "" && expanded != "true" {
+				expanded = "(" + expanded + ") && " + tagExpr
+			} else {
+				expanded = tagExpr
+			}
+		}
+	} else if expanded == "" {
+		expanded = "true" // default: match everything when no expression provided
+	}
+
+	log.Debug().
+		Str("original", code).
+		Str("expanded", expanded).
+		Bool("expansions_enabled", enableExpansions).
+		Msg("compiled expression")
 
 	return expr.Compile(expanded, expr.AsBool())
 }

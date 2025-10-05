@@ -16,8 +16,9 @@ import (
 type RunCmd struct {
 	coreFlags *core.Flags
 	flags     struct {
-		Types []string
-		List  bool
+		Types  []string
+		List   bool
+		Macros bool
 	}
 	expr string
 }
@@ -39,11 +40,21 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
  Examples:
 	 mmdot run                                    # Interactive selection
 	 mmdot run "true"                             # Run all templates and scripts
-	 mmdot run '"work" in tags'                   # Run items tagged with 'work'
+	 mmdot run +env                               # Run items tagged with 'env'
+	 mmdot run +work +deploy                      # Run items tagged with both 'work' and 'deploy'
+	 mmdot run +env !brew                         # Run items tagged with 'env' but NOT 'brew'
+	 mmdot run @personal +env                     # Expand @personal macro AND match 'env' tag
+	 mmdot run '"work" in tags'                   # Run items tagged with 'work' (explicit syntax)
 	 mmdot run 'name == "mytemplate"'             # Run specific item by name
 	 mmdot run --type template                    # Generate all templates
-	 mmdot run --type script '"deploy" in tags'   # Run scripts tagged with 'deploy'
-	 mmdot run --list '"prod" in tags'            # List items without executing
+	 mmdot run --type script +deploy !test        # Run scripts tagged with 'deploy' but NOT 'test'
+	 mmdot run --list +prod                       # List items without executing
+
+ Expression syntax:
+	 - +tag: Include items with this tag (converted to '"tag" in tags')
+	 - !tag: Exclude items with this tag (converted to 'not ("tag" in tags)')
+	 - @macro: Expand a macro defined in your config
+	 - Multiple shortcuts are combined with AND logic
 
  Expression variables:
 	 - name: Item name (template name or script basename)
@@ -62,6 +73,12 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 				Usage:       "list matching items without executing them",
 				Destination: &sc.flags.List,
 			},
+			&cli.BoolFlag{
+				Name:        "macros",
+				Usage:       "enable macro (@macro) and tag shortcut (+tag, !tag) expansion (default: true)",
+				Destination: &sc.flags.Macros,
+				Value:       true,
+			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
 			cfg, err := core.SetupEnv(sc.coreFlags.ConfigFilePath)
@@ -74,6 +91,7 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 			log.Debug().
 				Bool("list", sc.flags.List).
 				Strs("types", sc.flags.Types).
+				Bool("macros", sc.flags.Macros).
 				Str("expr", sc.expr).
 				Msg("run cmd")
 
@@ -131,6 +149,12 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		}
 	}
 
+	// Compile expression once for all runners
+	program, err := compileExpr(sc.expr, cfg.Macros, sc.flags.Macros)
+	if err != nil {
+		return fmt.Errorf("invalid expression: %w", err)
+	}
+
 	// Execute args
 	executeArgs := ExecuteArgs{
 		Types:         types,
@@ -138,6 +162,7 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		Expr:          sc.expr,
 		Macros:        cfg.Macros,
 		List:          sc.flags.List,
+		Program:       program,
 	}
 
 	for _, r := range runners {

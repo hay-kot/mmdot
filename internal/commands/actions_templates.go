@@ -49,14 +49,8 @@ func (tr *TemplateRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 			templatesToRun = append(templatesToRun, tr.formsTemplateMap[selected])
 		}
 	default:
-		// Compile expression once before loop
-		program, err := compileExpr(args.Expr, args.Macros)
-		if err != nil {
-			return fmt.Errorf("invalid expression: %w", err)
-		}
-
 		for _, tmpl := range tr.cfg.Templates {
-			enabled, err := evalCompiledExpr(program, map[string]any{
+			enabled, err := evalCompiledExpr(args.Program, map[string]any{
 				"tags": tmpl.Tags,
 				"name": tmpl.Name,
 			})
