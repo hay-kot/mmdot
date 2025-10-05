@@ -73,8 +73,8 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 
 			log.Debug().
 				Bool("list", sc.flags.List).
-				Str("expr", sc.expr).
 				Strs("types", sc.flags.Types).
+				Str("expr", sc.expr).
 				Msg("run cmd")
 
 			return sc.run(ctx, cfg)
@@ -86,8 +86,6 @@ func (sc *RunCmd) Register(app *cli.Command) *cli.Command {
 }
 
 func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
-	// TODO: Missing functionality:
-	// - --list flag: runners don't expose a list-only mode yet
 	types, err := RunnerTypeFromStrings(sc.flags.Types)
 	if err != nil {
 		return err
@@ -107,22 +105,23 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 	}
 
 	// Determine execution mode: interactive vs expression-based
-	useInteractiveMode := sc.expr == ""
+	// Skip interactive mode if --list flag is set
+	useInteractiveMode := sc.expr == "" && !sc.flags.List
 
 	if useInteractiveMode {
 		// Interactive selection mode
-		var formGroups []*huh.Group
+		var fields []huh.Field
 
 		for _, r := range runners {
-			g := r.Form(ctx)
+			g := r.Field(ctx)
 			if g != nil {
-				formGroups = append(formGroups, g)
+				fields = append(fields, g)
 			}
 
 		}
 
-		if len(formGroups) > 0 {
-			form := huh.NewForm(formGroups...)
+		if len(fields) > 0 {
+			form := huh.NewForm(huh.NewGroup(fields...))
 			if err := form.Run(); err != nil {
 				return err
 			}
@@ -138,6 +137,7 @@ func (sc *RunCmd) run(ctx context.Context, cfg core.ConfigFile) error {
 		TerminalWidth: terminalWidth,
 		Expr:          sc.expr,
 		Macros:        cfg.Macros,
+		List:          sc.flags.List,
 	}
 
 	for _, r := range runners {

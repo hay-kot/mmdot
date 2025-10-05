@@ -43,13 +43,14 @@ type ExecuteArgs struct {
 	TerminalWidth int               // Width of the Terminal
 	Expr          string            // Evaluation Expression
 	Macros        map[string]string // Macro definitions for expression expansion
+	List          bool              // List matching items without executing
 }
 
 type Runner interface {
 	// Form returns a group reference that is mounted to a huh.Form for users to select
 	// what actions they want to perform. The [Action] implementer should store the
 	// internal state of the selected values for execution later.
-	Form(ctx context.Context) *huh.Group
+	Field(ctx context.Context) huh.Field
 
 	// Execute the configured [Actions]
 	Execute(ctx context.Context, args ExecuteArgs) error
@@ -147,4 +148,39 @@ func createStyledHeader(label, name string, terminalWidth int) string {
 
 	divider := dividerStyle.Render(strings.Repeat("-", remainingSpace))
 	return leftPart + divider
+}
+
+// ListItem represents an item to be displayed in a list
+type ListItem struct {
+	Name string
+	Tags []string
+}
+
+// printList prints a formatted list with aligned tags
+func printList(title string, items []ListItem) {
+	var (
+		titleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#7aa2f7")).Bold(true).Underline(true)
+		nameStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#c0caf5"))
+		tagStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#565f89")).Italic(true)
+	)
+
+	fmt.Println(" " + titleStyle.Render(title))
+
+	// Find longest name for alignment
+	maxNameLen := 0
+	for _, item := range items {
+		if len(item.Name) > maxNameLen {
+			maxNameLen = len(item.Name)
+		}
+	}
+
+	for _, item := range items {
+		tags := ""
+		if len(item.Tags) > 0 {
+			tags = " " + tagStyle.Render("("+strings.Join(item.Tags, ", ")+")")
+		}
+		padding := strings.Repeat(" ", maxNameLen-len(item.Name))
+		fmt.Printf("  - %s%s%s\n", nameStyle.Render(item.Name), padding, tags)
+	}
+	fmt.Println()
 }

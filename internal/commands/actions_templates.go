@@ -75,6 +75,19 @@ func (tr *TemplateRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 		return nil // nothing to run
 	}
 
+	// List mode: just print the matched templates
+	if args.List {
+		items := make([]ListItem, len(templatesToRun))
+		for i, tmpl := range templatesToRun {
+			items[i] = ListItem{
+				Name: tmpl.Name,
+				Tags: tmpl.Tags,
+			}
+		}
+		printList("Templates", items)
+		return nil
+	}
+
 	var (
 		pathStyle            = lipgloss.NewStyle().Foreground(lipgloss.Color("#bb9af7"))
 		successStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e"))
@@ -114,7 +127,7 @@ func (tr *TemplateRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 }
 
 // Form implements Runner.
-func (tr *TemplateRunner) Form(ctx context.Context) *huh.Group {
+func (tr *TemplateRunner) Field(ctx context.Context) huh.Field {
 	tr.formsActivated = true
 	tr.formsTemplateMap = map[string]core.Template{}
 	tr.formSelected = []string{}
@@ -131,10 +144,8 @@ func (tr *TemplateRunner) Form(ctx context.Context) *huh.Group {
 		return nil
 	}
 
-	return huh.NewGroup(
-		huh.NewMultiSelect[string]().
-			Title("Select Templates to Generate").
-			Options(options...).
-			Value(&tr.formSelected),
-	)
+	return huh.NewMultiSelect[string]().
+		Title("Select Templates to Generate").
+		Options(options...).
+		Value(&tr.formSelected)
 }

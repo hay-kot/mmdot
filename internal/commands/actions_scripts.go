@@ -77,6 +77,19 @@ func (sr *ScriptRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 		return nil // nothing to run
 	}
 
+	// List mode: just print the matched scripts
+	if args.List {
+		items := make([]ListItem, len(scriptsToRun))
+		for i, script := range scriptsToRun {
+			items[i] = ListItem{
+				Name: filepath.Base(script.Path),
+				Tags: script.Tags,
+			}
+		}
+		printList("Scripts", items)
+		return nil
+	}
+
 	// Create a cancellation context with signal handling
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -121,7 +134,7 @@ func (sr *ScriptRunner) Execute(ctx context.Context, args ExecuteArgs) error {
 }
 
 // Form implements Runner.
-func (sr *ScriptRunner) Form(ctx context.Context) *huh.Group {
+func (sr *ScriptRunner) Field(ctx context.Context) huh.Field {
 	sr.formsActivated = true
 	sr.formsScriptMap = map[string]core.Script{}
 	sr.formSelected = []string{}
@@ -138,10 +151,8 @@ func (sr *ScriptRunner) Form(ctx context.Context) *huh.Group {
 		return nil
 	}
 
-	return huh.NewGroup(
-		huh.NewMultiSelect[string]().
-			Title("Select Scripts to Run").
-			Options(options...).
-			Value(&sr.formSelected),
-	)
+	return huh.NewMultiSelect[string]().
+		Title("Select Scripts to Run").
+		Options(options...).
+		Value(&sr.formSelected)
 }
