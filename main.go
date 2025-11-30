@@ -12,6 +12,7 @@ import (
 
 	"github.com/hay-kot/mmdot/internal/commands"
 	"github.com/hay-kot/mmdot/internal/core"
+	"github.com/hay-kot/mmdot/pkgs/cll"
 	"github.com/hay-kot/mmdot/pkgs/printer"
 )
 
@@ -21,6 +22,8 @@ var (
 	commit  = "HEAD"
 	date    = time.Now().Format(time.DateTime)
 )
+
+var envvars = cll.EnvWithPrefix(core.EnvPrefix)
 
 func build() string {
 	short := commit
@@ -88,16 +91,12 @@ func main() {
 		},
 	}
 
-	subcommands := []subcommand{
+	app = cll.Register(app,
 		commands.NewScriptsCmd(flags),
 		commands.NewBrewCmd(flags),
 		commands.NewEncryptCmd(flags),
 		commands.NewHookCmd(flags),
-	}
-
-	for _, s := range subcommands {
-		app = s.Register(app)
-	}
+	)
 
 	exitCode := 0
 	if err := app.Run(context.Background(), os.Args); err != nil {
@@ -110,19 +109,4 @@ func main() {
 		panic(err)
 	}
 	os.Exit(exitCode)
-}
-
-// envars adds a namespace prefix for the environment variables of the application
-func envvars(strs ...string) cli.ValueSourceChain {
-	withPrefix := make([]string, len(strs))
-
-	for i, str := range strs {
-		withPrefix[i] = core.EnvPrefix + str
-	}
-
-	return cli.EnvVars(withPrefix...)
-}
-
-type subcommand interface {
-	Register(*cli.Command) *cli.Command
 }
