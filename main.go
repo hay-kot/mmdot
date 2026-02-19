@@ -18,7 +18,7 @@ import (
 
 var (
 	// Build information. Populated at build-time via -ldflags flag.
-	version = "v0.3.0-develop"
+	version = "v0.4.1"
 	commit  = "HEAD"
 	date    = time.Now().Format(time.DateTime)
 )
