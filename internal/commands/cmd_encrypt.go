@@ -1,12 +1,10 @@
 package commands
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/hay-kot/mmdot/internal/core"
@@ -92,29 +90,33 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 			targetFile = file + ".age"
 		}
 
-		if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
-			log.Debug().Str("file", sourceFile).Msg("Source file doesn't exist, skipping")
-			continue
+		if _, err := os.Stat(sourceFile); err != nil {
+			if os.IsNotExist(err) {
+				log.Debug().Str("file", sourceFile).Msg("Source file doesn't exist, skipping")
+				continue
+			}
+			return fmt.Errorf("failed to stat %s: %w", sourceFile, err)
 		}
 
 		if _, err := os.Stat(targetFile); err == nil {
 			log.Debug().Str("file", targetFile).Msg("Encrypted file already exists, skipping")
 			continue
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("failed to stat %s: %w", targetFile, err)
 		}
 
 		vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
 	}
 
-	// Collect age.files that need encryption (dest exists, src doesn't)
+	// Collect age.files that need encryption (dest plaintext exists)
 	ageFilesToEncrypt := []core.AgeFile{}
 	for _, af := range cfg.Age.Files {
-		if _, err := os.Stat(af.Dest); os.IsNotExist(err) {
-			log.Debug().Str("dest", af.Dest).Msg("Plaintext dest doesn't exist, skipping")
-			continue
-		}
-		if _, err := os.Stat(af.Src); err == nil {
-			log.Debug().Str("src", af.Src).Msg("Encrypted src already exists, skipping")
-			continue
+		if _, err := os.Stat(af.Dest); err != nil {
+			if os.IsNotExist(err) {
+				log.Debug().Str("dest", af.Dest).Msg("Plaintext dest doesn't exist, skipping")
+				continue
+			}
+			return fmt.Errorf("failed to stat %s: %w", af.Dest, err)
 		}
 		ageFilesToEncrypt = append(ageFilesToEncrypt, af)
 	}
@@ -165,7 +167,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		log.Info().Str("file", targetFile).Msg("Vault file encrypted successfully")
 	}
 
-	// Encrypt age.files (dest -> src, delete dest)
+	// Encrypt age.files (dest -> src; EncryptFile removes the plaintext)
 	for _, af := range ageFilesToEncrypt {
 		if err := os.MkdirAll(filepath.Dir(af.Src), 0o755); err != nil {
 			return fmt.Errorf("failed to create parent dir for %s: %w", af.Src, err)
@@ -209,14 +211,19 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 			targetFile = file
 		}
 
-		if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
-			log.Debug().Str("file", sourceFile).Msg("Encrypted file doesn't exist, skipping")
-			continue
+		if _, err := os.Stat(sourceFile); err != nil {
+			if os.IsNotExist(err) {
+				log.Debug().Str("file", sourceFile).Msg("Encrypted file doesn't exist, skipping")
+				continue
+			}
+			return fmt.Errorf("failed to stat %s: %w", sourceFile, err)
 		}
 
 		if _, err := os.Stat(targetFile); err == nil {
 			log.Debug().Str("file", targetFile).Msg("Decrypted file already exists, skipping")
 			continue
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("failed to stat %s: %w", targetFile, err)
 		}
 
 		log.Info().Str("source", sourceFile).Str("target", targetFile).Msg("Decrypting vault file")
@@ -234,14 +241,19 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 
 	// Decrypt age.files (src -> dest, preserve .age file)
 	for _, af := range cfg.Age.Files {
-		if _, err := os.Stat(af.Src); os.IsNotExist(err) {
-			log.Debug().Str("src", af.Src).Msg("Encrypted age file doesn't exist, skipping")
-			continue
+		if _, err := os.Stat(af.Src); err != nil {
+			if os.IsNotExist(err) {
+				log.Debug().Str("src", af.Src).Msg("Encrypted age file doesn't exist, skipping")
+				continue
+			}
+			return fmt.Errorf("failed to stat %s: %w", af.Src, err)
 		}
 
 		if _, err := os.Stat(af.Dest); err == nil {
 			log.Debug().Str("dest", af.Dest).Msg("Decrypted age file already exists, skipping")
 			continue
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("failed to stat %s: %w", af.Dest, err)
 		}
 
 		if err := os.MkdirAll(filepath.Dir(af.Dest), 0o755); err != nil {
@@ -254,7 +266,7 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		if af.Permissions != "" {
-			perm, err := parsePermissions(af.Permissions)
+			perm, err := core.ParseOctalPermissions(af.Permissions)
 			if err != nil {
 				return fmt.Errorf("invalid permissions %q for %s: %w", af.Permissions, af.Dest, err)
 			}
@@ -263,8 +275,11 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 			}
 		}
 
-		if err := ensureGitignored(af.Dest); err != nil {
-			log.Warn().Str("dest", af.Dest).Err(err).Msg("Failed to ensure dest is gitignored")
+		relDest, err := filepath.Rel(".", af.Dest)
+		if err != nil || strings.HasPrefix(relDest, "..") {
+			log.Debug().Str("dest", af.Dest).Msg("Dest outside config dir, skipping gitignore")
+		} else if err := ensureGitignored(relDest); err != nil {
+			return fmt.Errorf("failed to gitignore %s: %w", af.Dest, err)
 		}
 
 		decryptedCount++
@@ -275,44 +290,34 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func parsePermissions(perm string) (os.FileMode, error) {
-	v, err := strconv.ParseUint(perm, 8, 32)
-	if err != nil {
-		return 0, fmt.Errorf("parse octal: %w", err)
-	}
-	return os.FileMode(v), nil
-}
-
 func ensureGitignored(path string) error {
 	gitignorePath := ".gitignore"
 
-	// Read existing gitignore
-	lines := []string{}
-	if f, err := os.Open(gitignorePath); err == nil {
-		scanner := bufio.NewScanner(f)
-		for scanner.Scan() {
-			line := scanner.Text()
-			if line == path {
-				_ = f.Close()
-				return nil // already gitignored
-			}
-			lines = append(lines, line)
+	data, err := os.ReadFile(gitignorePath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("read .gitignore: %w", err)
+	}
+
+	for line := range strings.SplitSeq(string(data), "\n") {
+		if line == path {
+			return nil
 		}
-		_ = f.Close()
 	}
 
-	// Append the path
-	f, err := os.OpenFile(gitignorePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
-	if err != nil {
-		return fmt.Errorf("open .gitignore: %w", err)
-	}
-	defer func() { _ = f.Close() }()
-
-	// Add newline before entry if file doesn't end with one
+	// Need a leading newline if file exists and doesn't end with one
 	prefix := ""
-	if len(lines) > 0 && lines[len(lines)-1] != "" {
+	if len(data) > 0 && data[len(data)-1] != '\n' {
 		prefix = "\n"
 	}
-	_, err = fmt.Fprintf(f, "%s%s\n", prefix, path)
-	return err
+
+	f, err := os.OpenFile(gitignorePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
+	if err != nil {
+		return fmt.Errorf("open .gitignore for writing: %w", err)
+	}
+
+	if _, err := fmt.Fprintf(f, "%s%s\n", prefix, path); err != nil {
+		_ = f.Close()
+		return err
+	}
+	return f.Close()
 }
