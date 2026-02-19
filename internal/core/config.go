@@ -113,6 +113,21 @@ func (c *ConfigFile) resolvePaths(pr PathResolver) error {
 		}
 	}
 
+	// Resolve age file paths
+	for i := range c.Age.Files {
+		resolved, err := pr.Resolve(c.Age.Files[i].Src)
+		if err != nil {
+			return fmt.Errorf("failed to resolve age file src path: %w", err)
+		}
+		c.Age.Files[i].Src = resolved
+
+		resolved, err = pr.Resolve(c.Age.Files[i].Dest)
+		if err != nil {
+			return fmt.Errorf("failed to resolve age file dest path: %w", err)
+		}
+		c.Age.Files[i].Dest = resolved
+	}
+
 	// Resolve exec script paths
 	for i := range c.Exec.Scripts {
 		resolved, err := pr.Resolve(c.Exec.Scripts[i].Path)
@@ -138,9 +153,16 @@ func (c ConfigFile) EncryptedFiles() []string {
 	return files
 }
 
+type AgeFile struct {
+	Src         string `yaml:"src"`
+	Dest        string `yaml:"dest"`
+	Permissions string `yaml:"perm"`
+}
+
 type Age struct {
-	Recipients   []string `yaml:"recipients"`
-	IdentityFile string   `yaml:"identity_file"`
+	Recipients   []string  `yaml:"recipients"`
+	IdentityFile string    `yaml:"identity_file"`
+	Files        []AgeFile `yaml:"files"`
 }
 
 func (a Age) ReadIdentity() (age.Identity, error) {
