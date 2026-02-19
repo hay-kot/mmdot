@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"filippo.io/age"
@@ -113,6 +114,25 @@ func (c *ConfigFile) resolvePaths(pr PathResolver) error {
 		}
 	}
 
+	// Validate and resolve age file paths
+	for i := range c.Age.Files {
+		if err := c.Age.Files[i].Validate(); err != nil {
+			return err
+		}
+
+		resolved, err := pr.Resolve(c.Age.Files[i].Src)
+		if err != nil {
+			return fmt.Errorf("failed to resolve age file src path: %w", err)
+		}
+		c.Age.Files[i].Src = resolved
+
+		resolved, err = pr.Resolve(c.Age.Files[i].Dest)
+		if err != nil {
+			return fmt.Errorf("failed to resolve age file dest path: %w", err)
+		}
+		c.Age.Files[i].Dest = resolved
+	}
+
 	// Resolve exec script paths
 	for i := range c.Exec.Scripts {
 		resolved, err := pr.Resolve(c.Exec.Scripts[i].Path)
@@ -138,9 +158,43 @@ func (c ConfigFile) EncryptedFiles() []string {
 	return files
 }
 
+type AgeFile struct {
+	Src         string `yaml:"src"`
+	Dest        string `yaml:"dest"`
+	Permissions string `yaml:"perm"`
+}
+
+func (af AgeFile) Validate() error {
+	if af.Src == "" {
+		return fmt.Errorf("age file: src is required")
+	}
+	if af.Dest == "" {
+		return fmt.Errorf("age file: dest is required")
+	}
+	if af.Src == af.Dest {
+		return fmt.Errorf("age file: src and dest must differ")
+	}
+	if af.Permissions != "" {
+		if _, err := ParseOctalPermissions(af.Permissions); err != nil {
+			return fmt.Errorf("age file %s: %w", af.Src, err)
+		}
+	}
+	return nil
+}
+
+// ParseOctalPermissions parses an octal permission string (e.g. "0600") into an os.FileMode.
+func ParseOctalPermissions(s string) (os.FileMode, error) {
+	v, err := strconv.ParseUint(s, 8, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid permissions %q: %w", s, err)
+	}
+	return os.FileMode(v), nil
+}
+
 type Age struct {
-	Recipients   []string `yaml:"recipients"`
-	IdentityFile string   `yaml:"identity_file"`
+	Recipients   []string  `yaml:"recipients"`
+	IdentityFile string    `yaml:"identity_file"`
+	Files        []AgeFile `yaml:"files"`
 }
 
 func (a Age) ReadIdentity() (age.Identity, error) {

@@ -7,7 +7,6 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"strconv"
 	"text/template"
 
 	"filippo.io/age"
@@ -71,11 +70,11 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 	// Parse permissions
 	perm := os.FileMode(0o644)
 	if tmpl.Permissions != "" {
-		p, err := strconv.ParseUint(tmpl.Permissions, 8, 32)
+		p, err := core.ParseOctalPermissions(tmpl.Permissions)
 		if err != nil {
 			return fmt.Errorf("invalid permissions %s: %w", tmpl.Permissions, err)
 		}
-		perm = os.FileMode(p)
+		perm = p
 	}
 
 	// Write output file
