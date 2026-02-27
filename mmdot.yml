@@ -26,6 +26,35 @@ templates:
       {{- end }}
     output: .data/generated/.env.local
     perm: "0600"
+  - name: Grafana Brew Script
+    tags: [work, brew]
+    output: .data/generated/brew.grafana.sh
+    perm: "0755"
+    trim: false
+    template: |
+      #!/bin/bash
+      set -euo pipefail
+
+      # Taps
+      {{- range .Brews.grafana.taps }}
+      brew tap {{ . }}
+      {{- end }}
+
+      # Formulae
+      {{- if .Brews.grafana.brews }}
+      brew install \
+      {{- range $i, $v := .Brews.grafana.brews }}
+        {{ $v }}{{ if not (last $i $.Brews.grafana.brews) }} \{{ end }}
+      {{- end }}
+      {{- end }}
+
+      # Casks
+      {{- if .Brews.grafana.casks }}
+      brew install --cask \
+      {{- range $i, $v := .Brews.grafana.casks }}
+        {{ $v }}{{ if not (last $i $.Brews.grafana.casks) }} \{{ end }}
+      {{- end }}
+      {{- end }}
 
 exec:
   shell: /bin/bash
@@ -37,39 +66,19 @@ exec:
 
 brew:
   grafana:
-    outfile: .data/generated/brew.grafana.sh
-    includes:
-      - all
-    brews:
-      - terraform
-      - helm
-    taps:
-      - hashicorp/tap
-    casks:
-      - goland
-      - google-cloud-sdk
-    mas: []
+    includes: [all]
+    brews: [terraform, helm]
+    taps: [hashicorp/tap]
+    casks: [goland, google-cloud-sdk]
   personal:
-    outfile: .data/generated/brew.personal.sh
-    includes:
-      - all
-    taps:
-      - stripe/stripe-cli
-    brews:
-      - caddy
-      - hugo
-    casks:
-      - obsidian
-      - spotify
+    includes: [all]
+    taps: [stripe/stripe-cli]
+    brews: [caddy, hugo]
+    casks: [obsidian, spotify]
   all:
-    taps:
-      - go-task/tap
-    brews:
-      - git
-      - neovim
-    casks:
-      - wezterm
-      - visual-studio-code
+    taps: [go-task/tap]
+    brews: [git, neovim]
+    casks: [wezterm, visual-studio-code]
 
 age:
   identity_file: .data/age/key.txt

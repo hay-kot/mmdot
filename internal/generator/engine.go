@@ -7,6 +7,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"text/template"
 
 	"filippo.io/age"
@@ -40,7 +41,12 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 	}
 
 	// Parse and execute template
-	t := template.New(tmpl.Name)
+	funcMap := template.FuncMap{
+		"last": func(i int, slice any) bool {
+			return i == reflect.ValueOf(slice).Len()-1
+		},
+	}
+	t := template.New(tmpl.Name).Funcs(funcMap)
 	t, err := t.Parse(tmpl.Template)
 	if err != nil {
 		return NewTemplateError(tmpl.Name, err)
@@ -111,6 +117,21 @@ func (e *Engine) preloadVars() error {
 
 		// Merge into fileVars
 		maps.Copy(e.fileVars, vars)
+	}
+
+	// Inject brew groups as template variables
+	if len(e.cfg.Brews) > 0 {
+		brewVars := make(map[string]any, len(e.cfg.Brews))
+		for name := range e.cfg.Brews {
+			resolved := e.cfg.Brews.Get(name)
+			brewVars[name] = map[string]any{
+				"brews": resolved.Brews,
+				"casks": resolved.Casks,
+				"taps":  resolved.Taps,
+				"mas":   resolved.MAS,
+			}
+		}
+		e.globalVars["Brews"] = brewVars
 	}
 
 	return nil
