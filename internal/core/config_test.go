@@ -8,6 +8,39 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+func TestConfigFile_VersionDefault(t *testing.T) {
+	// Config without version field should default to 1
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, "mmdot.yml")
+	if err := os.WriteFile(cfgPath, []byte("templates: []\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error: %v", err)
+	}
+
+	cfg, err := SetupEnv(cfgPath)
+	if err != nil {
+		t.Fatalf("SetupEnv() error: %v", err)
+	}
+	if cfg.Version != 1 {
+		t.Errorf("Version = %d, want 1", cfg.Version)
+	}
+}
+
+func TestConfigFile_VersionExplicit(t *testing.T) {
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, "mmdot.yml")
+	if err := os.WriteFile(cfgPath, []byte("version: 2\ntemplates: []\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error: %v", err)
+	}
+
+	cfg, err := SetupEnv(cfgPath)
+	if err != nil {
+		t.Fatalf("SetupEnv() error: %v", err)
+	}
+	if cfg.Version != 2 {
+		t.Errorf("Version = %d, want 2", cfg.Version)
+	}
+}
+
 func TestAgeFile_YAMLParsing(t *testing.T) {
 	input := `
 recipients:

@@ -1,0 +1,67 @@
+## Config Schema
+
+```yaml
+# Config schema version
+version: <int>
+
+# Variable substitution macros
+macros:
+  <name>: <value>
+
+# Global and file-based template variables
+variables:
+  vars:
+    <key>: <value>
+  var_files:
+    - path/to/vars.yml
+    - path/to/secret.yml?vault=true  # decrypted with age
+
+# Age encryption configuration
+age:
+  recipients:
+    - <age-public-key>
+  identity_file: path/to/key.txt
+  files:
+    - src: path/to/file
+      dest: path/to/file.age
+      perm: "0600"  # optional
+
+# Template definitions
+templates:
+  - name: <template-name>
+    tags: [<tag>, ...]           # for filtering with selectors
+    template: <inline-template>  # Go template string or file path
+    output: path/to/output
+    perm: "0644"                 # optional, octal permissions
+    trim: true                   # optional, trim whitespace (default: true)
+    vars:                        # optional, template-specific variables
+      <key>: <value>
+
+# Homebrew package definitions (used by brew diff and brewfile partial)
+brews:
+  <name>:
+    remove: false            # optional, generate uninstall instead of install
+    includes: [<other-name>] # optional, merge other brew configs
+    taps: [<tap>, ...]
+    brews: [<package>, ...]
+    casks: [<cask>, ...]
+    mas: [<app-id>, ...]
+
+# Shell script execution
+exec:
+  shell: /bin/bash
+  scripts:
+    - path: path/to/script.sh
+      tags: [<tag>, ...]
+```
+
+### Variable precedence
+
+Variables are merged with later sources overriding earlier:
+1. `variables.vars` (global inline)
+2. `variables.var_files` (file-based, in order)
+3. `templates[].vars` (template-specific)
+
+### Paths
+
+All paths in config are relative to the config file directory.

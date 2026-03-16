@@ -1,0 +1,43 @@
+## Template Functions
+
+### brewConfig
+
+Resolves a named brew configuration (with includes merged) and returns the Brews struct.
+
+```
+{{$b := brewConfig "personal"}}
+{{range $b.Taps}}brew tap {{.}}{{end}}
+{{range $b.Brews}}brew install {{.}}{{end}}
+{{range $b.Casks}}brew install --cask {{.}}{{end}}
+{{range $b.MAS}}mas install {{.}}{{end}}
+```
+
+The returned struct has fields: Taps, Brews, Casks, MAS (all []string), and Remove (bool).
+
+## Built-in Partials
+
+### brewfile
+
+Renders brew tap/install/uninstall commands for a named brew config. Handles the Remove flag automatically.
+
+```
+{{template "brewfile" "personal"}}
+```
+
+Generates output like:
+
+```bash
+# Homebrew Taps
+brew tap homebrew/cask
+
+# Homebrew Packages
+brew install git
+brew install vim
+
+# Homebrew Casks
+brew install --cask firefox
+```
+
+## Available Brew Configs
+
+Use `mmdot brew diff` to see available brew config names, or check the `brews:` section in your mmdot.yml.
