@@ -79,6 +79,7 @@ func TestBrewfilePartialRemove(t *testing.T) {
 				Taps:   []string{"old/tap"},
 				Brews:  []string{"oldpkg"},
 				Casks:  []string{"oldcask"},
+				MAS:    []string{"123456"},
 			},
 		},
 		Variables: core.Variables{},
@@ -108,6 +109,7 @@ func TestBrewfilePartialRemove(t *testing.T) {
 		"brew untap old/tap",
 		"brew uninstall oldpkg",
 		"brew uninstall --cask oldcask",
+		"mas uninstall 123456",
 	} {
 		if !bytes.Contains(got, []byte(want)) {
 			t.Errorf("output missing %q\n\ngot:\n%s", want, output)

@@ -9,67 +9,57 @@ type Brews struct {
 	MAS      []string `yaml:"mas"`
 }
 
+func (b *Brews) merge(other *Brews) {
+	b.Brews = append(b.Brews, other.Brews...)
+	b.Taps = append(b.Taps, other.Taps...)
+	b.Casks = append(b.Casks, other.Casks...)
+	b.MAS = append(b.MAS, other.MAS...)
+}
+
 type ConfigMap map[string]*Brews
 
 func (cm ConfigMap) Get(key string) *Brews {
-	// If the key doesn't exist, return nil
 	if _, exists := cm[key]; !exists {
 		return nil
 	}
 
-	// Start with the base configuration
 	baseConfig := cm[key]
 
-	// Create a set to track processed configs to prevent circular includes
+	// Track processed configs to prevent circular includes
 	processedConfigs := make(map[string]bool)
 	processedConfigs[key] = true
 
-	// Merge included configurations
 	mergedConfig := &Brews{
 		Remove: baseConfig.Remove,
 		Brews:  make([]string, 0),
-		Taps:    make([]string, 0),
-		Casks:   make([]string, 0),
-		MAS:     make([]string, 0),
+		Taps:   make([]string, 0),
+		Casks:  make([]string, 0),
+		MAS:    make([]string, 0),
 	}
 
-	// Recursively merge includes
 	for _, include := range baseConfig.Includes {
-		includedConfig := mergeIncludes(cm, include, processedConfigs)
-		if includedConfig != nil {
-			mergedConfig.Brews = append(mergedConfig.Brews, includedConfig.Brews...)
-			mergedConfig.Taps = append(mergedConfig.Taps, includedConfig.Taps...)
-			mergedConfig.Casks = append(mergedConfig.Casks, includedConfig.Casks...)
-			mergedConfig.MAS = append(mergedConfig.MAS, includedConfig.MAS...)
+		if included := mergeIncludes(cm, include, processedConfigs); included != nil {
+			mergedConfig.merge(included)
 		}
 	}
 
-	// Add base config items
-	mergedConfig.Brews = append(mergedConfig.Brews, baseConfig.Brews...)
-	mergedConfig.Taps = append(mergedConfig.Taps, baseConfig.Taps...)
-	mergedConfig.Casks = append(mergedConfig.Casks, baseConfig.Casks...)
-	mergedConfig.MAS = append(mergedConfig.MAS, baseConfig.MAS...)
+	mergedConfig.merge(baseConfig)
 
 	return mergedConfig
 }
 
-// Helper method to recursively merge included configurations
 func mergeIncludes(cm map[string]*Brews, key string, processed map[string]bool) *Brews {
-	// Check for circular dependency
 	if processed[key] {
 		return nil
 	}
 
-	// Get the configuration for the key
 	config, exists := cm[key]
 	if !exists {
 		return nil
 	}
 
-	// Mark as processed
 	processed[key] = true
 
-	// Create a merged configuration
 	mergedConfig := &Brews{
 		Brews: make([]string, 0),
 		Taps:  make([]string, 0),
@@ -77,22 +67,13 @@ func mergeIncludes(cm map[string]*Brews, key string, processed map[string]bool) 
 		MAS:   make([]string, 0),
 	}
 
-	// Recursively process includes first
 	for _, include := range config.Includes {
-		includedConfig := mergeIncludes(cm, include, processed)
-		if includedConfig != nil {
-			mergedConfig.Brews = append(mergedConfig.Brews, includedConfig.Brews...)
-			mergedConfig.Taps = append(mergedConfig.Taps, includedConfig.Taps...)
-			mergedConfig.Casks = append(mergedConfig.Casks, includedConfig.Casks...)
-			mergedConfig.MAS = append(mergedConfig.MAS, includedConfig.MAS...)
+		if included := mergeIncludes(cm, include, processed); included != nil {
+			mergedConfig.merge(included)
 		}
 	}
 
-	// Add current config items
-	mergedConfig.Brews = append(mergedConfig.Brews, config.Brews...)
-	mergedConfig.Taps = append(mergedConfig.Taps, config.Taps...)
-	mergedConfig.Casks = append(mergedConfig.Casks, config.Casks...)
-	mergedConfig.MAS = append(mergedConfig.MAS, config.MAS...)
+	mergedConfig.merge(config)
 
 	return mergedConfig
 }

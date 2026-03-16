@@ -60,7 +60,6 @@ func (lc *LLMTextCmd) config(ctx context.Context, c *cli.Command) error {
 
 	fmt.Fprintf(&out, "# mmdot config (current: v%d)\n\n", core.ConfigVersion)
 
-	// Migration notes
 	if userVersion < core.ConfigVersion {
 		fmt.Fprintf(&out, "## Your config: v%d — migrations needed\n\n", userVersion)
 		writeMigrationNotes(&out, userVersion, core.ConfigVersion)
@@ -68,15 +67,10 @@ func (lc *LLMTextCmd) config(ctx context.Context, c *cli.Command) error {
 		fmt.Fprintf(&out, "## Your config: v%d — up to date\n\n", userVersion)
 	}
 
-	// Schema reference
 	out.WriteString(mustReadEmbed("llmtext/config_schema.txt"))
 	out.WriteString("\n")
-
-	// Template functions and partials
 	out.WriteString(mustReadEmbed("llmtext/template_docs.txt"))
 	out.WriteString("\n")
-
-	// Migration history
 	writeMigrationHistory(&out)
 
 	fmt.Print(out.String())

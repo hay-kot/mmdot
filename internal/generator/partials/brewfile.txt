@@ -1,0 +1,28 @@
+
+{{- $b := brewConfig . -}}
+{{- $tap := "tap" -}}{{- $install := "install" -}}
+{{- if $b.Remove -}}{{- $tap = "untap" -}}{{- $install = "uninstall" -}}{{- end -}}
+{{- if $b.Taps -}}
+# Homebrew Taps
+{{range $b.Taps -}}
+brew {{$tap}} {{.}}
+{{end}}
+{{end -}}
+{{- if $b.Brews -}}
+# Homebrew Packages
+{{range $b.Brews -}}
+brew {{$install}} {{.}}
+{{end}}
+{{end -}}
+{{- if $b.Casks -}}
+# Homebrew Casks
+{{range $b.Casks -}}
+brew {{$install}} --cask {{.}}
+{{end}}
+{{end -}}
+{{- if $b.MAS -}}
+# Mac App Store
+{{range $b.MAS -}}
+mas {{if $b.Remove}}uninstall{{else}}install{{end}} {{.}}
+{{end}}
+{{end -}}

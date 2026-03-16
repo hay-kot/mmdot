@@ -63,7 +63,7 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 	}
 	brewCfg := cfg.Brews.Get(arg)
 	if brewCfg == nil {
-		panic("brew config not found")
+		return fmt.Errorf("brew config %q not found", arg)
 	}
 	diff, err := brewCfg.Diff()
 	if err != nil {

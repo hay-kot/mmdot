@@ -3,10 +3,12 @@ package generator
 import (
 	"bytes"
 	"context"
+	"embed"
 	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"filippo.io/age"
@@ -16,9 +18,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+//go:embed partials/*.txt
+var partialsFS embed.FS
+
 type Engine struct {
 	cfg *core.ConfigFile
 
+	varsLoaded bool
 	globalVars map[string]any
 	fileVars   map[string]any
 }
@@ -32,8 +38,7 @@ func NewEngine(cfg *core.ConfigFile) *Engine {
 }
 
 func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
-	// Preload variables if not already done
-	if len(e.globalVars) == 0 && len(e.fileVars) == 0 {
+	if !e.varsLoaded {
 		if err := e.preloadVars(); err != nil {
 			return fmt.Errorf("failed to preload vars: %w", err)
 		}
@@ -94,7 +99,7 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 // this sets the globalVars and fileVars properties and should be called before
 // rendering a template.
 func (e *Engine) preloadVars() error {
-	// Load global vars
+	e.varsLoaded = true
 	e.globalVars = e.cfg.Variables.Vars
 
 	// Load identity for encrypted files
@@ -180,40 +185,34 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 	return vars, nil
 }
 
-// builtinPartials are named templates automatically available in all user templates.
+// builtinPartials are named templates loaded from embedded files in partials/.
+// Each file becomes a partial named after the filename without extension.
 // Invoke with {{template "name" arg}}.
-var builtinPartials = map[string]string{
-	// brewfile renders brew tap/install/uninstall commands for a named brew config.
-	// Usage: {{template "brewfile" "personal"}}
-	// The argument is the brew config key from the brews: section in mmdot.yml.
-	"brewfile": `
-{{- $b := brewConfig . -}}
-{{- $tap := "tap" -}}{{- $install := "install" -}}
-{{- if $b.Remove -}}{{- $tap = "untap" -}}{{- $install = "uninstall" -}}{{- end -}}
-{{- if $b.Taps -}}
-# Homebrew Taps
-{{range $b.Taps -}}
-brew {{$tap}} {{.}}
-{{end}}
-{{end -}}
-{{- if $b.Brews -}}
-# Homebrew Packages
-{{range $b.Brews -}}
-brew {{$install}} {{.}}
-{{end}}
-{{end -}}
-{{- if $b.Casks -}}
-# Homebrew Casks
-{{range $b.Casks -}}
-brew {{$install}} --cask {{.}}
-{{end}}
-{{end -}}
-{{- if $b.MAS -}}
-# Mac App Store
-{{range $b.MAS -}}
-mas install {{.}}
-{{end}}
-{{end -}}`,
+var builtinPartials = mustLoadPartials()
+
+func mustLoadPartials() map[string]string {
+	partials := map[string]string{}
+
+	entries, err := partialsFS.ReadDir("partials")
+	if err != nil {
+		panic("failed to read embedded partials: " + err.Error())
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		data, err := partialsFS.ReadFile("partials/" + entry.Name())
+		if err != nil {
+			panic("failed to read partial " + entry.Name() + ": " + err.Error())
+		}
+
+		name := strings.TrimSuffix(entry.Name(), ".txt")
+		partials[name] = string(data)
+	}
+
+	return partials
 }
 
 // funcMap returns template functions available to all templates.
