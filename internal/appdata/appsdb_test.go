@@ -76,3 +76,87 @@ func TestConvertedAppsYAML(t *testing.T) {
 		t.Errorf("neovim.XDGFiles count = %d, want 10", len(nvim.XDGFiles))
 	}
 }
+
+func TestBuildAppDB_Whitelist(t *testing.T) {
+	result, err := BuildAppDB([]string{"git", "zsh"}, nil, nil)
+	if err != nil {
+		t.Fatalf("BuildAppDB() error: %v", err)
+	}
+	if len(result) != 2 {
+		t.Errorf("len = %d, want 2", len(result))
+	}
+	if _, ok := result["git"]; !ok {
+		t.Error("missing git")
+	}
+	if _, ok := result["zsh"]; !ok {
+		t.Error("missing zsh")
+	}
+}
+
+func TestBuildAppDB_Ignore(t *testing.T) {
+	result, err := BuildAppDB([]string{"git", "zsh"}, []string{"zsh"}, nil)
+	if err != nil {
+		t.Fatalf("BuildAppDB() error: %v", err)
+	}
+	if len(result) != 1 {
+		t.Errorf("len = %d, want 1", len(result))
+	}
+	if _, ok := result["zsh"]; ok {
+		t.Error("zsh should be ignored")
+	}
+}
+
+func TestBuildAppDB_Custom(t *testing.T) {
+	custom := []CustomEntry{
+		{
+			ID:    "myapp",
+			Name:  "My App",
+			Files: []string{".myapprc"},
+		},
+	}
+	result, err := BuildAppDB([]string{"git"}, nil, custom)
+	if err != nil {
+		t.Fatalf("BuildAppDB() error: %v", err)
+	}
+	if len(result) != 2 {
+		t.Errorf("len = %d, want 2", len(result))
+	}
+	app, ok := result["myapp"]
+	if !ok {
+		t.Fatal("missing myapp")
+	}
+	if app.Name != "My App" {
+		t.Errorf("Name = %q, want %q", app.Name, "My App")
+	}
+	if len(app.Files) != 1 || app.Files[0] != ".myapprc" {
+		t.Errorf("Files = %v, want [.myapprc]", app.Files)
+	}
+}
+
+func TestBuildAppDB_AllApps(t *testing.T) {
+	full, _ := LoadAppDB()
+	result, err := BuildAppDB(nil, nil, nil)
+	if err != nil {
+		t.Fatalf("BuildAppDB() error: %v", err)
+	}
+	if len(result) != len(full) {
+		t.Errorf("len = %d, want %d", len(result), len(full))
+	}
+}
+
+func TestBuildAppDB_CustomOverridesBuiltin(t *testing.T) {
+	custom := []CustomEntry{
+		{
+			ID:    "git",
+			Name:  "Custom Git",
+			Files: []string{".mygitconfig"},
+		},
+	}
+	result, err := BuildAppDB([]string{"git"}, nil, custom)
+	if err != nil {
+		t.Fatalf("BuildAppDB() error: %v", err)
+	}
+	if result["git"].Name != "Custom Git" {
+		t.Errorf("Name = %q, want %q", result["git"].Name, "Custom Git")
+	}
+}
