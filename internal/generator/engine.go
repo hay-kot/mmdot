@@ -39,8 +39,13 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 		}
 	}
 
-	// Parse and execute template
-	t := template.New(tmpl.Name)
+	// Parse built-in partials, then the user's template
+	t := template.New(tmpl.Name).Funcs(e.funcMap())
+	for name, body := range builtinPartials {
+		if _, err := t.New(name).Parse(body); err != nil {
+			return fmt.Errorf("failed to parse builtin partial %q: %w", name, err)
+		}
+	}
 	t, err := t.Parse(tmpl.Template)
 	if err != nil {
 		return NewTemplateError(tmpl.Name, err)
@@ -173,6 +178,60 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 	}
 
 	return vars, nil
+}
+
+// builtinPartials are named templates automatically available in all user templates.
+// Invoke with {{template "name" arg}}.
+var builtinPartials = map[string]string{
+	// brewfile renders brew tap/install/uninstall commands for a named brew config.
+	// Usage: {{template "brewfile" "personal"}}
+	// The argument is the brew config key from the brews: section in mmdot.yml.
+	"brewfile": `
+{{- $b := brewConfig . -}}
+{{- $tap := "tap" -}}{{- $install := "install" -}}
+{{- if $b.Remove -}}{{- $tap = "untap" -}}{{- $install = "uninstall" -}}{{- end -}}
+{{- if $b.Taps -}}
+# Homebrew Taps
+{{range $b.Taps -}}
+brew {{$tap}} {{.}}
+{{end}}
+{{end -}}
+{{- if $b.Brews -}}
+# Homebrew Packages
+{{range $b.Brews -}}
+brew {{$install}} {{.}}
+{{end}}
+{{end -}}
+{{- if $b.Casks -}}
+# Homebrew Casks
+{{range $b.Casks -}}
+brew {{$install}} --cask {{.}}
+{{end}}
+{{end -}}
+{{- if $b.MAS -}}
+# Mac App Store
+{{range $b.MAS -}}
+mas install {{.}}
+{{end}}
+{{end -}}`,
+}
+
+// funcMap returns template functions available to all templates.
+func (e *Engine) funcMap() template.FuncMap {
+	return template.FuncMap{
+		// brewConfig resolves a named brew configuration (with includes merged)
+		// and returns it for use in templates.
+		//
+		// Usage: {{$b := brewConfig "personal"}}
+		//        {{range $b.Taps}}brew tap {{.}}{{end}}
+		"brewConfig": func(name string) (*core.Brews, error) {
+			b := e.cfg.Brews.Get(name)
+			if b == nil {
+				return nil, fmt.Errorf("brew config %q not found", name)
+			}
+			return b, nil
+		},
+	}
 }
 
 // MergeMaps merges multiple maps with later maps taking precedence over earlier ones.
