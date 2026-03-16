@@ -97,6 +97,7 @@ func main() {
 		commands.NewEncryptCmd(flags),
 		commands.NewHookCmd(flags),
 		commands.NewLLMTextCmd(flags),
+		commands.NewAppDataCmd(flags),
 	)
 
 	exitCode := 0
