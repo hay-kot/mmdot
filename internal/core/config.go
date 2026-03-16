@@ -9,6 +9,7 @@ import (
 
 	"filippo.io/age"
 	"github.com/goccy/go-yaml"
+	"github.com/hay-kot/mmdot/internal/appdata"
 	"github.com/hay-kot/mmdot/pkgs/fcrypt"
 	"github.com/rs/zerolog/log"
 )
@@ -26,7 +27,17 @@ type ConfigFile struct {
 	Brews     ConfigMap         `yaml:"brews"`
 	Variables Variables         `yaml:"variables"`
 	Templates []Template        `yaml:"templates"`
+	AppData   AppDataConfig     `yaml:"appdata"`
 	ConfigDir string            `yaml:"-"` // Directory containing the config file (not serialized)
+}
+
+// AppDataConfig holds configuration for the appdata backup/restore command.
+type AppDataConfig struct {
+	Storage           string                `yaml:"storage"`
+	Apps              []string              `yaml:"apps"`
+	Ignore            []string              `yaml:"ignore"`
+	Custom            []appdata.CustomEntry `yaml:"custom"`
+	SnapshotRetention int                   `yaml:"snapshot_retention"`
 }
 
 // ExecConfig represents the shell execution configuration
@@ -151,6 +162,15 @@ func (c *ConfigFile) resolvePaths(pr PathResolver) error {
 			return fmt.Errorf("failed to resolve exec script path: %w", err)
 		}
 		c.Exec.Scripts[i].Path = resolved
+	}
+
+	// Resolve appdata storage path
+	if c.AppData.Storage != "" {
+		resolved, err := pr.Resolve(c.AppData.Storage)
+		if err != nil {
+			return fmt.Errorf("failed to resolve appdata storage path: %w", err)
+		}
+		c.AppData.Storage = resolved
 	}
 
 	return nil
