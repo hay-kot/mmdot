@@ -96,6 +96,7 @@ func main() {
 		commands.NewBrewCmd(flags),
 		commands.NewEncryptCmd(flags),
 		commands.NewHookCmd(flags),
+		commands.NewLLMTextCmd(flags),
 	)
 
 	exitCode := 0

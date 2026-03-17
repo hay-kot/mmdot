@@ -1,13 +1,7 @@
 package core
 
-import (
-	"fmt"
-	"strings"
-)
-
 type Brews struct {
 	Remove   bool     `yaml:"remove"`
-	Outfile  string   `yaml:"outfile"`
 	Includes []string `yaml:"includes"`
 	Brews    []string `yaml:"brews"`
 	Taps     []string `yaml:"taps"`
@@ -15,145 +9,57 @@ type Brews struct {
 	MAS      []string `yaml:"mas"`
 }
 
-// String returns a shell script to install the taps and brews
-func (c *Brews) String() string {
-	var script strings.Builder
-
-	script.WriteString(`#!/bin/bash
-
-# Exit immediately if a command exits with a non-zero status
-set -e
-# Exit if any command in a pipeline fails (not just the last one)
-set -o pipefail
-# Treat unset variables as an error when substituting
-set -u
-`)
-
-	actionTap := "tap"
-	actionInstall := "install"
-	if c.Remove {
-		actionTap = "untap"
-		actionInstall = "uninstall"
-	}
-
-	// Add taps - all in one command if there are any
-	if len(c.Taps) > 0 {
-		script.WriteString("# Adding Homebrew Taps\n")
-		for _, tap := range c.Taps {
-			script.WriteString(fmt.Sprintf("brew %s %s\n", actionTap, tap))
-		}
-		script.WriteString("\n")
-	}
-
-	// Install brews - all in one command if there are any
-	if len(c.Brews) > 0 {
-		script.WriteString("# Installing Homebrew Packages\n")
-		if len(c.Brews) == 1 {
-			script.WriteString(fmt.Sprintf("brew %s %s\n", actionInstall, c.Brews[0]))
-		} else {
-			script.WriteString(fmt.Sprintf("brew %s \\\n", actionInstall))
-			for i, brew := range c.Brews {
-				if i == len(c.Brews)-1 {
-					script.WriteString(fmt.Sprintf("  %s\n", brew))
-				} else {
-					script.WriteString(fmt.Sprintf("  %s \\\n", brew))
-				}
-			}
-		}
-		script.WriteString("\n")
-	}
-
-	// Install casks - all in one command if there are any
-	if len(c.Casks) > 0 {
-		script.WriteString("# Installing Homebrew Casks\n")
-		if len(c.Casks) == 1 {
-			script.WriteString(fmt.Sprintf("brew %s --cask %s\n", actionInstall, c.Casks[0]))
-		} else {
-			script.WriteString(fmt.Sprintf("brew %s --cask \\\n", actionInstall))
-			for i, cask := range c.Casks {
-				if i == len(c.Casks)-1 {
-					script.WriteString(fmt.Sprintf("  %s\n", cask))
-				} else {
-					script.WriteString(fmt.Sprintf("  %s \\\n", cask))
-				}
-			}
-		}
-		script.WriteString("\n")
-	}
-
-	// Install Mac App Store apps - unfortunately mas doesn't support batch installs
-	if len(c.MAS) > 0 {
-		script.WriteString("# Installing Mac App Store Apps\n")
-		for _, app := range c.MAS {
-			script.WriteString(fmt.Sprintf("mas install %s\n", app))
-		}
-	}
-
-	return script.String()
+func (b *Brews) merge(other *Brews) {
+	b.Brews = append(b.Brews, other.Brews...)
+	b.Taps = append(b.Taps, other.Taps...)
+	b.Casks = append(b.Casks, other.Casks...)
+	b.MAS = append(b.MAS, other.MAS...)
 }
 
 type ConfigMap map[string]*Brews
 
 func (cm ConfigMap) Get(key string) *Brews {
-	// If the key doesn't exist, return nil
 	if _, exists := cm[key]; !exists {
 		return nil
 	}
 
-	// Start with the base configuration
 	baseConfig := cm[key]
 
-	// Create a set to track processed configs to prevent circular includes
+	// Track processed configs to prevent circular includes
 	processedConfigs := make(map[string]bool)
 	processedConfigs[key] = true
 
-	// Merge included configurations
 	mergedConfig := &Brews{
-		Remove:  baseConfig.Remove,
-		Outfile: baseConfig.Outfile,
-		Brews:   make([]string, 0),
-		Taps:    make([]string, 0),
-		Casks:   make([]string, 0),
-		MAS:     make([]string, 0),
+		Remove: baseConfig.Remove,
+		Brews:  make([]string, 0),
+		Taps:   make([]string, 0),
+		Casks:  make([]string, 0),
+		MAS:    make([]string, 0),
 	}
 
-	// Recursively merge includes
 	for _, include := range baseConfig.Includes {
-		includedConfig := mergeIncludes(cm, include, processedConfigs)
-		if includedConfig != nil {
-			mergedConfig.Brews = append(mergedConfig.Brews, includedConfig.Brews...)
-			mergedConfig.Taps = append(mergedConfig.Taps, includedConfig.Taps...)
-			mergedConfig.Casks = append(mergedConfig.Casks, includedConfig.Casks...)
-			mergedConfig.MAS = append(mergedConfig.MAS, includedConfig.MAS...)
+		if included := mergeIncludes(cm, include, processedConfigs); included != nil {
+			mergedConfig.merge(included)
 		}
 	}
 
-	// Add base config items
-	mergedConfig.Brews = append(mergedConfig.Brews, baseConfig.Brews...)
-	mergedConfig.Taps = append(mergedConfig.Taps, baseConfig.Taps...)
-	mergedConfig.Casks = append(mergedConfig.Casks, baseConfig.Casks...)
-	mergedConfig.MAS = append(mergedConfig.MAS, baseConfig.MAS...)
+	mergedConfig.merge(baseConfig)
 
 	return mergedConfig
 }
 
-// Helper method to recursively merge included configurations
 func mergeIncludes(cm map[string]*Brews, key string, processed map[string]bool) *Brews {
-	// Check for circular dependency
 	if processed[key] {
 		return nil
 	}
 
-	// Get the configuration for the key
 	config, exists := cm[key]
 	if !exists {
 		return nil
 	}
 
-	// Mark as processed
 	processed[key] = true
 
-	// Create a merged configuration
 	mergedConfig := &Brews{
 		Brews: make([]string, 0),
 		Taps:  make([]string, 0),
@@ -161,22 +67,13 @@ func mergeIncludes(cm map[string]*Brews, key string, processed map[string]bool) 
 		MAS:   make([]string, 0),
 	}
 
-	// Recursively process includes first
 	for _, include := range config.Includes {
-		includedConfig := mergeIncludes(cm, include, processed)
-		if includedConfig != nil {
-			mergedConfig.Brews = append(mergedConfig.Brews, includedConfig.Brews...)
-			mergedConfig.Taps = append(mergedConfig.Taps, includedConfig.Taps...)
-			mergedConfig.Casks = append(mergedConfig.Casks, includedConfig.Casks...)
-			mergedConfig.MAS = append(mergedConfig.MAS, includedConfig.MAS...)
+		if included := mergeIncludes(cm, include, processed); included != nil {
+			mergedConfig.merge(included)
 		}
 	}
 
-	// Add current config items
-	mergedConfig.Brews = append(mergedConfig.Brews, config.Brews...)
-	mergedConfig.Taps = append(mergedConfig.Taps, config.Taps...)
-	mergedConfig.Casks = append(mergedConfig.Casks, config.Casks...)
-	mergedConfig.MAS = append(mergedConfig.MAS, config.MAS...)
+	mergedConfig.merge(config)
 
 	return mergedConfig
 }

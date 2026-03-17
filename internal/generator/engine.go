@@ -3,10 +3,12 @@ package generator
 import (
 	"bytes"
 	"context"
+	"embed"
 	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"filippo.io/age"
@@ -16,9 +18,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+//go:embed partials/*.txt
+var partialsFS embed.FS
+
 type Engine struct {
 	cfg *core.ConfigFile
 
+	varsLoaded bool
 	globalVars map[string]any
 	fileVars   map[string]any
 }
@@ -32,15 +38,19 @@ func NewEngine(cfg *core.ConfigFile) *Engine {
 }
 
 func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
-	// Preload variables if not already done
-	if len(e.globalVars) == 0 && len(e.fileVars) == 0 {
+	if !e.varsLoaded {
 		if err := e.preloadVars(); err != nil {
 			return fmt.Errorf("failed to preload vars: %w", err)
 		}
 	}
 
-	// Parse and execute template
-	t := template.New(tmpl.Name)
+	// Parse built-in partials, then the user's template
+	t := template.New(tmpl.Name).Funcs(e.funcMap())
+	for name, body := range builtinPartials {
+		if _, err := t.New(name).Parse(body); err != nil {
+			return fmt.Errorf("failed to parse builtin partial %q: %w", name, err)
+		}
+	}
 	t, err := t.Parse(tmpl.Template)
 	if err != nil {
 		return NewTemplateError(tmpl.Name, err)
@@ -89,7 +99,7 @@ func (e *Engine) RenderTemplate(ctx context.Context, tmpl core.Template) error {
 // this sets the globalVars and fileVars properties and should be called before
 // rendering a template.
 func (e *Engine) preloadVars() error {
-	// Load global vars
+	e.varsLoaded = true
 	e.globalVars = e.cfg.Variables.Vars
 
 	// Load identity for encrypted files
@@ -173,6 +183,54 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 	}
 
 	return vars, nil
+}
+
+// builtinPartials are named templates loaded from embedded files in partials/.
+// Each file becomes a partial named after the filename without extension.
+// Invoke with {{template "name" arg}}.
+var builtinPartials = mustLoadPartials()
+
+func mustLoadPartials() map[string]string {
+	partials := map[string]string{}
+
+	entries, err := partialsFS.ReadDir("partials")
+	if err != nil {
+		panic("failed to read embedded partials: " + err.Error())
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		data, err := partialsFS.ReadFile("partials/" + entry.Name())
+		if err != nil {
+			panic("failed to read partial " + entry.Name() + ": " + err.Error())
+		}
+
+		name := strings.TrimSuffix(entry.Name(), ".txt")
+		partials[name] = string(data)
+	}
+
+	return partials
+}
+
+// funcMap returns template functions available to all templates.
+func (e *Engine) funcMap() template.FuncMap {
+	return template.FuncMap{
+		// brewConfig resolves a named brew configuration (with includes merged)
+		// and returns it for use in templates.
+		//
+		// Usage: {{$b := brewConfig "personal"}}
+		//        {{range $b.Taps}}brew tap {{.}}{{end}}
+		"brewConfig": func(name string) (*core.Brews, error) {
+			b := e.cfg.Brews.Get(name)
+			if b == nil {
+				return nil, fmt.Errorf("brew config %q not found", name)
+			}
+			return b, nil
+		},
+	}
 }
 
 // MergeMaps merges multiple maps with later maps taking precedence over earlier ones.

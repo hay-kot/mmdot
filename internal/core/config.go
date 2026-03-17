@@ -13,7 +13,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// ConfigVersion is the current config schema version. Increment this when
+// making breaking changes to the config format and add a corresponding
+// migration note in the migrations package.
+const ConfigVersion = 2
+
 type ConfigFile struct {
+	Version   int               `yaml:"version"`
 	Macros    map[string]string `yaml:"macros"`
 	Exec      Exec              `yaml:"exec"`
 	Age       Age               `yaml:"age"`
@@ -63,6 +69,11 @@ func SetupEnv(cfgpath string) (ConfigFile, error) {
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
 		return cfg, err
+	}
+
+	// Default to version 1 for pre-existing configs without a version field
+	if cfg.Version == 0 {
+		cfg.Version = 1
 	}
 
 	// Create path resolver and resolve all paths in config

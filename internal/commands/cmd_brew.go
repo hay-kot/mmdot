@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"maps"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/pkgs/printer"
-	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
 )
 
@@ -46,15 +44,6 @@ Example: mmdot brew diff personal`,
 				},
 				Action: bc.diff,
 			},
-			{
-				Name:  "compile",
-				Usage: "Compile brew configurations to their output files",
-				Description: `Generates Brewfile outputs for all brew configurations that have an 'outfile' specified.
-This is useful for creating Brewfiles that can be used with 'brew bundle'.
-
-The compiled files will be written to the paths specified in each brew configuration's 'outfile' field.`,
-				Action: bc.compile,
-			},
 		},
 	}
 
@@ -74,7 +63,7 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 	}
 	brewCfg := cfg.Brews.Get(arg)
 	if brewCfg == nil {
-		panic("brew config not found")
+		return fmt.Errorf("brew config %q not found", arg)
 	}
 	diff, err := brewCfg.Diff()
 	if err != nil {
@@ -138,32 +127,3 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 	return nil
 }
 
-func (bc *BrewCmd) compile(ctx context.Context, c *cli.Command) error {
-	cfg, err := core.SetupEnv(bc.flags.ConfigFilePath)
-	if err != nil {
-		return err
-	}
-
-	for v := range cfg.Brews {
-		cfg := cfg.Brews.Get(v)
-
-		if cfg.Outfile == "" {
-			continue
-		}
-
-		// Create directory
-		err := os.MkdirAll(filepath.Dir(cfg.Outfile), 0o755)
-		if err != nil {
-			return err
-		}
-
-		err = os.WriteFile(cfg.Outfile, []byte(cfg.String()), 0o644)
-		if err != nil {
-			return err
-		}
-
-		log.Info().Str("file", cfg.Outfile).Msg("outfile written")
-	}
-
-	return nil
-}
