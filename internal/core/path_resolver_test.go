@@ -7,6 +7,10 @@ import (
 )
 
 func TestPathResolver_Resolve(t *testing.T) {
+	// Ensure we're in a valid directory for tests that call os.Getwd()
+	// (CI runners may delete the working directory between steps)
+	t.Chdir(t.TempDir())
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		t.Fatalf("failed to get home directory: %v", err)
