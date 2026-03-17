@@ -23,8 +23,12 @@ func restoreApp(app ResolvedApp, dryRun bool) RestoreResult {
 	for _, entry := range app.Entries {
 		_, err := os.Stat(entry.StoragePath)
 		if err != nil {
-			result.Skipped++
-			continue
+			if os.IsNotExist(err) {
+				result.Skipped++
+				continue
+			}
+			result.Err = fmt.Errorf("restore %s: stat %s: %w", app.ID, entry.StoragePath, err)
+			return result
 		}
 
 		if dryRun {

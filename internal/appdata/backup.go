@@ -24,8 +24,12 @@ func backupApp(app ResolvedApp, dryRun bool) BackupResult {
 	for _, entry := range app.Entries {
 		_, err := os.Stat(entry.HomePath)
 		if err != nil {
-			result.Skipped++
-			continue
+			if os.IsNotExist(err) {
+				result.Skipped++
+				continue
+			}
+			result.Err = fmt.Errorf("backup %s: stat %s: %w", app.ID, entry.HomePath, err)
+			return result
 		}
 
 		if dryRun {

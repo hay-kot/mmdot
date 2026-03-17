@@ -28,20 +28,26 @@ func TestResolveApp(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 
-	def := AppDef{
-		Name:     "Git",
-		Files:    []string{".gitconfig"},
-		XDGFiles: []string{"git/config"},
+	app := TaggedApp{
+		AppDef: AppDef{
+			Name:     "Git",
+			Files:    []string{".gitconfig"},
+			XDGFiles: []string{"git/config"},
+		},
+		Tags: []string{"personal"},
 	}
 
 	storageDir := "/tmp/storage"
-	resolved := ResolveApp("git", def, storageDir)
+	resolved := ResolveApp("git", app, storageDir)
 
 	if resolved.ID != "git" {
 		t.Errorf("ID = %q, want git", resolved.ID)
 	}
 	if resolved.Name != "Git" {
 		t.Errorf("Name = %q, want Git", resolved.Name)
+	}
+	if len(resolved.Tags) != 1 || resolved.Tags[0] != "personal" {
+		t.Errorf("Tags = %v, want [personal]", resolved.Tags)
 	}
 	if len(resolved.Entries) != 2 {
 		t.Fatalf("len(Entries) = %d, want 2", len(resolved.Entries))
@@ -71,10 +77,33 @@ func TestResolveApp(t *testing.T) {
 }
 
 func TestResolveApp_NoFiles(t *testing.T) {
-	def := AppDef{Name: "Empty"}
-	resolved := ResolveApp("empty", def, "/tmp/storage")
+	app := TaggedApp{AppDef: AppDef{Name: "Empty"}}
+	resolved := ResolveApp("empty", app, "/tmp/storage")
 
 	if len(resolved.Entries) != 0 {
 		t.Errorf("len(Entries) = %d, want 0", len(resolved.Entries))
+	}
+}
+
+func TestExpandHomePath(t *testing.T) {
+	home := "/Users/test"
+	tests := []struct {
+		name string
+		f    string
+		want string
+	}{
+		{"relative path", ".bashrc", "/Users/test/.bashrc"},
+		{"tilde path", "~/.myapp/config.yml", "/Users/test/.myapp/config.yml"},
+		{"absolute path", "/etc/hosts", "/etc/hosts"},
+		{"nested relative", "Library/Preferences/com.app.plist", "/Users/test/Library/Preferences/com.app.plist"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := expandHomePath(home, tt.f)
+			if got != tt.want {
+				t.Errorf("expandHomePath(%q, %q) = %q, want %q", home, tt.f, got, tt.want)
+			}
+		})
 	}
 }

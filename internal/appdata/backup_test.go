@@ -110,6 +110,38 @@ func TestBackupApp_MissingSource(t *testing.T) {
 	}
 }
 
+func TestBackupApp_StatError(t *testing.T) {
+	tmp := t.TempDir()
+
+	// Create a file inside a directory with no read permission
+	srcDir := filepath.Join(tmp, "noperm")
+	src := filepath.Join(srcDir, "config")
+	if err := os.MkdirAll(srcDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(src, []byte("data"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	// Remove execute permission so stat on the file fails with EACCES, not ENOENT
+	if err := os.Chmod(srcDir, 0000); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(srcDir, 0755) })
+
+	app := ResolvedApp{
+		ID:   "noperm",
+		Name: "NoPerm",
+		Entries: []FileEntry{
+			{HomePath: src, StoragePath: filepath.Join(tmp, "storage", "noperm", "config")},
+		},
+	}
+
+	result := backupApp(app, false)
+	if result.Err == nil {
+		t.Fatal("expected error for permission-denied stat, got nil")
+	}
+}
+
 func TestBackupAll(t *testing.T) {
 	tmp := t.TempDir()
 

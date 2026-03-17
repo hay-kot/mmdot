@@ -13,9 +13,10 @@ import (
 
 const snapshotDir = ".snapshots"
 
-// CreateSnapshot creates a zip archive of the storage directory (excluding .snapshots/).
-// Returns the path to the created snapshot.
-func CreateSnapshot(storageDir string) (string, error) {
+// SnapshotHomeFiles creates a zip archive of the home-side files that are about
+// to be overwritten by a restore. Only files that currently exist are included.
+// The snapshot is stored in storageDir/.snapshots/.
+func SnapshotHomeFiles(storageDir string, apps []ResolvedApp) (string, error) {
 	snapDir := filepath.Join(storageDir, snapshotDir)
 	if err := os.MkdirAll(snapDir, 0755); err != nil {
 		return "", fmt.Errorf("create snapshot dir: %w", err)
@@ -28,59 +29,62 @@ func CreateSnapshot(storageDir string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("create snapshot file: %w", err)
 	}
-	defer func() { _ = f.Close() }()
 
 	w := zip.NewWriter(f)
-	defer func() { _ = w.Close() }()
 
-	err = filepath.Walk(storageDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		rel, err := filepath.Rel(storageDir, path)
-		if err != nil {
-			return err
-		}
-
-		// Skip the snapshots directory itself
-		if strings.HasPrefix(rel, snapshotDir) {
-			if info.IsDir() {
-				return filepath.SkipDir
+	var walkErr error
+	for _, app := range apps {
+		for _, entry := range app.Entries {
+			info, err := os.Lstat(entry.HomePath)
+			if err != nil {
+				continue // file doesn't exist, nothing to snapshot
 			}
-			return nil
+			if !info.Mode().IsRegular() {
+				continue // skip symlinks, dirs, etc.
+			}
+
+			arcPath := app.ID + "/" + filepath.Base(entry.HomePath)
+			if err := addFileToZip(w, entry.HomePath, arcPath); err != nil {
+				walkErr = fmt.Errorf("snapshot %s: %w", entry.HomePath, err)
+				break
+			}
 		}
-
-		// Skip the root directory entry
-		if rel == "." {
-			return nil
+		if walkErr != nil {
+			break
 		}
+	}
 
-		if info.IsDir() {
-			_, err := w.Create(rel + "/")
-			return err
-		}
+	// Close writer then file explicitly to catch flush errors
+	if closeErr := w.Close(); closeErr != nil && walkErr == nil {
+		walkErr = fmt.Errorf("finalize snapshot: %w", closeErr)
+	}
+	if closeErr := f.Close(); closeErr != nil && walkErr == nil {
+		walkErr = fmt.Errorf("close snapshot file: %w", closeErr)
+	}
 
-		fw, err := w.Create(rel)
-		if err != nil {
-			return err
-		}
-
-		src, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer func() { _ = src.Close() }()
-
-		_, err = io.Copy(fw, src)
-		return err
-	})
-
-	if err != nil {
-		return "", fmt.Errorf("walk storage dir: %w", err)
+	if walkErr != nil {
+		_ = os.Remove(snapPath)
+		return "", walkErr
 	}
 
 	return snapPath, nil
+}
+
+func addFileToZip(w *zip.Writer, srcPath, arcPath string) error {
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+
+	fw, err := w.Create(arcPath)
+	if err != nil {
+		src.Close()
+		return err
+	}
+
+	_, err = io.Copy(fw, src)
+	src.Close()
+	return err
 }
 
 // PruneSnapshots keeps the most recent `keep` snapshots and removes older ones.

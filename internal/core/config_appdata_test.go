@@ -14,13 +14,18 @@ func TestAppDataConfig_YAMLParsing(t *testing.T) {
 appdata:
   storage: ~/.local/share/appdata
   apps:
-    - vscode
-    - iterm2
+    - tags: [personal]
+      ids: [iterm2, alacritty]
+    - tags: [work]
+      ids: [vscode, slack]
+    - tags: [personal, work]
+      ids: [git]
   ignore:
     - slack
   custom:
     - id: myapp
       name: My App
+      tags: [personal]
       files:
         - ~/.myapp/config.yml
       xdg_files:
@@ -37,14 +42,26 @@ appdata:
 		t.Errorf("Storage = %q, want %q", cfg.AppData.Storage, "~/.local/share/appdata")
 	}
 
-	if len(cfg.AppData.Apps) != 2 {
-		t.Fatalf("Apps length = %d, want 2", len(cfg.AppData.Apps))
+	if len(cfg.AppData.Apps) != 3 {
+		t.Fatalf("Apps length = %d, want 3", len(cfg.AppData.Apps))
 	}
-	if cfg.AppData.Apps[0] != "vscode" {
-		t.Errorf("Apps[0] = %q, want %q", cfg.AppData.Apps[0], "vscode")
+
+	// First group
+	g0 := cfg.AppData.Apps[0]
+	if len(g0.Tags) != 1 || g0.Tags[0] != "personal" {
+		t.Errorf("Apps[0].Tags = %v, want [personal]", g0.Tags)
 	}
-	if cfg.AppData.Apps[1] != "iterm2" {
-		t.Errorf("Apps[1] = %q, want %q", cfg.AppData.Apps[1], "iterm2")
+	if len(g0.IDs) != 2 || g0.IDs[0] != "iterm2" || g0.IDs[1] != "alacritty" {
+		t.Errorf("Apps[0].IDs = %v, want [iterm2 alacritty]", g0.IDs)
+	}
+
+	// Third group has multiple tags
+	g2 := cfg.AppData.Apps[2]
+	if len(g2.Tags) != 2 {
+		t.Errorf("Apps[2].Tags = %v, want [personal work]", g2.Tags)
+	}
+	if len(g2.IDs) != 1 || g2.IDs[0] != "git" {
+		t.Errorf("Apps[2].IDs = %v, want [git]", g2.IDs)
 	}
 
 	if len(cfg.AppData.Ignore) != 1 || cfg.AppData.Ignore[0] != "slack" {
@@ -58,6 +75,7 @@ appdata:
 	want := appdata.CustomEntry{
 		ID:       "myapp",
 		Name:     "My App",
+		Tags:     []string{"personal"},
 		Files:    []string{"~/.myapp/config.yml"},
 		XDGFiles: []string{"myapp/settings.json"},
 	}
@@ -68,6 +86,9 @@ appdata:
 	}
 	if got.Name != want.Name {
 		t.Errorf("Custom[0].Name = %q, want %q", got.Name, want.Name)
+	}
+	if len(got.Tags) != 1 || got.Tags[0] != "personal" {
+		t.Errorf("Custom[0].Tags = %v, want [personal]", got.Tags)
 	}
 	if len(got.Files) != 1 || got.Files[0] != want.Files[0] {
 		t.Errorf("Custom[0].Files = %v, want %v", got.Files, want.Files)

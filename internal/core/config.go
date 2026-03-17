@@ -34,7 +34,7 @@ type ConfigFile struct {
 // AppDataConfig holds configuration for the appdata backup/restore command.
 type AppDataConfig struct {
 	Storage           string                `yaml:"storage"`
-	Apps              []string              `yaml:"apps"`
+	Apps              []appdata.AppGroup    `yaml:"apps"`
 	Ignore            []string              `yaml:"ignore"`
 	Custom            []appdata.CustomEntry `yaml:"custom"`
 	SnapshotRetention int                   `yaml:"snapshot_retention"`

@@ -6,7 +6,9 @@ import (
 	"maps"
 	"os"
 	"slices"
+	"strings"
 
+	"github.com/expr-lang/expr/vm"
 	"github.com/hay-kot/mmdot/internal/appdata"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/pkgs/printer"
@@ -30,8 +32,9 @@ func (ad *AppDataCmd) Register(app *cli.Command) *cli.Command {
 		Usage:   "Backup and restore application config files",
 		Commands: []*cli.Command{
 			{
-				Name:  "backup",
-				Usage: "Copy application config files to storage",
+				Name:      "backup",
+				Usage:     "Copy application config files to storage",
+				ArgsUsage: "[expression]",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{
 						Name:        "dry-run",
@@ -42,8 +45,9 @@ func (ad *AppDataCmd) Register(app *cli.Command) *cli.Command {
 				Action: ad.backup,
 			},
 			{
-				Name:  "restore",
-				Usage: "Copy application config files from storage to home",
+				Name:      "restore",
+				Usage:     "Copy application config files from storage to home",
+				ArgsUsage: "[expression]",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{
 						Name:        "dry-run",
@@ -54,8 +58,9 @@ func (ad *AppDataCmd) Register(app *cli.Command) *cli.Command {
 				Action: ad.restore,
 			},
 			{
-				Name:  "list",
-				Usage: "List known or configured applications",
+				Name:      "list",
+				Usage:     "List known or configured applications",
+				ArgsUsage: "[expression]",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{
 						Name:  "configured",
@@ -79,11 +84,41 @@ func (ad *AppDataCmd) resolveApps(cfg core.ConfigFile) ([]appdata.ResolvedApp, e
 	}
 
 	resolved := make([]appdata.ResolvedApp, 0, len(db))
-	for id, def := range db {
-		resolved = append(resolved, appdata.ResolveApp(id, def, cfg.AppData.Storage))
+	for id, app := range db {
+		resolved = append(resolved, appdata.ResolveApp(id, app, cfg.AppData.Storage))
 	}
 
 	return resolved, nil
+}
+
+// filterApps compiles the expression and filters resolved apps.
+// Returns all apps if expression is empty.
+func filterApps(apps []appdata.ResolvedApp, expression string, macros map[string]string) ([]appdata.ResolvedApp, error) {
+	program, err := compileExpr(expression, macros, true)
+	if err != nil {
+		return nil, fmt.Errorf("compile expression: %w", err)
+	}
+
+	return matchApps(apps, program)
+}
+
+func matchApps(apps []appdata.ResolvedApp, program *vm.Program) ([]appdata.ResolvedApp, error) {
+	var matched []appdata.ResolvedApp
+	for _, app := range apps {
+		env := map[string]any{
+			"tags": app.Tags,
+			"name": app.Name,
+			"id":   app.ID,
+		}
+		ok, err := evalCompiledExpr(program, env)
+		if err != nil {
+			return nil, fmt.Errorf("eval expression for %s: %w", app.ID, err)
+		}
+		if ok {
+			matched = append(matched, app)
+		}
+	}
+	return matched, nil
 }
 
 func (ad *AppDataCmd) backup(ctx context.Context, cmd *cli.Command) error {
@@ -97,6 +132,12 @@ func (ad *AppDataCmd) backup(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	apps, err := ad.resolveApps(cfg)
+	if err != nil {
+		return err
+	}
+
+	expression := strings.Join(cmd.Args().Slice(), " ")
+	apps, err = filterApps(apps, expression, cfg.Macros)
 	if err != nil {
 		return err
 	}
@@ -157,8 +198,14 @@ func (ad *AppDataCmd) restore(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	expression := strings.Join(cmd.Args().Slice(), " ")
+	apps, err = filterApps(apps, expression, cfg.Macros)
+	if err != nil {
+		return err
+	}
+
 	if !ad.dryRun {
-		snapPath, snapErr := appdata.CreateSnapshot(cfg.AppData.Storage)
+		snapPath, snapErr := appdata.SnapshotHomeFiles(cfg.AppData.Storage, apps)
 		if snapErr != nil {
 			log.Warn().Err(snapErr).Msg("failed to create pre-restore snapshot")
 		} else {
@@ -215,6 +262,7 @@ func (ad *AppDataCmd) restore(ctx context.Context, cmd *cli.Command) error {
 
 func (ad *AppDataCmd) list(ctx context.Context, cmd *cli.Command) error {
 	configured := cmd.Bool("configured")
+	expression := strings.Join(cmd.Args().Slice(), " ")
 
 	if configured {
 		cfg, err := core.SetupEnv(ad.flags.ConfigFilePath)
@@ -229,15 +277,40 @@ func (ad *AppDataCmd) list(ctx context.Context, cmd *cli.Command) error {
 
 		ids := slices.Sorted(maps.Keys(db))
 
-		p := printer.New(os.Stdout)
-		p.LineBreak()
-
-		items := make([]string, len(ids))
-		for i, id := range ids {
-			items[i] = fmt.Sprintf("%s (%s)", id, db[id].Name)
+		// Build list items, then filter by expression if provided
+		var listItems []ListItem
+		for _, id := range ids {
+			listItems = append(listItems, ListItem{
+				Name: fmt.Sprintf("%s (%s)", id, db[id].Name),
+				Tags: db[id].Tags,
+			})
 		}
 
-		p.List(fmt.Sprintf("Configured Apps (%d):", len(ids)), items)
+		if expression != "" {
+			program, compErr := compileExpr(expression, cfg.Macros, true)
+			if compErr != nil {
+				return fmt.Errorf("compile expression: %w", compErr)
+			}
+
+			var filtered []ListItem
+			for i, id := range ids {
+				env := map[string]any{
+					"tags": db[id].Tags,
+					"name": db[id].Name,
+					"id":   id,
+				}
+				ok, evalErr := evalCompiledExpr(program, env)
+				if evalErr != nil {
+					return fmt.Errorf("eval expression for %s: %w", id, evalErr)
+				}
+				if ok {
+					filtered = append(filtered, listItems[i])
+				}
+			}
+			listItems = filtered
+		}
+
+		printList(fmt.Sprintf("Configured Apps (%d):", len(listItems)), listItems)
 		return nil
 	}
 

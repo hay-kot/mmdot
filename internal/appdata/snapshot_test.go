@@ -9,23 +9,46 @@ import (
 	"testing"
 )
 
-func TestCreateSnapshot(t *testing.T) {
-	storageDir := t.TempDir()
+func TestSnapshotHomeFiles(t *testing.T) {
+	tmp := t.TempDir()
+	storageDir := filepath.Join(tmp, "storage")
+	homeDir := filepath.Join(tmp, "home")
 
-	// Create some files in storage
-	if err := os.MkdirAll(filepath.Join(storageDir, "bash"), 0755); err != nil {
+	// Create home files that would be overwritten by restore
+	bashrc := filepath.Join(homeDir, ".bashrc")
+	gitcfg := filepath.Join(homeDir, ".gitconfig")
+	if err := os.MkdirAll(homeDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(storageDir, "bash", ".bashrc"), []byte("bashrc"), 0644); err != nil {
+	if err := os.WriteFile(bashrc, []byte("original-bashrc"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(storageDir, "toplevel.txt"), []byte("top"), 0644); err != nil {
+	if err := os.WriteFile(gitcfg, []byte("original-gitconfig"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	snapPath, err := CreateSnapshot(storageDir)
+	apps := []ResolvedApp{
+		{
+			ID:   "bash",
+			Name: "Bash",
+			Entries: []FileEntry{
+				{HomePath: bashrc, StoragePath: filepath.Join(storageDir, "bash", ".bashrc")},
+			},
+		},
+		{
+			ID:   "git",
+			Name: "Git",
+			Entries: []FileEntry{
+				{HomePath: gitcfg, StoragePath: filepath.Join(storageDir, "git", ".gitconfig")},
+				// Entry that doesn't exist on disk — should be skipped
+				{HomePath: filepath.Join(homeDir, ".missing"), StoragePath: filepath.Join(storageDir, "git", ".missing")},
+			},
+		},
+	}
+
+	snapPath, err := SnapshotHomeFiles(storageDir, apps)
 	if err != nil {
-		t.Fatalf("CreateSnapshot() error: %v", err)
+		t.Fatalf("SnapshotHomeFiles() error: %v", err)
 	}
 
 	if !strings.HasSuffix(snapPath, ".zip") {
@@ -44,15 +67,14 @@ func TestCreateSnapshot(t *testing.T) {
 		names[f.Name] = true
 	}
 
-	// Should contain our files
-	if !names["bash/"] {
-		t.Error("zip missing bash/ directory")
-	}
 	if !names["bash/.bashrc"] {
 		t.Error("zip missing bash/.bashrc")
 	}
-	if !names["toplevel.txt"] {
-		t.Error("zip missing toplevel.txt")
+	if !names["git/.gitconfig"] {
+		t.Error("zip missing git/.gitconfig")
+	}
+	if names["git/.missing"] {
+		t.Error("zip should not contain non-existent files")
 	}
 
 	// Should NOT contain .snapshots

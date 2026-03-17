@@ -77,8 +77,11 @@ func TestConvertedAppsYAML(t *testing.T) {
 	}
 }
 
-func TestBuildAppDB_Whitelist(t *testing.T) {
-	result, err := BuildAppDB([]string{"git", "zsh"}, nil, nil)
+func TestBuildAppDB_Groups(t *testing.T) {
+	groups := []AppGroup{
+		{Tags: []string{"personal"}, IDs: []string{"git", "zsh"}},
+	}
+	result, err := BuildAppDB(groups, nil, nil)
 	if err != nil {
 		t.Fatalf("BuildAppDB() error: %v", err)
 	}
@@ -91,10 +94,55 @@ func TestBuildAppDB_Whitelist(t *testing.T) {
 	if _, ok := result["zsh"]; !ok {
 		t.Error("missing zsh")
 	}
+	// Check tags propagated
+	if len(result["git"].Tags) != 1 || result["git"].Tags[0] != "personal" {
+		t.Errorf("git.Tags = %v, want [personal]", result["git"].Tags)
+	}
+}
+
+func TestBuildAppDB_TagAccumulation(t *testing.T) {
+	groups := []AppGroup{
+		{Tags: []string{"personal"}, IDs: []string{"git", "zsh"}},
+		{Tags: []string{"work"}, IDs: []string{"git", "vscode"}},
+	}
+	result, err := BuildAppDB(groups, nil, nil)
+	if err != nil {
+		t.Fatalf("BuildAppDB() error: %v", err)
+	}
+	if len(result) != 3 {
+		t.Errorf("len = %d, want 3", len(result))
+	}
+
+	// git should have both tags
+	gitTags := result["git"].Tags
+	if len(gitTags) != 2 {
+		t.Fatalf("git.Tags = %v, want [personal work]", gitTags)
+	}
+	hasPersonal := false
+	hasWork := false
+	for _, tag := range gitTags {
+		if tag == "personal" {
+			hasPersonal = true
+		}
+		if tag == "work" {
+			hasWork = true
+		}
+	}
+	if !hasPersonal || !hasWork {
+		t.Errorf("git.Tags = %v, want both personal and work", gitTags)
+	}
+
+	// zsh only personal
+	if len(result["zsh"].Tags) != 1 || result["zsh"].Tags[0] != "personal" {
+		t.Errorf("zsh.Tags = %v, want [personal]", result["zsh"].Tags)
+	}
 }
 
 func TestBuildAppDB_Ignore(t *testing.T) {
-	result, err := BuildAppDB([]string{"git", "zsh"}, []string{"zsh"}, nil)
+	groups := []AppGroup{
+		{Tags: []string{"all"}, IDs: []string{"git", "zsh"}},
+	}
+	result, err := BuildAppDB(groups, []string{"zsh"}, nil)
 	if err != nil {
 		t.Fatalf("BuildAppDB() error: %v", err)
 	}
@@ -107,14 +155,18 @@ func TestBuildAppDB_Ignore(t *testing.T) {
 }
 
 func TestBuildAppDB_Custom(t *testing.T) {
+	groups := []AppGroup{
+		{Tags: []string{"personal"}, IDs: []string{"git"}},
+	}
 	custom := []CustomEntry{
 		{
 			ID:    "myapp",
 			Name:  "My App",
+			Tags:  []string{"work"},
 			Files: []string{".myapprc"},
 		},
 	}
-	result, err := BuildAppDB([]string{"git"}, nil, custom)
+	result, err := BuildAppDB(groups, nil, custom)
 	if err != nil {
 		t.Fatalf("BuildAppDB() error: %v", err)
 	}
@@ -131,6 +183,9 @@ func TestBuildAppDB_Custom(t *testing.T) {
 	if len(app.Files) != 1 || app.Files[0] != ".myapprc" {
 		t.Errorf("Files = %v, want [.myapprc]", app.Files)
 	}
+	if len(app.Tags) != 1 || app.Tags[0] != "work" {
+		t.Errorf("Tags = %v, want [work]", app.Tags)
+	}
 }
 
 func TestBuildAppDB_AllApps(t *testing.T) {
@@ -145,18 +200,39 @@ func TestBuildAppDB_AllApps(t *testing.T) {
 }
 
 func TestBuildAppDB_CustomOverridesBuiltin(t *testing.T) {
+	groups := []AppGroup{
+		{Tags: []string{"personal"}, IDs: []string{"git"}},
+	}
 	custom := []CustomEntry{
 		{
 			ID:    "git",
 			Name:  "Custom Git",
+			Tags:  []string{"custom"},
 			Files: []string{".mygitconfig"},
 		},
 	}
-	result, err := BuildAppDB([]string{"git"}, nil, custom)
+	result, err := BuildAppDB(groups, nil, custom)
 	if err != nil {
 		t.Fatalf("BuildAppDB() error: %v", err)
 	}
 	if result["git"].Name != "Custom Git" {
 		t.Errorf("Name = %q, want %q", result["git"].Name, "Custom Git")
+	}
+	// Custom completely replaces, including tags
+	if len(result["git"].Tags) != 1 || result["git"].Tags[0] != "custom" {
+		t.Errorf("Tags = %v, want [custom]", result["git"].Tags)
+	}
+}
+
+func TestAppendUnique(t *testing.T) {
+	result := appendUnique([]string{"a", "b"}, "b", "c", "a", "d")
+	if len(result) != 4 {
+		t.Errorf("len = %d, want 4", len(result))
+	}
+	want := map[string]bool{"a": true, "b": true, "c": true, "d": true}
+	for _, v := range result {
+		if !want[v] {
+			t.Errorf("unexpected value: %q", v)
+		}
 	}
 }
