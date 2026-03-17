@@ -22,6 +22,8 @@ func TestWriteMigrationNotes_FromV1(t *testing.T) {
 		"brewfile",
 		"brewConfig",
 		"outfile",
+		"v2 → v3",
+		"appdata",
 	} {
 		if !strings.Contains(result, want) {
 			t.Errorf("migration notes missing %q", want)
@@ -48,6 +50,8 @@ func TestEmbeddedConfigSchema(t *testing.T) {
 		"variables:",
 		"age:",
 		"Variable precedence",
+		"appdata:",
+		"storage:",
 	} {
 		if !strings.Contains(content, want) {
 			t.Errorf("schema reference missing %q", want)

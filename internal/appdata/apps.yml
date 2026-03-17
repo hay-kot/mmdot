@@ -1,0 +1,3494 @@
+1password-4:
+  name: 1Password 4
+  files:
+  - Library/Preferences/com.agilebits.onepassword4.plist
+  - Library/Preferences/ws.agile.1Password.plist
+2do:
+  name: 2Do
+  files:
+  - Library/Preferences/com.guidedways.TodoMac.plist
+ack:
+  name: Ack
+  files:
+  - .ackrc
+act:
+  name: act
+  files:
+  - .actrc
+activitywatch:
+  name: Activity Watch
+  files:
+  - Library/Application Support/activitywatch
+adium:
+  name: Adium
+  files:
+  - Library/Application Support/Adium 2.0
+  - Library/Preferences/com.adiumX.adiumX.plist
+adobe-camera-raw:
+  name: Adobe Camera Raw
+  files:
+  - Library/Application Support/Adobe/CameraRaw
+aerc:
+  name: aerc
+  files:
+  - Library/Preferences/aerc
+aerospace:
+  name: aerospace
+  files:
+  - .aerospace.toml
+  xdg_files:
+  - aerospace/aerospace.toml
+affinity-designer:
+  name: Affinity Designer
+  files:
+  - Library/Containers/Affinity Designer/Data/Library/Application Support/user
+affinity-photo:
+  name: Affinity Photo
+  files:
+  - Library/Containers/Affinity Photo/Data/Library/Application Support/user
+affinity-publisher:
+  name: Affinity Publisher
+  files:
+  - Library/Containers/Affinity Publisher/Data/Library/Application Support/user
+airflow:
+  name: Airflow
+  files:
+  - Library/Preferences/com.bitcavehq.Airflow.plist
+  - Library/Application Support/Airflow
+airmail:
+  name: Airmail
+  files:
+  - Library/Containers/it.bloop.airmail2/Container.plist
+akamai-cli:
+  name: Akamai-CLI
+  files:
+  - .edgerc
+alacritty:
+  name: Alacritty
+  files:
+  - .alacritty.yml
+  - .alacritty.toml
+  xdg_files:
+  - alacritty/alacritty.yml
+  - alacritty/alacritty.toml
+aldente:
+  name: AlDente
+  files:
+  - Library/Application Support/AlDente
+  - Library/Preferences/com.apphousekitchen.aldente-pro.plist
+alt-tab:
+  name: AltTab
+  files:
+  - Library/Preferences/com.lwouis.alt-tab-macos.plist
+amethyst:
+  name: Amethyst
+  files:
+  - Library/Preferences/com.amethyst.Amethyst.plist
+  xdg_files:
+  - amethyst/amethyst.yml
+ancient-domains-of-mystery:
+  name: Ancient Domains of Mystery
+  files:
+  - .adom.data
+androidstudio-13:
+  name: Android Studio 1.3
+  files:
+  - Library/Application Support/AndroidStudio1.3
+  - Library/Preferences/AndroidStudio1.3
+ansible:
+  name: Ansible
+  files:
+  - .ansible
+  - .ansible.cfg
+appcleaner:
+  name: AppCleaner
+  files:
+  - Library/Preferences/net.freemacsoft.AppCleaner.plist
+  - Library/Preferences/net.freemacsoft.AppCleaner-SmartDelete.plist
+appcode-2:
+  name: AppCode 2
+  files:
+  - Library/Application Support/appCode20
+  - Library/Preferences/appCode20
+appcode-3:
+  name: AppCode 3
+  files:
+  - Library/Application Support/appCode30
+  - Library/Preferences/appCode30
+appcode-31:
+  name: AppCode 3.1
+  files:
+  - Library/Application Support/appCode31
+  - Library/Preferences/appCode31
+appcode-32:
+  name: AppCode 3.2
+  files:
+  - Library/Application Support/AppCode32
+  - Library/Preferences/AppCode32
+apple-music:
+  name: Apple Music
+  files:
+  - Library/Music/Scripts
+  - Library/Preferences/com.apple.Music.eq.plist
+  - Library/Preferences/com.apple.Music.plist
+apptivate:
+  name: Apptivate
+  files:
+  - Library/Application Support/Apptivate/hotkeys
+arara:
+  name: Arara
+  files:
+  - .araraconfig.yaml
+  - araraconfig.yaml
+aria2c:
+  name: aria2c
+  files:
+  - .aria2
+  xdg_files:
+  - aria2
+arm:
+  name: Arm
+  files:
+  - .arm/armrc
+asciinema:
+  name: asciinema
+  xdg_files:
+  - asciinema
+asdf:
+  name: asdf
+  files:
+  - .asdfrc
+  - .default-gems
+  - .default-npm-packages
+  - .default-python-packages
+  - .default-golang-pkgs
+  - .default-mix-commands
+  - .tool-versions
+aspell:
+  name: Aspell
+  files:
+  - .aspell.conf
+  - .aspell.en.prepl
+  - .aspell.en.pws
+astyle:
+  name: Artistic Style
+  files:
+  - .astylerc
+atlantis:
+  name: Atlantis
+  files:
+  - Library/Application Support/Atlantis
+atom:
+  name: Atom
+  files:
+  - Library/Preferences/com.github.atom.plist
+  - .atom/config.cson
+  - .atom/init.coffee
+  - .atom/keymap.cson
+  - .atom/keymaps
+  - .atom/snippets.cson
+  - .atom/styles.less
+audacious:
+  name: Audacious
+  xdg_files:
+  - audacious/config
+  - audacious/plugin-registry
+  - audacious/playlists
+  - audacious/playlist-state
+  - audacious/scrobbler.log
+auskey:
+  name: AusKey
+  files:
+  - Library/Application Support/AUSkey/keystore.xml
+autokey:
+  name: Autokey
+  xdg_files:
+  - autokey
+awareness:
+  name: Awareness
+  files:
+  - Library/Preferences/com.futureproof.awareness.plist
+aws:
+  name: AWS CLI
+  files:
+  - .aws
+azure:
+  name: Azure CLI
+  files:
+  - .azure
+b-ryan_powerline-shell:
+  name: Powerline Shell Prompt
+  xdg_files:
+  - powerline-shell/config.json
+bartender:
+  name: Bartender
+  files:
+  - Library/Preferences/com.surteesstudios.Bartender.plist
+  - Library/Preferences/com.surteesstudios.Bartender-setapp.plist
+  - Library/Application Support/Bartender/Bartender.BartenderPreferences
+base:
+  name: Base
+  files:
+  - Library/Containers/uk.co.menial.Base/Data/Library/Preferences/uk.co.menial.Base.plist
+  - Library/Containers/uk.co.menial.Base/Data/Library/Application Support/Base/
+bash:
+  name: Bash
+  files:
+  - .aliases
+  - .bash_aliases
+  - .bash_login
+  - .bash_logout
+  - .bashrc
+  - .profile
+  - .bash_profile
+  - .inputrc
+bash-it:
+  name: Bash it
+  files:
+  - .bash_it/enabled
+bat:
+  name: Bat
+  xdg_files:
+  - bat/config
+  - bat/syntaxes
+  - bat/themes
+bc:
+  name: bc
+  files:
+  - .bcrc
+beatport-pro:
+  name: Beatport Pro
+  files:
+  - Library/Preferences/com.beatport.BeatportPro.plist
+beets:
+  name: Beets
+  xdg_files:
+  - beets/config.yaml
+bettersnaptool:
+  name: BetterSnapTool
+  files:
+  - Library/Preferences/com.hegenberg.BetterSnapTool.plist
+  - Library/Application Support/BetterSnapTool
+bettertouchtool:
+  name: BetterTouchTool
+  files:
+  - Library/Application Support/BetterTouchTool/bettertouchtool.license
+  - Library/Application Support/BetterTouchTool/btt_data_store.v2
+  - Library/Application Support/BetterTouchTool/btt_data_store.v2-shm
+  - Library/Application Support/BetterTouchTool/btt_data_store.v2-wal
+  - Library/Application Support/BetterTouchTool/bttdata2
+  - Library/Preferences/com.hegenberg.BetterTouchTool.plist
+  - Library/Application Support/BetterTouchTool/bettersnaptool.bttlicense
+beyond-compare:
+  name: Beyond Compare
+  files:
+  - Library/Preferences/com.ScooterSoftware.BeyondCompare.plist
+  - Library/Application Support/Beyond Compare/BC4Key.txt
+  - Library/Application Support/Beyond Compare/BCColors.xml
+  - Library/Application Support/Beyond Compare/BCCommands.xml
+  - Library/Application Support/Beyond Compare/BCPreferences.xml
+bibdesk:
+  name: BibDesk
+  files:
+  - Library/Preferences/edu.ucsd.cs.mmccrack.bibdesk.plist
+  - Library/Application Support/BibDesk
+billings-pro-server-admin:
+  name: Billings Pro Server Admin
+  files:
+  - Library/Preferences/com.marketcircle.BillingsProServerAdmin.plist
+bitbar:
+  name: BitBar
+  files:
+  - Library/Preferences/com.matryer.BitBar.plist
+bitchx:
+  name: Bitchx
+  files:
+  - .bitchxrc
+  - .ircservers
+blackfire:
+  name: Blackfire
+  files:
+  - .blackfire.ini
+blender:
+  name: Blender
+  files:
+  - Library/Application Support/Blender
+  xdg_files:
+  - blender
+blesh:
+  name: ble.sh
+  files:
+  - .blerc
+boto:
+  name: Boto
+  files:
+  - .boto
+boxer:
+  name: Boxer
+  files:
+  - Library/Preferences/net.washboardabs.boxer.plist
+  - Applications/DOS Games
+brackets:
+  name: Brackets
+  files:
+  - Library/Application Support/Brackets
+  - Library/Preferences/io.brackets.appshell.plist
+brave:
+  name: Brave
+  files:
+  - Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences
+btop:
+  name: btop
+  xdg_files:
+  - btop
+bump:
+  name: Bump
+  files:
+  - .bump.json
+bundler:
+  name: Bundler
+  files:
+  - .bundle/config
+byobu:
+  name: Byobu
+  files:
+  - .byobu/.screenrc
+  - .byobu/.tmux.conf
+  - .byobu/backend
+  - .byobu/color
+  - .byobu/color.tmux
+  - .byobu/datetime.tmux
+  - .byobu/keybindings
+  - .byobu/keybindings.tmux
+  - .byobu/profile
+  - .byobu/profile.tmux
+  - .byobu/prompt
+  - .byobu/prompt.tmux
+  - .byobu/status
+  - .byobu/statusrc
+  - .byobu/windows
+  - .byobu/windows.tmux
+  - .byoburc
+  - .byoburc.tmux
+  - .byoburc.screen
+caffeine:
+  name: Caffeine
+  files:
+  - Library/Preferences/com.lightheadsw.Caffeine.plist
+  - Library/Preferences/com.intelliscapesolutions.caffeine.plist
+calibre:
+  name: Calibre
+  files:
+  - Library/Preferences/calibre
+  xdg_files:
+  - calibre
+capture-one:
+  name: Capture One
+  files:
+  - Library/Application Support/Capture One
+cartographica:
+  name: Cartographica
+  files:
+  - Library/Application Support/Cartographica
+  - Library/Preferences/com.ClueTrust.Cartographica.plist
+cerebro:
+  name: Cerebro
+  files:
+  - Library/Application Support/Cerebro/config.json
+  - Library/Application Support/Cerebro/plugins
+  xdg_files:
+  - Cerebro/config.json
+  - Cerebro/plugins
+charles:
+  name: Charles
+  files:
+  - Library/Application Support/Charles
+  - Library/Preferences/com.xk72.charles.config
+cheat:
+  name: Cheat
+  files:
+  - .cheat
+  xdg_files:
+  - cheat/conf.yml
+chef:
+  name: Chef
+  files:
+  - .chef
+chicken:
+  name: Chicken
+  files:
+  - Library/Preferences/net.sourceforge.chicken.plist
+choosy:
+  name: Choosy
+  files:
+  - Library/Application Support/Choosy/behaviours.plist
+chunkwm:
+  name: chunkwm
+  files:
+  - .chunkwmrc
+  - .chunkwm_plugins
+cider:
+  name: Cider
+  files:
+  - .cider
+clashx:
+  name: ClashX
+  xdg_files:
+  - clash
+clasp:
+  name: Clasp
+  files:
+  - .clasprc.json
+claude-code:
+  name: Claude Code
+  files:
+  - .claude/plugins
+  - .claude/settings
+  - .claude/skills
+  - .claude/agents
+  - .claude/settings.json
+  - .claude/CLAUDE.md
+cleanshot:
+  name: CleanShot
+  files:
+  - Library/Preferences/com.getcleanshot.app-setapp.plist
+  - Library/Preferences/pl.maketheweb.cleanshotx.plist
+clementine:
+  name: Clementine
+  files:
+  - Library/Preferences/org.clementine-player.Clementine.plist
+clion:
+  name: CLion
+  files:
+  - Library/Preferences/CLion2016.2
+  - Library/Application Support/CLion2016.2
+  - Library/Application Support/JetBrains/CLion2023.1
+  - Library/Application Support/JetBrains/CLion2023.2
+clipmenu:
+  name: ClipMenu
+  files:
+  - Library/Application Support/ClipMenu
+  - Library/Preferences/com.naotaka.ClipMenu.plist
+clipy:
+  name: Clipy
+  files:
+  - Library/Preferences/com.clipy-app.Clipy.plist
+cloudapp:
+  name: CloudApp
+  files:
+  - Library/Preferences/com.linebreak.CloudAppMacOSX.plist
+coda-2:
+  name: Coda 2
+  files:
+  - Library/Application Support/Coda 2
+  - Library/Preferences/com.panic.Coda2.plist
+codex:
+  name: Codex
+  files:
+  - .codex/config.toml
+  - .codex/auth.json
+  - .codex/AGENTS.md
+colloquy:
+  name: Colloquy
+  files:
+  - Library/Preferences/info.colloquy.plist
+  - Library/Application Support/Colloquy
+colorschemer-studio-2:
+  name: ColorSchemer Studio 2
+  files:
+  - Library/Preferences/com.colorschemer.studio2.plist
+  - Library/Application Support/ColorSchemer
+colorslurp:
+  name: ColorSlurp
+  files:
+  - Library/Preferences/com.IdeaPunch.ColorSlurp.plist
+  - Library/Containers/com.IdeaPunch.ColorSlurp/Data/Library/Application Support/default.realm
+colorsync:
+  name: ColorSync
+  files:
+  - Library/ColorSync/Profiles
+composer:
+  name: composer
+  files:
+  - .composer/auth.json
+  - .composer/config.json
+  - .composer/composer.json
+concentrate:
+  name: Concentrate
+  files:
+  - Library/Application Support/Concentrate/Concentrate.sqlite3
+conky:
+  name: Conky
+  files:
+  - .conkyrc
+consular:
+  name: Consular
+  files:
+  - .consularc
+  xdg_files:
+  - consular
+contexts:
+  name: Contexts
+  files:
+  - Library/Preferences/com.contextsformac.Contexts.plist
+controlplane:
+  name: ControlPlane
+  files:
+  - Library/Preferences/com.dustinrue.ControlPlane.plist
+copyq:
+  name: CopyQ
+  xdg_files:
+  - copyq
+cord:
+  name: CoRD
+  files:
+  - Library/Application Support/CoRD
+coteditor:
+  name: CotEditor
+  files:
+  - Library/Application Support/CotEditor
+  - Library/Preferences/com.coteditor.CotEditor.plist
+ctags:
+  name: Ctags
+  files:
+  - .ctags
+  - .ctags.d
+curl:
+  name: Curl
+  files:
+  - .netrc
+  - .curlrc
+cursor:
+  name: Cursor
+  files:
+  - Library/Application Support/Cursor/User/snippets
+  - Library/Application Support/Cursor/User/keybindings.json
+  - Library/Application Support/Cursor/User/settings.json
+  xdg_files:
+  - Cursor/User/snippets
+  - Cursor/User/keybindings.json
+  - Cursor/User/settings.json
+cvim:
+  name: cVim
+  files:
+  - .cvimrc
+cyberduck:
+  name: Cyberduck
+  files:
+  - Library/Application Support/Cyberduck
+  - Library/Containers/ch.sudo.cyberduck/Data/Library/Application Support/Cyberduck
+  - Library/Group Containers/G69SCX94XU.duck/Library/Application Support/duck
+  - Library/Preferences/ch.sudo.cyberduck.plist
+daisydisk:
+  name: DaisyDisk
+  files:
+  - Library/Application Support/DaisyDisk/License.DaisyDisk
+  - Library/Preferences/com.daisydiskapp.DaisyDiskStandAlone.plist
+dash:
+  name: Dash
+  files:
+  - Library/Application Support/Dash/library.dash
+  - Library/Application Support/Dash/License/license.dash-license
+  - Library/Preferences/com.kapeli.dash.plist
+  - Library/Preferences/com.kapeli.dashdoc.plist
+datagrip:
+  name: DataGrip
+  files:
+  - Library/Application Support/DataGrip2017.3
+  - Library/Preferences/DataGrip2017.3
+  - Library/Application Support/DataGrip2018.1
+  - Library/Preferences/DataGrip2018.1
+  - Library/Application Support/DataGrip2018.2
+  - Library/Preferences/DataGrip2018.2
+  - Library/Application Support/DataGrip2018.3
+  - Library/Preferences/DataGrip2018.3
+  - Library/Application Support/DataGrip2019.1
+  - Library/Preferences/DataGrip2019.1
+  - Library/Preferences/DataGrip2019.2
+  - Library/Application Support/JetBrains/DataGrip2023.1
+  - Library/Application Support/JetBrains/DataGrip2023.2
+day-o:
+  name: Day-O
+  files:
+  - Library/Preferences/com.shauninman.Day-O.plist
+dbeaver:
+  name: DBeaver
+  files:
+  - Library/DBeaverData/workspace6/.metadata/.plugins/org.eclipse.core.runtime/.settings
+  - Library/DBeaverData/workspace6/General
+dbvisualizer:
+  name: DbVisualizer
+  files:
+  - .dbvis
+deal-alert:
+  name: Deal Alert
+  files:
+  - Library/Preferences/com.LittleFin.DealAlert.plist
+deepin-dde-dock:
+  name: deepin-dde-dock
+  xdg_files:
+  - deepin/dde-dock.conf
+deepin-dde-file-manager:
+  name: deepin-dde-file-manager
+  xdg_files:
+  - deepin/dde-file-manager.json
+deepin-terminal:
+  name: deepin-terminal
+  xdg_files:
+  - deepin/deepin-terminal/config.conf
+default-folder-x:
+  name: Default Folder X
+  files:
+  - Library/Preferences/com.stclairsoft.DefaultFolderX.favorites.plist
+  - Library/Preferences/com.stclairsoft.DefaultFolderX.plist
+  - Library/Preferences/com.stclairsoft.DefaultFolderX.settings.plist
+defaultkeybinding:
+  name: DefaultKeyBinding
+  files:
+  - Library/KeyBindings/DefaultKeyBinding.dict
+devilspie:
+  name: Devil's Pie
+  files:
+  - .devilspie
+devilspie2:
+  name: Devilspie2
+  xdg_files:
+  - devilspie2
+dig:
+  name: dig
+  files:
+  - .digrc
+divvy:
+  name: Divvy
+  files:
+  - Library/Preferences/com.mizage.direct.Divvy.plist
+  - Library/Preferences/com.mizage.Divvy.plist
+docker:
+  name: Docker
+  files:
+  - .docker/config.json
+  - .docker/daemon.json
+dolphin:
+  name: Dolphin
+  files:
+  - Library/Application Support/Dolphin
+  - Library/Preferences/org.dolphin-emu.dolphin.plist
+doom-emacs:
+  name: Doom Emacs
+  files:
+  - .doom.d
+  xdg_files:
+  - doom
+doublecmd:
+  name: Double Commander
+  xdg_files:
+  - doublecmd/wfx.ini
+  - doublecmd/doublecmd.ext
+  - doublecmd/shortcuts.scf
+  - doublecmd/doublecmd.xml
+doxie:
+  name: Doxie
+  files:
+  - Library/Preferences/com.getdoxie.doxie.plist
+dozer:
+  name: Dozer
+  files:
+  - Library/Preferences/com.mortennn.Dozer.plist
+draft:
+  name: Draft
+  files:
+  - .draft/config.toml
+droplr:
+  name: Droplr
+  files:
+  - Library/Preferences/com.droplr.droplr-mac.plist
+dropzone:
+  name: Dropzone 3
+  files:
+  - Library/Application Support/Dropzone 3
+  - Library/Preferences/com.aptonic.Dropzone3.plist
+drush:
+  name: Drush
+  files:
+  - .drush
+editorconfig:
+  name: EditorConfig
+  files:
+  - .editorconfig
+electrum:
+  name: Electrum
+  files:
+  - .electrum/config
+emacs:
+  name: Emacs
+  files:
+  - .emacs
+  - .emacs.d
+  xdg_files:
+  - emacs
+enjoyable:
+  name: Enjoyable
+  files:
+  - Library/Preferences/com.yukkurigames.Enjoyable.plist
+environmental-station-alpha:
+  name: Environmental Station Alpha
+  files:
+  - Library/Application Support/MMFApplications
+eqmac-2:
+  name: eqMac2
+  files:
+  - Library/Preferences/com.bitgapp.eqMac2.plist
+eslint:
+  name: ESLint
+  files:
+  - .eslintrc.js
+  - .eslintrc.yaml
+  - .eslintrc.yml
+  - .eslintrc.json
+  - .eslintrc
+  - .eslintignore
+espanso:
+  name: espanso
+  files:
+  - Library/Preferences/espanso
+  - Library/Application Support/espanso
+  xdg_files:
+  - espanso
+exercism:
+  name: Exercism
+  files:
+  - .exercism
+  - .exercism.json
+  xdg_files:
+  - exercism
+expandrive:
+  name: ExpanDrive
+  files:
+  - Library/Application Support/ExpanDrive
+  - Preferences/com.expandrive.ExpanDrive2.plist
+  - Preferences/com.expandrive.ExpanDrive3.plist
+factorio:
+  name: Factorio
+  files:
+  - Library/Application Support/factorio/config
+  - Library/Application Support/factorio/mods
+  - Library/Application Support/factorio/saves
+  - Library/Application Support/factorio/player-data.json
+  - Library/Application Support/factorio/blueprint-storage.dat
+factory-droid:
+  name: Factory Droid
+  files:
+  - .factory/commands
+  - .factory/droids
+  - .factory/AGENTS.md
+  - .factory/config.json
+  - .factory/settings.json
+  - .factory/auth.json
+  - .factory/mcp.json
+fantastical:
+  name: Fantastical
+  files:
+  - Library/Preferences/com.flexibits.fantastical.plist
+  - Library/Containers/com.flexibits.fantastical2.mac/Container.plist
+fasd:
+  name: fasd
+  files:
+  - .fasd
+  - .fasdrc
+fastlane:
+  name: fastlane
+  files:
+  - .fastlane/completions
+fastscripts:
+  name: FastScripts
+  files:
+  - Library/Preferences/com.red-sweater.fastscripts.plist
+  - Library/Application Support/FastScripts
+feeds:
+  name: Feeds
+  files:
+  - Library/Preferences/com.feedsapp.Feeds.plist
+filezilla:
+  name: FileZilla
+  files:
+  - .filezilla
+  xdg_files:
+  - filezilla/filezilla.xml
+  - filezilla/layout.xml
+  - filezilla/sitemanager.xml
+finicky:
+  name: finicky
+  files:
+  - .finicky.js
+fish:
+  name: Fish
+  xdg_files:
+  - fish/config.fish
+  - fish/conf.d
+  - fish/fish_variables
+  - fish/functions
+  - fish/completions
+fisher:
+  name: Fisher
+  xdg_files:
+  - fish/fish_plugins
+flake8:
+  name: flake8
+  files:
+  - .flake8
+  xdg_files:
+  - flake8
+flameshot:
+  name: Flameshot
+  xdg_files:
+  - flameshot/flameshot.ini
+flexget:
+  name: FlexGet
+  files:
+  - .flexget/config.yml
+  xdg_files:
+  - flexget/config.yml
+flux:
+  name: Flux
+  files:
+  - Library/Preferences/org.herf.Flux.plist
+focus:
+  name: Focus
+  files:
+  - Library/Application Support/Focus/default.cfg
+fontconfig:
+  name: Fontconfig
+  xdg_files:
+  - fontconfig
+fontexplorer-x:
+  name: FontExplorer X
+  files:
+  - Library/Application Support/Linotype/FontExplorer X
+  - FontExplorer X
+forge:
+  name: Forge
+  files:
+  - Library/Application Support/Forge
+fork:
+  name: Fork
+  files:
+  - Library/Application Support/com.DanPristupov.Fork/custom-commands.json
+  - Library/Preferences/com.DanPristupov.Fork.plist
+forklift:
+  name: ForkLift
+  files:
+  - Library/Preferences/com.binarynights.ForkLift2.plist
+  - Library/Preferences/com.binarynights.ForkLift-3.plist
+  - Library/Application Support/ForkLift/Favorites/Favorites.json
+franz:
+  name: Franz
+  files:
+  - Library/Application Support/Franz/settings
+  xdg_files:
+  - Franz/settings
+gasmask:
+  name: Gas Mask
+  files:
+  - Library/Gas Mask
+  - Library/Preferences/ee.clockwise.gmask.plist
+gdb:
+  name: gdb
+  files:
+  - .gdbinit
+gearplayer:
+  name: Gear Player
+  files:
+  - Library/Preferences/com.treasurebox.gear.plist
+  - Library/Preferences/com.treasurebox.magickeys.plist
+  - Library/Application Support/Gear Player/paddata.padl
+geektool:
+  name: GeekTool
+  files:
+  - Library/Preferences/org.tynsoe.GeekTool.plist
+  - Library/Preferences/org.tynsoe.geeklet.file.plist
+  - Library/Preferences/org.tynsoe.geeklet.image.plist
+  - Library/Preferences/org.tynsoe.geeklet.shell.plist
+  - Library/Preferences/org.tynsoe.geeklet.web.plist
+  - Library/Preferences/org.tynsoe.geektool3.plist
+ghci:
+  name: ghci
+  files:
+  - .ghci
+ghidra:
+  name: Ghidra
+  files:
+  - .ghidra
+ghostty:
+  name: Ghostty
+  xdg_files:
+  - ghostty/config
+ghostwriter:
+  name: Ghostwriter
+  xdg_files:
+  - ghostwriter
+gimp:
+  name: gimp
+  files:
+  - .gimp/colorrc
+  - .gimp/contextrc
+  - .gimp/controllerrc
+  - .gimp/devicerc
+  - .gimp/dockrc
+  - .gimp/gimprc
+  - .gimp/gtkrc
+  - .gimp/menurc
+  - .gimp/parasiterc
+  - .gimp/pluginrc
+  - .gimp/profilerc
+  - .gimp/sessionrc
+  - .gimp/templaterc
+  - .gimp/themerc
+  - .gimp/toolrc
+  - .gimp/unitrc
+  - Library/Application Support/GIMP/2.8/colorrc
+  - Library/Application Support/GIMP/2.8/contextrc
+  - Library/Application Support/GIMP/2.8/controllerrc
+  - Library/Application Support/GIMP/2.8/devicerc
+  - Library/Application Support/GIMP/2.8/dockrc
+  - Library/Application Support/GIMP/2.8/gimprc
+  - Library/Application Support/GIMP/2.8/gtkrc
+  - Library/Application Support/GIMP/2.8/menurc
+  - Library/Application Support/GIMP/2.8/parasiterc
+  - Library/Application Support/GIMP/2.8/pluginrc
+  - Library/Application Support/GIMP/2.8/profilerc
+  - Library/Application Support/GIMP/2.8/sessionrc
+  - Library/Application Support/GIMP/2.8/templaterc
+  - Library/Application Support/GIMP/2.8/themerc
+  - Library/Application Support/GIMP/2.8/toolrc
+  - Library/Application Support/GIMP/2.8/unitrc
+  - Library/Application Support/GIMP/2.10/colorrc
+  - Library/Application Support/GIMP/2.10/contextrc
+  - Library/Application Support/GIMP/2.10/controllerrc
+  - Library/Application Support/GIMP/2.10/devicerc
+  - Library/Application Support/GIMP/2.10/dockrc
+  - Library/Application Support/GIMP/2.10/gimprc
+  - Library/Application Support/GIMP/2.10/gtkrc
+  - Library/Application Support/GIMP/2.10/menurc
+  - Library/Application Support/GIMP/2.10/parasiterc
+  - Library/Application Support/GIMP/2.10/pluginrc
+  - Library/Application Support/GIMP/2.10/profilerc
+  - Library/Application Support/GIMP/2.10/sessionrc
+  - Library/Application Support/GIMP/2.10/templaterc
+  - Library/Application Support/GIMP/2.10/themerc
+  - Library/Application Support/GIMP/2.10/toolrc
+  - Library/Application Support/GIMP/2.10/unitrc
+git:
+  name: Git
+  files:
+  - .gitconfig
+  xdg_files:
+  - git/config
+  - git/ignore
+  - git/attributes
+git-hooks:
+  name: Git Hooks
+  files:
+  - .git_hooks
+gitbox:
+  name: Gitbox
+  files:
+  - Library/Preferences/com.oleganza.gitbox.plist
+gitfox:
+  name: GitFox
+  files:
+  - Library/Preferences/com.bytieful.Gitfox.plist
+  - Library/Preferences/com.bytieful.Gitfox-retail.plist
+  - Library/Preferences/com.bytieful.Gitfox-setapp.plist
+github-cli:
+  name: GitHub CLI
+  xdg_files:
+  - gh/config.yml
+gitkraken:
+  name: GitKraken
+  files:
+  - .gitkraken
+  - Library/Preferences/com.axosoft.gitkraken.plist
+gitup:
+  name: GitUp
+  files:
+  - Library/Preferences/co.gitup.mac.plist
+gmail-notifr:
+  name: Gmail Notifr
+  files:
+  - Library/Preferences/com.ashchan.GmailNotifr.plist
+gmailctl:
+  name: gmailctl
+  files:
+  - .gmailctl/config.jsonnet
+  - .gmailctl/credentials.json
+  - .gmailctl/gmailctl.libsonnet
+gmvault:
+  name: GMVault
+  files:
+  - .gmvault/gmvault_defaults.conf
+gnu-stow:
+  name: GNU Stow
+  files:
+  - .stowrc
+  - .stow-global-ignore
+gnupg:
+  name: GnuPG
+  files:
+  - .gnupg/gpg-agent.conf
+  - .gnupg/gpg.conf
+  - .gnupg/trustdb.gpg
+go2shell:
+  name: Go2Shell
+  files:
+  - Library/Preferences/com.zipzapmac.Go2Shell.plist
+goku:
+  name: Goku
+  xdg_files:
+  - karabiner.edn
+goland:
+  name: GoLand
+  files:
+  - Library/Application Support/Gogland1.0
+  - Library/Application Support/GoLand2017.3
+  - Library/Application Support/GoLand2018.1
+  - Library/Application Support/GoLand2018.2
+  - Library/Application Support/GoLand2018.3
+  - Library/Application Support/GoLand2019.2
+  - Library/Preferences/com.jetbrains.gogland-EAP.plist
+  - Library/Preferences/Gogland1.0
+  - Library/Preferences/GoLand2017.3
+  - Library/Preferences/GoLand2018.1
+  - Library/Preferences/GoLand2018.2
+  - Library/Preferences/GoLand2018.3
+  - Library/Preferences/GoLand2019.2
+  - Library/Application Support/JetBrains/GoLand2023.1
+  - Library/Application Support/JetBrains/GoLand2023.2
+goldendict:
+  name: Goldendict
+  files:
+  - .goldendict/config
+goodsync:
+  name: GoodSync
+  files:
+  - .goodsync
+goshare:
+  name: GoShare
+  xdg_files:
+  - dictget/goshare
+gradle:
+  name: Gradle
+  files:
+  - .gradle/gradle.properties
+  - .gradle/init.gradle
+  - .gradle/init.d
+grandtotal-3:
+  name: GrandTotal 3
+  files:
+  - Library/Application Support/GrandTotal/AddressBook.plist
+  - Library/Preferences/com.mediaatelier.GrandTotal3.plist
+grsync:
+  name: grsync
+  files:
+  - .grsync/grsync.ini
+gstm:
+  name: Gnome SSH Tunnel Manager
+  files:
+  - .gSTM
+hammerspoon:
+  name: Hammerspoon
+  files:
+  - .hammerspoon
+handbrake:
+  name: HandBrake
+  files:
+  - Library/Containers/fr.handbrake.HandBrake/Data/Library/Application Support/HandBrake/UserPresets.json
+hands-off:
+  name: Hands Off!
+  files:
+  - Library/Preferences/com.metakine.handsoff.plist
+hazel:
+  name: Hazel
+  files:
+  - Library/Application Support/Hazel
+  - Library/Preferences/com.noodlesoft.Hazel.plist
+hero-lab:
+  name: Hero Lab
+  files:
+  - Library/Application Support/Hero Lab/customoutput
+  - Library/Application Support/Hero Lab/data
+  - Library/Application Support/Hero Lab/docs
+heroku:
+  name: Heroku
+  files:
+  - .heroku/accounts
+  - .heroku/plugins
+hexchat:
+  name: HexChat
+  xdg_files:
+  - hexchat
+hexels:
+  name: Hexels
+  files:
+  - Library/Preferences/com.hex-ray.hexels.plist
+hocus-focus:
+  name: Hocus Focus
+  files:
+  - Library/Preferences/com.uglyapps.HocusFocus.plist
+  - Library/Application Support/com.uglyapps.HocusFocus/HocusFocus.db
+  - Library/Application Support/com.uglyapps.HocusFocus/HocusFocus.db-shm
+  - Library/Application Support/com.uglyapps.HocusFocus/HocusFocus.db-wal
+homebrew:
+  name: Homebrew
+  files:
+  - .Brewfile
+  - Brewfile
+homebridge:
+  name: Homebridge
+  files:
+  - .homebridge
+houdini:
+  name: Houdini
+  files:
+  - Library/Preferences/com.uglyapps.Houdini.plist
+  - Library/Application Support/Houdini
+hstr:
+  name: hstr
+  files:
+  - .hstr_favorites
+  - .hstr_blacklist
+htop:
+  name: Htop
+  files:
+  - .htoprc
+  xdg_files:
+  - htop/htoprc
+httpie:
+  name: HTTPie
+  files:
+  - .httpie/config.json
+hub:
+  name: hub
+  xdg_files:
+  - hub
+hyper:
+  name: Hyper.app
+  files:
+  - .hyper.js
+hyperdock:
+  name: HyperDock
+  files:
+  - Library/Application Support/HyperDock
+  - Library/Preferences/de.bahoom.HyperDock.plist
+  - Library/Preferences/de.bahoom.HyperDock.prefpane.plist
+hyperswitch:
+  name: HyperSwitch
+  files:
+  - Library/Preferences/com.bahoom.HyperSwitch.plist
+i2cssh:
+  name: i2cssh
+  files:
+  - .i2csshrc
+i3:
+  name: i3
+  files:
+  - .i3/config
+  - .i3status.conf
+  xdg_files:
+  - i3/config
+idapro:
+  name: IDA Pro
+  files:
+  - .idapro
+ideavim:
+  name: IdeaVim
+  files:
+  - .ideavimrc
+iina:
+  name: IINA
+  files:
+  - Library/Application Support/com.colliderli.iina/input_conf
+  - Library/Preferences/com.colliderli.iina.plist
+illustrator:
+  name: Adobe Illustrator
+  files:
+  - Library/Application Support/Adobe/Adobe Illustrator 17
+  - Library/Application Support/Adobe/Adobe Illustrator 18
+  - Library/Application Support/Adobe/Adobe Illustrator 19
+  - Library/Application Support/Adobe/Adobe Illustrator 20
+  - Library/Application Support/Adobe/Adobe Illustrator 23/en_US/Adobe SVG Filters.svg
+  - Library/Application Support/Adobe/Adobe Illustrator 23/en_US/Swatches
+  - Library/Application Support/Adobe/Adobe Illustrator 24/en_US/Adobe SVG Filters.svg
+  - Library/Application Support/Adobe/Adobe Illustrator 24/en_US/Swatches
+  - Library/Application Support/Adobe/OOBE
+  - Library/Preferences/Adobe Illustrator 17 Settings
+  - Library/Preferences/Adobe Illustrator 18 Settings
+  - Library/Preferences/Adobe Illustrator 19 Settings
+  - Library/Preferences/Adobe Illustrator 20 Settings
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Adobe Illustrator Prefs
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Last Used Artboard Export Settings
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Last Used Asset Export Settings
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Modified Workspaces
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Perspective grid Presets
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Print Presets
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Tools/Tools Panel Presets
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Transparency flattener presets
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/VariableWidthProfiles
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Vectorizing Presets
+  - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Workspaces
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Adobe Illustrator Prefs
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Last Used Artboard Export Settings
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Last Used Asset Export Settings
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Modified Workspaces
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Perspective grid Presets
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Print Presets
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Tools/Tools Panel Presets
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Transparency flattener presets
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/VariableWidthProfiles
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Vectorizing Presets
+  - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Workspaces
+  - Library/Preferences/com.adobe.illustrator.plist
+inkscape:
+  name: inkscape
+  xdg_files:
+  - inkscape/preferences.xml
+insomnia:
+  name: Insomnia
+  files:
+  - Library/Application Support/Insomnia
+  xdg_files:
+  - Insomnia
+intellijidea:
+  name: IntelliJ IDEA
+  files:
+  - .IntelliJIdea12/config
+  - .IntelliJIdea13/config
+  - .IntelliJIdea14/config
+  - .IntelliJIdea15/config
+  - IdeaIC2018.2/config
+  - IdeaIC2018.3/config
+  - IdeaIC2019.1/config
+  - IdeaIC2019.2/config
+  - IdeaIC2019.3/config
+  - IntelliJIdea2016.1/config
+  - IntelliJIdea2016.2/config
+  - IntelliJIdea2016.3/config
+  - IntelliJIdea2017.1/config
+  - IntelliJIdea2017.2/config
+  - IntelliJIdea2017.3/config
+  - IntelliJIdea2018.1/config
+  - IntelliJIdea2018.2/config
+  - IntelliJIdea2018.3/config
+  - IntelliJIdea2019.1/config
+  - IntelliJIdea2019.2/config
+  - IntelliJIdea2019.3/config
+  - Library/Application Support/IdeaIC2016.1
+  - Library/Application Support/IdeaIC2017.1
+  - Library/Application Support/IdeaIC2017.2
+  - Library/Application Support/IdeaIC2017.3
+  - Library/Application Support/IdeaIC2018.2
+  - Library/Application Support/IdeaIC2018.3
+  - Library/Application Support/IdeaIC2019.1
+  - Library/Application Support/IntelliJIdea12
+  - Library/Application Support/IntelliJIdea13
+  - Library/Application Support/IntelliJIdea14
+  - Library/Application Support/IntelliJIdea15
+  - Library/Application Support/IntelliJIdea2016.1
+  - Library/Application Support/IntelliJIdea2016.2
+  - Library/Application Support/IntelliJIdea2016.3
+  - Library/Application Support/IntelliJIdea2017.1
+  - Library/Application Support/IntelliJIdea2017.2
+  - Library/Application Support/IntelliJIdea2017.3
+  - Library/Application Support/IntelliJIdea2018.1
+  - Library/Application Support/IntelliJIdea2018.2
+  - Library/Application Support/IntelliJIdea2018.3
+  - Library/Application Support/IntelliJIdea2019.1
+  - Library/Application Support/IntelliJIdea2019.2
+  - Library/Application Support/IntelliJIdea2019.3
+  - Library/Application Support/JetBrains/IntelliJIdea2020.1
+  - Library/Application Support/JetBrains/IntelliJIdea2020.2
+  - Library/Application Support/JetBrains/IntelliJIdea2020.3
+  - Library/Application Support/JetBrains/IntelliJIdea2021.1
+  - Library/Application Support/JetBrains/IntelliJIdea2022.1
+  - Library/Application Support/JetBrains/IntelliJIdea2022.2
+  - Library/Application Support/JetBrains/IntelliJIdea2023.1
+  - Library/Application Support/JetBrains/IntelliJIdea2023.2
+  - Library/Preferences/IdeaIC2016.1
+  - Library/Preferences/IdeaIC2016.2
+  - Library/Preferences/IdeaIC2016.3
+  - Library/Preferences/IdeaIC2017.1
+  - Library/Preferences/IdeaIC2017.2
+  - Library/Preferences/IdeaIC2017.3
+  - Library/Preferences/IdeaIC2018.2
+  - Library/Preferences/IdeaIC2018.3
+  - Library/Preferences/IdeaIC2019.1
+  - Library/Preferences/IntelliJIdea12
+  - Library/Preferences/IntelliJIdea13
+  - Library/Preferences/IntelliJIdea14
+  - Library/Preferences/IntelliJIdea15
+  - Library/Preferences/IntelliJIdea2016.1
+  - Library/Preferences/IntelliJIdea2016.2
+  - Library/Preferences/IntelliJIdea2016.3
+  - Library/Preferences/IntelliJIdea2017.1
+  - Library/Preferences/IntelliJIdea2017.2
+  - Library/Preferences/IntelliJIdea2017.3
+  - Library/Preferences/IntelliJIdea2018.1
+  - Library/Preferences/IntelliJIdea2018.2
+  - Library/Preferences/IntelliJIdea2018.3
+  - Library/Preferences/IntelliJIdea2019.1
+  - Library/Preferences/IntelliJIdea2019.2
+  - Library/Preferences/IntelliJIdea2019.3
+ipython:
+  name: IPython
+  files:
+  - .ipython
+irssi:
+  name: Irssi
+  files:
+  - .irssi
+istat-menus:
+  name: iStat Menus
+  files:
+  - Library/Preferences/com.bjango.istatmenus.menubar.7.plist
+  - Library/Preferences/com.bjango.istatmenus.plist
+  - Library/Preferences/com.bjango.istatmenus.status.plist
+  - Library/Preferences/com.bjango.istatmenus5.extras.plist
+  - Library/Preferences/com.bjango.istatmenus6.extras.plist
+iterm2:
+  name: iTerm2
+  files:
+  - Library/Preferences/com.googlecode.iterm2.plist
+  xdg_files:
+  - iterm2/AppSupport/DynamicProfiles
+itermocil:
+  name: iTermocil
+  files:
+  - .itermocil
+itsycal:
+  name: Itsycal
+  files:
+  - Library/Preferences/com.mowglii.ItsycalApp.plist
+itunes-scripts:
+  name: iTunes Scripts
+  files:
+  - Library/iTunes/Scripts
+jankyborders:
+  name: Janky Borders
+  xdg_files:
+  - borders/bordersrc
+janus:
+  name: Janus
+  files:
+  - .janus
+  - .vimrc.before
+  - .vimrc.after
+jitouch:
+  name: Jitouch
+  files:
+  - Library/Preferences/com.jitouch.Jitouch.plist
+joplin:
+  name: Joplin
+  xdg_files:
+  - joplin-desktop/userchrome.css
+  - joplin-desktop/userstyle.css
+jrnl:
+  name: jrnl
+  files:
+  - .jrnl_config
+  xdg_files:
+  - jrnl/jrnl.yaml
+jsbeautifier:
+  name: JS Beautifier
+  files:
+  - .jsbeautifyrc
+jshint:
+  name: JSHint
+  files:
+  - .jshintrc
+julia:
+  name: Julia
+  files:
+  - .juliarc.jl
+  - .julia/config/startup.jl
+jumpcut:
+  name: Jumpcut
+  files:
+  - Library/Application Support/Jumpcut
+  - Library/Preferences/net.sf.Jumpcut.plist
+jupyter:
+  name: Jupyter
+  files:
+  - .jupyter
+k9s:
+  name: k9s
+  xdg_files:
+  - k9s/config.yml
+  - k9s/skin.yml
+kaggle:
+  name: Kaggle
+  files:
+  - .kaggle/kaggle.json
+kaleidoscope:
+  name: Kaleidoscope
+  files:
+  - Library/Preferences/com.blackpixel.kaleidoscope.plist
+  - Library/Application Support/Kaleidoscope
+karabiner:
+  name: Karabiner
+  files:
+  - Library/Preferences/org.pqrs.Karabiner.plist
+  - Library/Preferences/org.pqrs.Karabiner-AXNotifier.plist
+  - Library/Preferences/org.pqrs.Karabiner.multitouchextension.plist
+  - Library/Application Support/Karabiner
+karabiner-elements:
+  name: Karabiner Elements
+  xdg_files:
+  - karabiner
+kdenlive:
+  name: Kdenlive
+  files:
+  - kdenlive
+  xdg_files:
+  - kdenliverc
+keepassx:
+  name: KeePassX
+  files:
+  - .keepassx
+  - Library/Preferences/org.keepassx.keepassx.plist
+  - Library/Application Support/keepassx/keepassx2.ini
+  xdg_files:
+  - keepassx/keepassx2.ini
+keepassxc:
+  name: KeePassXC
+  files:
+  - Library/Preferences/org.keepassxc.keepassxc.plist
+  - Library/Application Support/keepassxc/keepassxc.ini
+keepingyouawake:
+  name: KeepingYouAwake
+  files:
+  - Library/Preferences/info.marcel-dierkes.KeepingYouAwake.plist
+keka:
+  name: Keka
+  files:
+  - Library/Preferences/com.aone.keka.plist
+keybase:
+  name: Keybase
+  files:
+  - .keybase/config.json
+keyboard-maestro:
+  name: Keyboard Maestro
+  files:
+  - Library/Application Support/Keyboard Maestro
+keymo:
+  name: Keymo
+  files:
+  - Library/Preferences/com.manytricks.Keymo.plist
+keyremap4macbook:
+  name: KeyRemap4MacBook
+  files:
+  - Library/Preferences/org.pqrs.KeyRemap4MacBook.plist
+  - Library/Preferences/org.pqrs.KeyRemap4MacBook.multitouchextension.plist
+  - Library/Application Support/KeyRemap4MacBook/private.xml
+khd:
+  name: khd
+  files:
+  - .khdrc
+kiro:
+  name: Kiro
+  files:
+  - Library/Application Support/Kiro/User/snippets
+  - Library/Application Support/Kiro/User/keybindings.json
+  - Library/Application Support/Kiro/User/settings.json
+kitty:
+  name: kitty
+  xdg_files:
+  - kitty/kitty.conf
+krew:
+  name: Krew
+  files:
+  - .krew
+kubectl:
+  name: kubectl
+  files:
+  - .kube/config
+kwm:
+  name: Kwm
+  files:
+  - .kwm
+latexit:
+  name: LaTeXiT
+  files:
+  - Library/Preferences/fr.chachatelier.pierre.LaTeXiT.plist
+launchbar:
+  name: LaunchBar
+  files:
+  - Library/Preferences/at.obdev.LaunchBar.plist
+  - Library/Application Support/LaunchBar/Actions
+  - Library/Application Support/LaunchBar/Snippets
+  - Library/Application Support/LaunchBar/Configuration.plist
+  - Library/Application Support/LaunchBar/CustomShortcuts.plist
+lazydocker:
+  name: lazydocker
+  files:
+  - Library/Application Support/jesseduffield/lazydocker/config.yml
+lazygit:
+  name: lazygit
+  files:
+  - Library/Application Support/jesseduffield/lazygit/config.yml
+  - Library/Application Support/lazygit/config.yml
+  xdg_files:
+  - lazygit/config.yml
+ledger:
+  name: ledger
+  files:
+  - .ledgerrc
+leiningen:
+  name: Leiningen
+  files:
+  - .lein
+lf:
+  name: lf
+  xdg_files:
+  - lf/lfrc
+libreoffice:
+  name: LibreOffice
+  xdg_files:
+  - libreoffice
+liftoff:
+  name: liftoff
+  files:
+  - .liftoffrc
+light-table:
+  name: Light Table
+  files:
+  - Library/Application Support/LightTable/plugins
+  - Library/Application Support/LightTable/settings
+  - Library/Application Support/LightTable/User
+  - Library/Preferences/com.kodowa.LightTable.plist
+lightpaper:
+  name: LightPaper
+  files:
+  - .lightpaper
+  - Library/Application Support/LightPaper/customCSS.css
+  - Library/Preferences/com.42squares.LightPaper.plist
+lightroom:
+  name: Adobe Lightroom
+  files:
+  - Library/Application Support/Adobe/Lightroom
+  - Library/Preferences/com.adobe.Lightroom4.plist
+  - Library/Preferences/com.adobe.Lightroom5.plist
+  - Library/Preferences/com.adobe.Lightroom6.plist
+lightroom-classic:
+  name: Adobe Lightroom Classic
+  files:
+  - Library/Preferences/com.adobe.LightroomClassicCC7.plist
+limechat:
+  name: LimeChat
+  files:
+  - Library/Preferences/net.limechat.LimeChat-AppStore.plist
+liquidprompt:
+  name: Liquid Prompt
+  files:
+  - .liquidpromptrc
+  xdg_files:
+  - liquidpromptrc
+littlesnitch:
+  name: LittleSnitch
+  files:
+  - Library/Preferences/at.obdev.LittleSnitchNetworkMonitor.plist
+  - Library/Preferences/at.obdev.littlesnitch.networkmonitor.plist
+  - Library/Application Support/Little Snitch/rules.usr.xpl
+  - Library/Application Support/Little Snitch/configuration.xpl
+  - Library/Application Support/Little Snitch/configuration.user.xpl
+  - Library/Application Support/Little Snitch/configuration4.user.xpl
+livestreamer:
+  name: Livestreamer
+  files:
+  - .livestreamerrc
+  xdg_files:
+  - livestreamer/config
+  - livestreamer/plugins
+logitech-options:
+  name: Logitech Options
+  files:
+  - Library/Preferences/com.logitech.manager.setting.ffff.plist
+logseq:
+  name: Logseq
+  files:
+  - .logseq
+lollypop:
+  name: Lollypop
+  files:
+  - .local/share/lollypop
+loopback:
+  name: Loopback
+  files:
+  - Library/Preferences/com.rogueamoeba.Loopback.plist
+  - Library/Application Support/Loopback/Devices.plist
+luftrausers:
+  name: Luftrausers
+  files:
+  - .LUFTRAUSERS
+lunarvim:
+  name: LunarVim
+  xdg_files:
+  - lvim/config.lua
+macdive2:
+  name: MacDive
+  files:
+  - Library/Application Support/MacDive
+  - Library/Preferences/com.mintsoftware.MacDive2.plist
+macdown:
+  name: MacDown
+  files:
+  - Library/Preferences/com.uranusjr.macdown.plist
+  - Library/Application Support/MacDown/Styles
+  - Library/Application Support/MacDown/Themes
+mackup:
+  name: Mackup
+  files:
+  - .mackup.cfg
+  - .mackup
+macosx:
+  name: MacOSX
+  files:
+  - .MacOSX
+  - Library/KeyBindings/DefaultKeyBinding.dict
+  - Library/PDF Services
+  - Library/Preferences/com.apple.symbolichotkeys.plist
+  - Library/Preferences/.GlobalPreferences.plist
+  - Library/Scripts
+  - Library/Speech/Speakable Items
+  - Library/Workflows
+macvim:
+  name: MacVim
+  files:
+  - Library/Preferences/org.vim.MacVim.LSSharedFileList.plist
+  - Library/Preferences/org.vim.MacVim.plist
+magic-launch:
+  name: Magic Launch
+  files:
+  - Library/Preferences/com.metakine.magic-launch.agent.plist
+magicprefs:
+  name: MagicPrefs
+  files:
+  - Library/Preferences/com.vladalexa.MagicPrefs.MagicPrefsPlugins.plist
+  - Library/Preferences/com.vladalexa.MagicPrefs.plist
+magnet:
+  name: Magnet
+  files:
+  - Library/Preferences/com.crowdcafe.windowmagnet.plist
+maid:
+  name: Maid
+  files:
+  - .maid
+mail:
+  name: Mail
+  files:
+  - Library/Preferences/com.apple.mail.plist
+mailmate:
+  name: Mailmate
+  files:
+  - Library/Preferences/com.freron.MailMate.plist
+  - Library/Application Support/Mailmate/com.freron.MailMate.pid
+  - Library/Application Support/Mailmate/Identities.plist
+  - Library/Application Support/Mailmate/Mailboxes.plist
+  - Library/Application Support/Mailmate/Signatures.plist
+  - Library/Application Support/Mailmate/Sources.plist
+  - Library/Application Support/Mailmate/Submission.plist
+  - Library/Application Support/Mailmate/Tags.plist
+  - Library/Application Support/Mailmate/Resources/KeyBindings
+mailplane:
+  name: Mailplane
+  files:
+  - Library/Preferences/com.mailplaneapp.Mailplane.plist
+  - Library/Preferences/com.mailplaneapp.Mailplane3.plist
+mako:
+  name: mako
+  xdg_files:
+  - mako/config
+marked2:
+  name: Marked 2
+  files:
+  - Library/Application Support/Marked 2
+  - Library/Preferences/com.brettterpstra.marked2.plist
+marta:
+  name: Marta
+  files:
+  - Library/Application Support/org.yanex.marta/conf.json
+  - Library/Application Support/org.yanex.marta/favorites.json
+  - Library/Application Support/org.yanex.marta/conf.marco
+  - Library/Application Support/org.yanex.marta/favorites.marco
+matlab:
+  name: MATLAB
+  files:
+  - .matlab
+maven:
+  name: Maven
+  files:
+  - .m2/settings-security.xml
+  - .m2/settings.xml
+  - .m2/toolchains.xml
+max:
+  name: Max
+  files:
+  - Library/Preferences/org.sbooth.Max.plist
+mendeley:
+  name: Mendelay Desktop
+  files:
+  - Library/Application Support/Mendeley Desktop
+menumeters:
+  name: MenuMeters
+  files:
+  - Library/Preferences/com.ragingmenace.MenuMeters.plist
+mercurial:
+  name: Mercurial
+  files:
+  - .hgrc
+  - .hgignore_global
+mercurymover:
+  name: MercuryMover
+  files:
+  - Library/Preferences/com.heliumfoot.MyWiAgent.plist
+messages:
+  name: Messages
+  files:
+  - Library/Preferences/com.apple.iChat.AIM.plist
+  - Library/Preferences/com.apple.iChat.Jabber.plist
+  - Library/Preferences/com.apple.iChat.StatusMessages.plist
+  - Library/Preferences/com.apple.iChat.Yahoo.plist
+micro:
+  name: Micro
+  xdg_files:
+  - micro/colorschemes
+  - micro/syntax
+  - micro/settings.json
+  - micro/bindings.json
+microsoft-remote-desktop:
+  name: Microsoft Remote Desktop
+  files:
+  - Library/Containers/com.microsoft.rdc.macos/Data/Library/Preferences/com.microsoft.rdc.macos.plist
+mise:
+  name: mise-en-place
+  files:
+  - mise.toml
+  - mise/config.toml
+  - .mise.toml
+  - .mise/config.toml
+  xdg_files:
+  - mise.toml
+  - mise/config.toml
+  - mise/conf.d
+  - .mise.toml
+  - .mise/config.toml
+  - .mise/conf.d
+mitmproxy:
+  name: mitmproxy
+  files:
+  - .mitmproxy/config.yaml
+mkcert:
+  name: mkcert
+  files:
+  - Library/Application Support/mkcert
+mole:
+  name: Mole
+  xdg_files:
+  - mole/whitelist
+monodevelop:
+  name: MonoDevelop
+  files:
+  - Library/MonoDevelop-Unity-5.0/KeyBindings/Custom.mac-kb.xml
+  - Library/Preferences/MonoDevelop-Unity-5.0/MonoDevelopProperties.xml
+  - Library/MonoDevelop-Unity-5.0/Policies/Default.mdpolicy.xml
+moom:
+  name: Moom
+  files:
+  - Library/Preferences/com.manytricks.Moom.plist
+  - Library/Application Support/Many Tricks
+mosaic:
+  name: Mosaic
+  files:
+  - Library/Application Support/com.lightpillar.Mosaic/MosaicCoreData.storedata
+mou:
+  name: Mou
+  files:
+  - Library/Preferences/com.mouapp.Mou.plist
+  - Library/Preferences/com.mouapp.Mou.LSSharedFileList.plist
+  - Library/Application Support/Mou
+mpd:
+  name: mpd
+  files:
+  - .mpd
+  - .mpdconf
+mplayerx:
+  name: MPlayerX
+  files:
+  - Library/Preferences/org.niltsh.MPlayerX.plist
+mps-youtube:
+  name: MPS Youtube
+  xdg_files:
+  - mps-youtube/config
+  - mps-youtube/playlist_v2
+mpv:
+  name: MPV
+  files:
+  - .mpv/channels.conf
+  - .mpv/config
+  - .mpv/input.conf
+  xdg_files:
+  - mpv/config
+  - mpv/mpv.conf
+  - mpv/scripts
+  - mpv/script-opts
+  - mpv/input.conf
+  - mpv/watch_later
+mtmr:
+  name: mtmr
+  files:
+  - Library/Application Support/MTMR/items.json
+multitouch:
+  name: Multitouch
+  files:
+  - Library/Preferences/com.brassmonkery.Multitouch.plist
+mumu:
+  name: Mumu
+  files:
+  - Library/Application Support/Mumu
+musicbrainz-picard:
+  name: MusicBrainz Picard
+  xdg_files:
+  - MusicBrainz
+mutespotifyads:
+  name: MuteSpotifyAds
+  files:
+  - Library/Preferences/de.simonmeusel.MuteSpotifyAds.plist
+mycli:
+  name: mycli
+  files:
+  - .myclirc
+myrepos:
+  name: myrepos
+  files:
+  - .mrconfig
+mysql:
+  name: MySQL
+  files:
+  - .my.cnf
+mysqlworkbench:
+  name: MySQL Workbench
+  files:
+  - Library/Application Support/MySQL/Workbench/connections.xml
+  - Library/Application Support/MySQL/Workbench/server_instances.xml
+  - Library/Application Support/MySQL/Workbench/wb_options.xml
+  - Library/Preferences/com.oracle.mysql.workbench.plist
+name-mangler:
+  name: Name Mangler
+  files:
+  - Library/Application Support/Name Mangler
+  - Library/Preferences/com.manytricks.NameMangler.plist
+nano:
+  name: Nano
+  files:
+  - .nanorc
+navicat:
+  name: Navicat
+  files:
+  - Library/Application Support/PremiumSoft CyberTech
+  - Library/Application Support/Navicat for MySQL
+  - Library/Application Support/Navicat Premium
+  - Library/Preferences/com.prect.Navicat.plist
+  - Library/Preferences/com.prect.NavicatPremium.plist
+  - Library/Preferences/com.prect.NavicatPremiumEssentials.plist
+ncmpcpp:
+  name: ncmpcpp
+  files:
+  - .ncmpcpp
+neofetch:
+  name: Neofetch
+  xdg_files:
+  - neofetch/config.conf
+neovim:
+  name: neovim
+  files:
+  - .nvimrc
+  - .nvim
+  xdg_files:
+  - nvim/init.vim
+  - nvim/init.lua
+  - nvim/lua
+  - nvim/colors
+  - nvim/compiler
+  - nvim/ftplugin
+  - nvim/ftdetect
+  - nvim/indent
+  - nvim/plugin
+  - nvim/syntax
+nethack:
+  name: Nethack
+  files:
+  - .nethackrc
+netlify:
+  name: Netlify
+  files:
+  - .netlify/config.json
+newsbeuter:
+  name: newsbeuter
+  files:
+  - .newsbeuter/config
+  - .newsbeuter/urls
+ngrok:
+  name: ngrok
+  files:
+  - .ngrok
+  - .ngrok2
+ni:
+  name: ni
+  files:
+  - .nirc
+nomacs:
+  name: Nomacs
+  xdg_files:
+  - nomacs
+nosqlbooster-for-mongodb:
+  name: NoSQLBooster for MongoDB
+  files:
+  - Documents/NoSQLBooster
+notion-enhancer:
+  name: notion-enhancer
+  files:
+  - .notion-enhancer
+nova:
+  name: Nova
+  files:
+  - Library/Preferences/com.panic.Nova.plist
+npm:
+  name: npm
+  files:
+  - .npmrc
+npmrc:
+  name: npmrc
+  files:
+  - .npmrcs
+nslogger:
+  name: NSLogger
+  files:
+  - Library/Preferences/com.florentpillet.NSLogger.plist
+nuget:
+  name: nuget
+  files:
+  - .nuget/NuGet/NuGet.Config
+nushell:
+  name: Nushell
+  files:
+  - Library/Application Support/nushell/env.nu
+  - Library/Application Support/nushell/config.nu
+  xdg_files:
+  - nushell/config.nu
+  - nushell/env.nu
+nvalt:
+  name: nvALT
+  files:
+  - Library/Preferences/net.elasticthreads.nv.plist
+  - Library/Application Support/Notational Velocity
+nvm:
+  name: nvm
+  files:
+  - .nvm/default-packages
+nvpy:
+  name: nvpy
+  files:
+  - .nvpy.cfg
+obs:
+  name: OBS
+  files:
+  - Library/Preferences/com.obsproject.obs-studio.plist
+  - Library/Application Support/obs-studio/global.ini
+  - Library/Application Support/obs-studio/basic
+oci:
+  name: Oracle Cloud Infrastructure CLI
+  files:
+  - .oci/config
+  - .oci/oci_cli_rc
+offlineimap:
+  name: OfflineIMAP
+  files:
+  - .offlineimaprc
+ogdesign-eagle:
+  name: Eagle (ogdesign)
+  files:
+  - Library/Application Support/Eagle/Settings
+oh-my-fish:
+  name: Oh My Fish
+  xdg_files:
+  - omf
+oh-my-tmux:
+  name: Oh My Tmux
+  files:
+  - .tmux.conf.local
+omnifocus:
+  name: OmniFocus
+  files:
+  - Library/Application Support/OmniFocus/Plug-Ins
+  - Library/Application Support/OmniFocus/Themes
+  - Library/Preferences/com.omnigroup.OmniFocus.plist
+omnigraffle:
+  name: OmniGraffle
+  files:
+  - Library/Application Support/The Omni Group/OmniGraffle
+openbox:
+  name: openbox
+  xdg_files:
+  - openbox/menu.xml
+  - openbox/rc.xml
+  - openbox/environment
+  - openbox/autostart
+opencode:
+  name: OpenCode
+  files:
+  - .local/share/opencode/auth.json
+  xdg_files:
+  - opencode/agent
+  - opencode/command
+  - opencode/themes
+  - opencode/tool
+  - opencode/settings
+  - opencode/opencode.json
+  - opencode/opencode.jsonc
+  - opencode/config.json
+  - opencode/AGENTS.md
+openemu:
+  name: OpenEmu
+  files:
+  - Library/Preferences/org.openemu.OpenEmu.plist
+  - Library/Application Support/OpenEmu
+opera:
+  name: Opera
+  files:
+  - Library/Application Support/com.operasoftware.Opera
+  - Library/Application Support/com.operasoftware.OperaDeveloper
+  - Library/Application Support/com.operasoftware.OperaNext
+  - Library/Preferences/com.operasoftware.Opera.plist
+  - Library/Preferences/com.operasoftware.OperaDeveloper.plist
+  - Library/Preferences/com.operasoftware.OperaNext.plist
+p10k:
+  name: Powerlevel10k
+  files:
+  - .p10k.zsh
+paintbrush:
+  name: Paintbrush
+  files:
+  - Library/Preferences/com.soggywaffles.Paintbrush.plist
+pandoc:
+  name: Pandoc
+  files:
+  - .pandoc
+pass:
+  name: pass
+  files:
+  - .password-store
+pastebot:
+  name: Pastebot
+  files:
+  - Library/Preferences/com.tapbots.PastebotSync.plist
+  - Library/Preferences/com.tapbots.PastebotSync.prefPane.plist
+  - Library/Preferences/com.tapbots.PastebotSync.stats.plist
+path-finder:
+  name: Path Finder
+  files:
+  - Library/Preferences/com.cocoatech.PathFinder.plist
+  - Library/Application Support/Path Finder
+pdfjam:
+  name: PDFjam
+  files:
+  - .pdfjam.conf
+pear:
+  name: Pear
+  files:
+  - .pearrc
+pentadactyl:
+  name: Pentadactyl
+  files:
+  - .pentadactyl
+  - .pentadactylrc
+perl:
+  name: Perl
+  files:
+  - .perltidyrc
+  - .perlcriticrc
+  - .proverc
+pgsql:
+  name: PostgreSQL
+  files:
+  - .pgpass
+  - .psqlrc
+phoenix:
+  name: Phoenix
+  files:
+  - .phoenix.js
+phoneview:
+  name: PhoneView
+  files:
+  - Library/Preferences/com.ecamm.PhoneView.plist
+photoshop:
+  name: Adobe Photoshop
+  files:
+  - Library/Application Support/Adobe/Adobe Photoshop CC 2013/Presets
+  - Library/Application Support/Adobe/Adobe Photoshop CC 2014/Presets
+  - Library/Application Support/Adobe/Adobe Photoshop CC 2015/Presets
+  - Library/Application Support/Adobe/Adobe Photoshop CC 2015.5/Presets
+  - Library/Application Support/Adobe/Adobe Photoshop CC 2019/Presets
+  - Library/Preferences/Adobe Photoshop CC 2013 Settings
+  - Library/Preferences/Adobe Photoshop CC 2014 Settings
+  - Library/Preferences/Adobe Photoshop CC 2015 Settings
+  - Library/Preferences/Adobe Photoshop CC 2015.5 Settings
+  - Library/Preferences/Adobe Photoshop CC 2019 Settings
+  - Library/Preferences/com.adobe.Photoshop.plist
+phpstorm:
+  name: PhpStorm
+  files:
+  - Library/Application Support/JetBrains/PhpStorm2020.1
+  - Library/Application Support/JetBrains/PhpStorm2020.2
+  - Library/Application Support/JetBrains/PhpStorm2020.3
+  - Library/Application Support/JetBrains/PhpStorm2021.1
+  - Library/Application Support/JetBrains/PhpStorm2021.2
+  - Library/Application Support/JetBrains/PhpStorm2021.3
+  - Library/Application Support/JetBrains/PhpStorm2022.1
+  - Library/Application Support/JetBrains/PhpStorm2022.2
+  - Library/Application Support/JetBrains/PhpStorm2022.3
+  - Library/Application Support/JetBrains/PhpStorm2023.1
+  - Library/Application Support/JetBrains/PhpStorm2023.2
+  - Library/Application Support/JetBrains/PhpStorm2023.3
+  - Library/Application Support/JetBrains/PhpStorm2024.1
+  - Library/Application Support/PhpStorm2016.1
+  - Library/Application Support/PhpStorm2016.2
+  - Library/Application Support/PhpStorm2016.3
+  - Library/Application Support/PhpStorm2017.1
+  - Library/Application Support/PhpStorm2017.2
+  - Library/Application Support/PhpStorm2017.3
+  - Library/Application Support/PhpStorm2018.1
+  - Library/Application Support/PhpStorm2018.2
+  - Library/Application Support/PhpStorm2018.3
+  - Library/Application Support/PhpStorm2019.1
+  - Library/Application Support/PhpStorm2019.2
+  - Library/Application Support/PhpStorm2019.3
+  - Library/Application Support/PhpStorm2019.4
+  - Library/Application Support/WebIde100
+  - Library/Application Support/WebIde60
+  - Library/Application Support/WebIde70
+  - Library/Application Support/WebIde80
+  - Library/Application Support/WebIde90
+  - Library/Application Support/WebIde95
+  - Library/Preferences/com.jetbrains.PhpStorm.plist
+  - Library/Preferences/PhpStorm2016.1
+  - Library/Preferences/PhpStorm2016.2
+  - Library/Preferences/PhpStorm2016.3
+  - Library/Preferences/PhpStorm2017.1
+  - Library/Preferences/PhpStorm2017.2
+  - Library/Preferences/PhpStorm2017.3
+  - Library/Preferences/PhpStorm2018.1
+  - Library/Preferences/PhpStorm2018.2
+  - Library/Preferences/PhpStorm2018.3
+  - Library/Preferences/PhpStorm2019.1
+  - Library/Preferences/PhpStorm2019.2
+  - Library/Preferences/PhpStorm2019.3
+  - Library/Preferences/PhpStorm2019.4
+  - Library/Preferences/WebIde100
+  - Library/Preferences/WebIde60
+  - Library/Preferences/WebIde70
+  - Library/Preferences/WebIde80
+  - Library/Preferences/WebIde90
+  - Library/Preferences/WebIde95
+  - .PhpStorm2016.1/config
+  - .PhpStorm2016.2/config
+  - .PhpStorm2016.3/config
+  - .PhpStorm2017.1/config
+  - .PhpStorm2017.2/config
+  - .PhpStorm2017.3/config
+  - .PhpStorm2018.1/config
+  - .PhpStorm2018.2/config
+  - .PhpStorm2018.3/config
+  - .PhpStorm2019.1/config
+  - .PhpStorm2019.2/config
+  - .PhpStorm2019.3/config
+picgo:
+  name: PicGo
+  files:
+  - Library/Application Support/picgo/data.json
+pidgin:
+  name: Pidgin
+  files:
+  - .purple
+pip:
+  name: pip
+  files:
+  - Library/Application Support/pip/pip.conf
+  - .pip/pip.conf
+  xdg_files:
+  - pip/pip.conf
+pixelsnap:
+  name: PixelSnap
+  files:
+  - Library/Preferences/com.getpixelsnap.app.plist
+pixelsnap2:
+  name: PixelSnap 2
+  files:
+  - Library/Preferences/pl.maketheweb.pixelsnap2.plist
+planner:
+  name: Planner
+  files:
+  - .var/app/com.github.alainm23.planner/config
+  - .var/app/com.github.alainm23.planner/data
+plover:
+  name: Plover
+  files:
+  - Library/Application Support/Plover
+pnpm:
+  name: pnpm
+  files:
+  - .pnpm/global_pnpmfile.js
+  - .pnpm-store/2/store.json
+pock:
+  name: Pock
+  files:
+  - Library/Preferences/com.pigigaldi.pock.plist
+podman:
+  name: Podman
+  xdg_files:
+  - containers/podman-connections.json
+poedit:
+  name: Poedit
+  files:
+  - Library/Preferences/net.poedit.Poedit.cfg
+  - Library/Preferences/net.poedit.Poedit.plist
+poetry:
+  name: poetry
+  files:
+  - Library/Application Support/pypoetry/config.toml
+  - Library/Preferences/pypoetry/config.toml
+  xdg_files:
+  - pypoetry/config.toml
+pokerstars:
+  name: PokerStars
+  files:
+  - Library/Application Support/PokerStars
+  - Library/Preferences/com.pokerstars.user.ini
+  - Library/Preferences/com.pokerstars.PokerStars.plist
+  - Library/Application Support/PokerStarsEU
+  - Library/Preferences/com.pokerstars.eu.user.ini
+  - Library/Preferences/com.pokerstars.PokerStarsEU.plist
+polybar:
+  name: polybar
+  files:
+  - .polybar/config
+  - .polybar/launch.sh
+  xdg_files:
+  - polybar/config
+  - polybar/launch.sh
+  - polybar/scripts
+popclip:
+  name: PopClip
+  files:
+  - Library/Preferences/com.pilotmoon.popclip.plist
+  - Library/Application Support/PopClip/Extensions
+popcorn-time:
+  name: Popcorn-Time
+  files:
+  - Library/Application Support/Popcorn-Time/data/bookmarks.db
+  - Library/Application Support/Popcorn-Time/data/settings.db
+  - Library/Application Support/Popcorn-Time/data/watched.db
+  - Library/Application Support/Popcorn-Time/data/movies.db
+  - Library/Application Support/Popcorn-Time/data/shows.db
+postico:
+  name: Postico
+  files:
+  - Library/Containers/at.eggerapps.Postico/Data/Library/Application Support/Postico
+  - Library/Containers/at.eggerapps.Postico/Data/Library/Preferences/at.eggerapps.Postico.plist
+  - Library/Preferences/at.eggerapps.Postico.plist
+pow:
+  name: Pow
+  files:
+  - .powconfig
+  - .powenv
+  - .powrc
+powerline:
+  name: Powerline
+  xdg_files:
+  - powerline/config.json
+  - powerline/colors.json
+  - powerline/themes
+  - powerline/colorschemes
+prezto:
+  name: Prezto
+  files:
+  - .zpreztorc
+processing:
+  name: Processing
+  files:
+  - Library/Processing/preferences.txt
+proselint:
+  name: proselint
+  files:
+  - .proselintrc
+  xdg_files:
+  - proselint/config
+proxychains:
+  name: ProxyChains
+  files:
+  - .proxychains
+proxyman:
+  name: Proxyman
+  files:
+  - Library/Application Support/com.proxyman.NSProxy
+  - Library/Preferences/com.proxyman.NSProxy.plist
+  - Library/Application Support/com.proxyman.NSProxy-setapp
+  - Library/Preferences/com.proxyman.NSProxy-setapp.plist
+prusa-slicer:
+  name: PrusaSlicer
+  xdg_files:
+  - PrusaSlicer
+psysh:
+  name: PsySH
+  xdg_files:
+  - psysh/config.php
+punto-switcher:
+  name: Punto Switcher
+  files:
+  - Library/Preferences/ru.yandex.punto.plist
+pycharm:
+  name: PyCharm
+  files:
+  - .PyCharm2016.1/config
+  - .PyCharm2016.2/config
+  - .PyCharm2016.3/config
+  - .PyCharm2017.1/config
+  - .PyCharm2017.2/config
+  - .PyCharm2017.3/config
+  - .PyCharm40/config
+  - .PyCharm50/config
+  - .PyCharmCE2016.1/config
+  - .PyCharmCE2016.2/config
+  - .PyCharmCE2016.3/config
+  - .PyCharmCE2017.1/config
+  - .PyCharmCE2017.2/config
+  - .PyCharmCE2017.3/config
+  - .PyCharmCE2019.3/config
+  - Library/Application Support/JetBrains/PyCharm2020.1
+  - Library/Application Support/JetBrains/PyCharm2020.2
+  - Library/Application Support/JetBrains/PyCharm2020.3
+  - Library/Application Support/JetBrains/PyCharm2020.4
+  - Library/Application Support/JetBrains/PyCharm2023.1
+  - Library/Application Support/JetBrains/PyCharm2023.2
+  - Library/Application Support/JetBrains/PyCharmCE2020.1
+  - Library/Application Support/PyCharm
+  - Library/Application Support/PyCharm2016.1
+  - Library/Application Support/PyCharm2016.2
+  - Library/Application Support/PyCharm2016.3
+  - Library/Application Support/PyCharm2017.1
+  - Library/Application Support/PyCharm2017.2
+  - Library/Application Support/PyCharm2017.3
+  - Library/Application Support/PyCharm2019.2
+  - Library/Application Support/PyCharm2019.3
+  - Library/Application Support/PyCharm40
+  - Library/Application Support/PyCharm50
+  - Library/Application Support/PyCharmCE2016.1
+  - Library/Application Support/PyCharmCE2016.2
+  - Library/Application Support/PyCharmCE2016.3
+  - Library/Application Support/PyCharmCE2017.1
+  - Library/Application Support/PyCharmCE2017.2
+  - Library/Application Support/PyCharmCE2017.3
+  - Library/Preferences/PyCharm2016.1
+  - Library/Preferences/PyCharm2016.2
+  - Library/Preferences/PyCharm2016.3
+  - Library/Preferences/PyCharm2017.1
+  - Library/Preferences/PyCharm2017.2
+  - Library/Preferences/PyCharm2017.3
+  - Library/Preferences/PyCharm2019.2
+  - Library/Preferences/PyCharm2019.3
+  - Library/Preferences/PyCharm40
+  - Library/Preferences/PyCharm50
+  - Library/Preferences/PyCharmCE2016.1
+  - Library/Preferences/PyCharmCE2016.2
+  - Library/Preferences/PyCharmCE2016.3
+  - Library/Preferences/PyCharmCE2017.1
+  - Library/Preferences/PyCharmCE2017.2
+  - Library/Preferences/PyCharmCE2017.3
+pypi:
+  name: PyPI
+  files:
+  - .pypirc
+pyradio:
+  name: PyRadio
+  files:
+  - .pyradio/stations.csv
+querious:
+  name: Querious
+  files:
+  - Library/Preferences/com.araeliumgroup.querious.plist
+  - Library/Application Support/Querious
+quicklook:
+  name: Quicklook
+  files:
+  - Library/Quicklook
+quicksilver:
+  name: Quicksilver
+  files:
+  - Library/Preferences/com.blacktree.Quicksilver.plist
+  - Library/Application Support/Quicksilver
+quitter:
+  name: Quitter
+  files:
+  - Library/Preferences/com.marcoarment.quitter.plist
+qutebrowser:
+  name: Qutebrowser
+  files:
+  - .qutebrowser/config.py
+  xdg_files:
+  - qutebrowser/config.py
+  - qutebrowser/qutebrowser.conf
+qv2ray:
+  name: Qv2ray
+  files:
+  - Library/Preferences/qv2ray/Qv2ray.conf
+  - Library/Preferences/qv2ray/plugin_settings
+r:
+  name: R
+  files:
+  - .R
+  - .Rhistory
+  - .Rprofile
+  - .Rprofile.d
+  - .Renviron
+  - .Renviron.d
+  - Library/Preferences/org.R-project.R.plist
+rails:
+  name: Rails
+  files:
+  - .railsrc
+ranger:
+  name: Ranger
+  xdg_files:
+  - ranger/commands.py
+  - ranger/rc.conf
+  - ranger/rifle.conf
+  - ranger/scope.sh
+  - ranger/plugins
+rbenv:
+  name: rbenv
+  files:
+  - .rbenv/default_gems
+rclone:
+  name: rclone
+  xdg_files:
+  - rclone
+rectangle:
+  name: Rectangle
+  files:
+  - Library/Preferences/com.knollsoft.Rectangle.plist
+redshift:
+  name: Redshift
+  xdg_files:
+  - redshift.conf
+redshift-scheduler:
+  name: Redshift Scheduler
+  xdg_files:
+  - redshift-scheduler/rules.conf
+remote-desktop-manager:
+  name: Remote Desktop Manager
+  files:
+  - Library/Application Support/com.devolutions.remotedesktopmanager.free/Connections.db
+  - Library/Application Support/com.devolutions.remotedesktopmanager/Connections.db
+rhythmbox:
+  name: Rhythmbox
+  files:
+  - .gconf/apps/rhythmbox
+rime:
+  name: Rime
+  files:
+  - Library/Rime/default.custom.yaml
+  - Library/Rime/default.yaml
+  - Library/Rime/installation.yaml
+  - Library/Rime/squirrel.custom.yaml
+  - Library/Rime/squirrel.yaml
+  - Library/Rime/symbols.yaml
+  - Library/Rime/user.yaml
+  xdg_files:
+  - ibus/rimedefault.custom.yaml
+  - ibus/rimedefault.yaml
+  - ibus/rimeinstallation.yaml
+  - ibus/rimesquirrel.custom.yaml
+  - ibus/rimesquirrel.yaml
+  - ibus/rimesymbols.yaml
+  - ibus/rimeuser.yaml
+ripgrep:
+  name: ripgrep
+  files:
+  - .ripgreprc
+robo3t:
+  name: Robo 3T
+  files:
+  - Library/Preferences/com.3t.Robomongo.plist
+  - .3T
+rocket:
+  name: Rocket
+  files:
+  - Library/Preferences/net.matthewpalmer.Rocket.plist
+  - Library/Application Support/Rocket
+rofi:
+  name: rofi
+  xdg_files:
+  - rofi/config.rasi
+royaltsx:
+  name: Royal TSX
+  files:
+  - Library/Application Support/Royal TSX/License.xml
+  - Library/Application Support/Royal TSX/UserPreferences.config
+  - Library/Preferences/com.lemonmojo.RoyalTSX.App.plist
+rstudio:
+  name: RStudio
+  files:
+  - .rstudio-desktop
+  - Library/Preferences/org.rstudio.RStudio.plist
+  xdg_files:
+  - rstudio
+rtorrent:
+  name: rTorrent
+  files:
+  - .rtorrent.rc
+rtx:
+  name: rtx
+  files:
+  - .rtx.toml
+  - .tool-versions
+  - .default-go-packages
+  - .default-gems
+  - .default-nodejs-packages
+  - .default-node-packages
+  - .default-npm-packages
+  - .default-python-packages
+  - .default-mix-commands
+  xdg_files:
+  - rtx
+rubitrack5:
+  name: rubiTrack 5
+  files:
+  - Library/Preferences/com.shiftoption.rubitrack5.pro.plist
+rubocop:
+  name: Rubocop
+  files:
+  - .rubocop.yml
+ruby:
+  name: Ruby
+  files:
+  - .gemrc
+  - .irbrc
+  - .gem/credentials
+  - .pryrc
+  - .aprc
+ruby-version:
+  name: Ruby Version
+  files:
+  - .ruby-version
+rubymine:
+  name: RubyMine
+  files:
+  - Library/Application Support/RubyMine40
+  - Library/Preferences/RubyMine40
+  - Library/Application Support/RubyMine50
+  - Library/Preferences/RubyMine50
+  - Library/Application Support/RubyMine60
+  - Library/Preferences/RubyMine60
+  - Library/Application Support/RubyMine70
+  - Library/Preferences/RubyMine70
+  - Library/Application Support/RubyMine80
+  - Library/Preferences/RubyMine80
+  - Library/Application Support/RubyMine2016.1
+  - Library/Preferences/RubyMine2016.1
+  - Library/Application Support/RubyMine2016.2
+  - Library/Preferences/RubyMine2016.2
+  - Library/Application Support/RubyMine2016.3
+  - Library/Preferences/RubyMine2016.3
+  - Library/Application Support/RubyMine2017.3
+  - Library/Preferences/RubyMine2017.3
+  - Library/Application Support/RubyMine2018.1
+  - Library/Preferences/RubyMine2018.1
+  - Library/Application Support/JetBrains/RubyMine2023.1
+  - Library/Application Support/JetBrains/RubyMine2023.2
+rust:
+  name: Rust
+  files:
+  - .cargo/config.toml
+  - .cargo/config
+rustrover:
+  name: RustRover
+  files:
+  - Library/Preferences/RustRover2025.2
+  - Library/Preferences/RustRover2025.3
+  - Library/Application Support/JetBrains/RustRover2025.2
+  - Library/Application Support/JetBrains/RustRover2025.3
+rvm:
+  name: Ruby Version Manager
+  files:
+  - .rvmrc
+s3cmd:
+  name: S3cmd
+  files:
+  - .s3cfg
+sabnzbd:
+  name: SABnzbd
+  files:
+  - Library/Application Support/SABnzbd/sabnzbd.ini
+  - Library/Application Support/SABnzbd/admin/rss_data.sab
+sbcl:
+  name: SBCL
+  files:
+  - .sbclrc
+sbt:
+  name: SBT
+  files:
+  - .sbtconfig
+  - .sbt/0.12/global.sbt
+  - .sbt/0.12/build.sbt
+  - .sbt/0.12/plugins/plugins.sbt
+  - .sbt/0.12/plugins/build.sbt
+  - .sbt/0.13/global.sbt
+  - .sbt/0.13/build.sbt
+  - .sbt/0.13/plugins/plugins.sbt
+  - .sbt/0.13/plugins/build.sbt
+  - .sbt/1.0/global.sbt
+  - .sbt/1.0/build.sbt
+  - .sbt/1.0/plugins/plugins.sbt
+  - .sbt/1.0/plugins/build.sbt
+scenario:
+  name: Scenario
+  files:
+  - Library/Preferences/com.lagente.scenario.plist
+  - Library/Scenario
+screen:
+  name: Screen
+  files:
+  - .screenrc
+screenhero:
+  name: Screenhero
+  files:
+  - Library/Preferences/com.screenhero.screenhero.plist
+scrivener:
+  name: Scrivener
+  files:
+  - Library/Preferences/com.literatureandlatte.scrivener2.plist
+  - Library/Application Support/Scrivener
+scroll-reverser:
+  name: Scroll Reverser
+  files:
+  - Library/Preferences/com.pilotmoon.scroll-reverser.plist
+secure-pipes:
+  name: Secure Pipes
+  files:
+  - Library/Preferences/net.edgeservices.connections.plist
+  - Library/Preferences/net.edgeservices.Secure-Pipes.plist
+  - Library/Preferences/net.edgeservices.sp-config.plist
+  - Library/Application Support/Secure Pipes
+securecrt:
+  name: SecureCRT
+  files:
+  - Library/Application Support/VanDyke/SecureCRT/Config
+  - Library/Preferences/com.vandyke.SecureCRT.plist
+seil:
+  name: Seil
+  files:
+  - Library/Preferences/org.pqrs.PCKeyboardHack.plist
+  - Library/Preferences/org.pqrs.Seil.plist
+selfcontrol:
+  name: SelfControl
+  files:
+  - Library/Preferences/org.eyebeam.SelfControl.plist
+sequel-pro:
+  name: Sequel Pro
+  files:
+  - Library/Application Support/Sequel Pro/Data
+  - Library/Application Support/Sequel Pro/Bundles
+  - Library/Application Support/Sequel Pro/Themes
+  - Library/Preferences/com.sequelpro.SequelPro.plist
+shadowsocksx-ng:
+  name: ShadowsocksX-NG
+  files:
+  - .ShadowsocksX-NG
+shiftit:
+  name: ShiftIt
+  files:
+  - Library/Preferences/org.shiftitapp.ShiftIt.plist
+shifty:
+  name: Shifty
+  files:
+  - Library/Preferences/io.natethompson.Shifty.plist
+shimo:
+  name: Shimo
+  files:
+  - Library/Application Support/Shimo/ShimoProfiles.xml
+  - Library/Preferences/com.chungwasoft.Shimo.plist
+showyedge:
+  name: ShowyEdge
+  files:
+  - Library/Preferences/org.pqrs.ShowyEdge.plist
+shsh-blobs:
+  name: SHSH Blobs
+  files:
+  - .shsh
+shuttle:
+  name: Shuttle
+  files:
+  - .shuttle.json
+sizeup:
+  name: SizeUp
+  files:
+  - Library/Preferences/com.irradiatedsoftware.SizeUp.plist
+  - Library/Application Support/SizeUp/SizeUp.sizeuplicense
+sizzy:
+  name: Sizzy
+  files:
+  - Library/Application Support/Sizzy/config.json
+  - Library/Application Support/Sizzy/window-state.json
+sketchybar:
+  name: SketchyBar
+  xdg_files:
+  - sketchybar/sketchybarrc
+  - sketchybar/plugins
+skhd:
+  name: skhd
+  files:
+  - .skhdrc
+  xdg_files:
+  - skhd/skhdrc
+skim:
+  name: Skim
+  files:
+  - Library/Preferences/net.sourceforge.skim-app.skim.plist
+skitch:
+  name: Skitch
+  files:
+  - Library/Preferences/com.plasq.skitch.plist
+  - Library/Preferences/com.plasq.skitch.history
+slate:
+  name: Slate
+  files:
+  - .slate
+  - .slate.js
+  - Library/Application Support/com.slate.Slate
+slic3r:
+  name: Slic3r
+  files:
+  - Library/Application Support/Slic3r
+slogger:
+  name: Slogger
+  files:
+  - Slogger
+smartgit:
+  name: SmartGit
+  files:
+  - Library/Preferences/SmartGit/smartgit.vmoptions
+smooth-mouse:
+  name: Smooth Mouse
+  files:
+  - Library/Preferences/com.cyberic.SmoothMouse.plist
+soulver:
+  name: Soulver
+  files:
+  - Library/Application Support/Soulver
+  - Library/Preferences/com.acqualia.soulver.plist
+  - Library/Application Support/Soulver 3
+  - Library/Preferences/app.soulver.mac.plist
+sourcetree:
+  name: SourceTree
+  files:
+  - Library/Application Support/SourceTree/sourcetree.license
+  - Library/Application Support/SourceTree/browser.plist
+  - Library/Application Support/SourceTree/hgrc_sourcetree
+  - Library/Application Support/SourceTree/hostingservices.plist
+spacelauncher:
+  name: SpaceLauncher
+  files:
+  - Library/Preferences/name.guoc.SpaceLauncher.plist
+spacemacs:
+  name: Spacemacs
+  files:
+  - .spacemacs
+  - .spacemacs.d
+spacevim:
+  name: SpaceVim
+  files:
+  - .SpaceVim.d
+spamsieve:
+  name: SpamSieve
+  files:
+  - Library/Application Support/SpamSieve
+  - Library/Preferences/com.c-command.SpamSieve.plist
+spark:
+  name: Spark
+  files:
+  - Library/Application Support/Spark
+spectacle:
+  name: Spectacle
+  files:
+  - Library/Preferences/com.divisiblebyzero.Spectacle.plist
+  - Library/Application Support/Spectacle
+spectrwm:
+  name: Spectrwm
+  files:
+  - .spectrwm.conf
+splice:
+  name: Splice
+  files:
+  - Library/Preferences/com.splice.Splice.plist
+spotify:
+  name: Spotify
+  files:
+  - Library/Preferences/com.spotify.client.plist
+spotify-notifications:
+  name: Spotify-Notifications
+  files:
+  - Library/Preferences/io.citruspi.Spotify-Notifications.plist
+sqitch:
+  name: Sqitch
+  files:
+  - .sqitch/sqitch.conf
+ssh:
+  name: SSH
+  files:
+  - .ssh/config
+  - .ssh/authorized_keys
+starship:
+  name: Starship
+  files:
+  - .config/starship.toml
+startupizer2:
+  name: Startupizer2
+  files:
+  - Library/Application Support/Startupizer
+stata:
+  name: Stata
+  files:
+  - Library/Application Support/Stata
+  - Library/Preferences/com.stata.stata12.plist
+  - Library/Preferences/com.stata.stata13.plist
+  - Library/Preferences/Stata 13 Preferences
+stats:
+  name: Stats
+  files:
+  - Library/Preferences/eu.exelban.Stats.plist
+stay:
+  name: Stay
+  files:
+  - Library/Preferences/com.cordlessdog.Stay.plist
+  - Library/Application Support/Stay
+storyist-3:
+  name: storyist-3
+  files:
+  - Library/Preferences/.com.storyist.storyist.plist
+  - Library/Preferences/com.storyist.storyist.plist
+streamdeck:
+  name: Elgato StreamDeck
+  files:
+  - Library/Application Support/com.elgato.StreamDeck
+subler:
+  name: Subler
+  files:
+  - Library/Application Support/Subler
+sublime-merge:
+  name: Sublime Merge
+  files:
+  - Library/Application Support/Sublime Merge/Packages/User
+sublime-text:
+  name: Sublime Text
+  files:
+  - Library/Application Support/Sublime Text/Packages/User
+  xdg_files:
+  - sublime-text/Packages/User
+sublime-text-2:
+  name: Sublime Text 2
+  files:
+  - Library/Application Support/Sublime Text 2/Packages/User
+  xdg_files:
+  - sublime-text-2/Packages/User
+sublime-text-3:
+  name: Sublime Text 3
+  files:
+  - Library/Application Support/Sublime Text 3/Packages/User
+  xdg_files:
+  - sublime-text-3/Packages/User
+subversion:
+  name: Subversion
+  files:
+  - .subversion
+superduper:
+  name: SuperDuper!
+  files:
+  - Library/Application Support/SuperDuper!
+surge:
+  name: Surge
+  files:
+  - .surge.conf
+swaywm:
+  name: Swaywm
+  xdg_files:
+  - sway
+swinsian:
+  name: Swinsian
+  files:
+  - Library/Application Support/Swinsian/Library.sqlite
+  - Library/Application Support/Swinsian/License.swinsianlicense
+  - Library/Preferences/com.swinsian.Swinsian.plist
+  - Library/Preferences/com.swinsian.SwinsianDesktopWindow.plist
+swish:
+  name: Swish
+  files:
+  - Library/Preferences/co.highlyopinionated.swish.plist
+switchhosts:
+  name: SwitchHosts
+  files:
+  - .SwitchHosts/data/collection/hosts
+t:
+  name: t
+  files:
+  - .trc
+tableplus:
+  name: TablePlus
+  files:
+  - Library/Application Support/com.tinyapp.TablePlus/Cache/Favorite
+  - Library/Application Support/com.tinyapp.TablePlus/Cache/History
+  - Library/Application Support/com.tinyapp.TablePlus/Data
+  - Library/Application Support/com.tinyapp.TablePlus/Plugins
+  - Library/Preferences/com.tinyapp.TablePlus.plist
+taskpaper:
+  name: Task Paper
+  files:
+  - Library/Preferences/com.hogbaysoftware.TaskPaper.mac.plist
+  - Library/Application Support/TaskPaper
+taskwarrior:
+  name: Taskwarrior
+  files:
+  - .taskrc
+teamocil:
+  name: Teamocil
+  files:
+  - .teamocil
+telegram_macos:
+  name: Telegram for macOS
+  files:
+  - Library/Preferences/ru.keepcoder.Telegram.plist
+terminal:
+  name: Terminal
+  files:
+  - Library/Preferences/com.apple.Terminal.plist
+terminator:
+  name: Terminator
+  xdg_files:
+  - terminator/config
+termite:
+  name: termite
+  files:
+  - termite/config
+termux:
+  name: Configuration for Termux
+  files:
+  - .termux/colors.properties
+  - .termux/termux.properties
+  - .termux/font.ttf
+terraform:
+  name: Terraform
+  files:
+  - .terraformrc
+  - .terraform.d
+textexpander:
+  name: TextExpander
+  files:
+  - Library/Application Support/TextExpander/Settings.textexpander
+  - Library/Preferences/com.smileonmymac.textexpander.plist
+textmate:
+  name: TextMate
+  files:
+  - Library/Application Support/TextMate/Bundles
+  - Library/Application Support/TextMate/PlugIns
+  - Library/Application Support/TextMate/Pristine Copy
+  - Library/Application Support/TextMate/Managed/Bundles
+  - Library/Preferences/com.macromates.textmate.latex_config.plist
+  - .tm_properties
+textual:
+  name: Textual
+  files:
+  - Library/Application Support/Textual IRC
+  - Library/Preferences/com.codeux.irc.textual.plist
+  - Library/Containers/com.codeux.irc.textual/Data/Library/Preferences/com.codeux.irc.textual.plist
+things:
+  name: Things
+  files:
+  - Library/Preferences/com.culturedcode.things.plist
+  - Library/Application Support/Cultured Code/Licenses.plist
+tidy:
+  name: HTML Tidy
+  files:
+  - .tidyrc
+tig:
+  name: Tig
+  files:
+  - .tigrc
+  xdg_files:
+  - tig/config
+tiles:
+  name: Tiles
+  files:
+  - Library/Preferences/com.sempliva.Tiles.plist
+tilix:
+  name: tilix
+  files:
+  - tilix.dconf
+timeout:
+  name: TimeOut
+  files:
+  - Library/Group Containers/6Z7QW53WB6.com.dejal.timeout
+tint2:
+  name: tint2
+  xdg_files:
+  - tint2/tint2rc
+tinyfugue:
+  name: TinyFugue
+  files:
+  - .tfrc
+tmux:
+  name: Tmux
+  files:
+  - .tmux.conf
+  xdg_files:
+  - tmux/tmux.conf
+tmuxinator:
+  name: Tmuxinator
+  xdg_files:
+  - tmuxinator
+tmuxp:
+  name: tmuxp
+  files:
+  - .tmuxp
+todotxt-cli:
+  name: Todo.txt CLI
+  files:
+  - .todo/config
+toothfairy:
+  name: ToothFairy
+  files:
+  - Library/Application Scripts/com.robinlu.mac.Tooth-Fairy
+totalspaces2:
+  name: TotalSpaces2
+  files:
+  - Library/Preferences/com.binaryage.TotalSpaces2.plist
+tower:
+  name: Tower
+  files:
+  - Library/Application Support/Tower
+  - Library/Application Support/com.fournova.Tower3
+  - Library/Preferences/com.fournova.Tower.plist
+  - Library/Preferences/com.fournova.Tower3.plist
+tower-2:
+  name: Tower 2
+  files:
+  - Library/Application Support/com.fournova.Tower2
+  - Library/Preferences/com.fournova.Tower2.plist
+tower-3:
+  name: Tower 3
+  files:
+  - Library/Application Support/com.fournova.Tower3
+  - Library/Preferences/com.fournova.Tower3.plist
+transmission:
+  name: Transmission
+  files:
+  - Library/Preferences/org.m0k.transmission.plist
+  - Library/Application Support/Transmission/blocklists
+  xdg_files:
+  - transmission/blocklists
+  - transmission/settings.json
+  - transmission/stats.json
+  - transmission-daemon/blocklists
+  - transmission-daemon/settings.json
+  - transmission-daemon/stats.json
+transmit:
+  name: Transmit
+  files:
+  - Library/Preferences/com.panic.Transmit.plist
+  - Library/Application Support/Transmit/Metadata
+  - Library/Application Support/Transmit/Favorites
+tripmode:
+  name: TripMode
+  files:
+  - Library/Application Support/TripMode
+trizen:
+  name: Trizen
+  xdg_files:
+  - trizen/trizen.conf
+tunnelblick:
+  name: Tunnelblick
+  files:
+  - Library/Application Support/Tunnelblick/Configurations
+tvnamer:
+  name: tvnamer
+  files:
+  - .tvnamer.json
+twitterrific:
+  name: Twitterrific
+  files:
+  - Library/Application Support/Twitterrific
+typinator:
+  name: Typinator
+  files:
+  - Library/Application Support/Typinator
+  - Library/Preferences/com.macility.typinator2.plist
+typora:
+  name: Typora
+  files:
+  - Library/Application Support/abnerworks.Typora/themes
+  xdg_files:
+  - Typora/themes
+ubersicht:
+  name: Ubersicht
+  files:
+  - Library/Application Support/Übersicht/widgets
+  - Library/Preferences/tracesOf.Uebersicht.plist
+ulauncher:
+  name: Ulauncher
+  xdg_files:
+  - ulauncher/extensions.json
+  - ulauncher/settings.json
+  - ulauncher/shortcuts.json
+ventrilo:
+  name: Ventrilo
+  files:
+  - Library/Preferences/Ventrilo
+verdaccio:
+  name: Verdaccio
+  xdg_files:
+  - verdaccio/config.yaml
+versions:
+  name: Versions
+  files:
+  - Library/Application Support/Versions/License
+  - Library/Preferences/com.blackpixel.versions.plist
+vim:
+  name: Vim
+  files:
+  - .gvimrc
+  - .gvimrc.after
+  - .gvimrc.before
+  - .vim/autoload
+  - .vim/after
+  - .vim/bundle
+  - .vim/colors
+  - .vim/doc
+  - .vim/ftdetect
+  - .vim/ftplugin
+  - .vim/indent
+  - .vim/pack
+  - .vim/plugin/settings
+  - .vim/spell
+  - .vim/syntax
+  - .vim/vimrc
+  - .vimrc
+  - .vimrc.after
+  - .vimrc.before
+vimperator:
+  name: Vimperator
+  files:
+  - .vimperator
+  - .vimperatorrc
+vimwiki:
+  name: Vimwiki
+  files:
+  - vimwiki
+viscosity:
+  name: Viscosity
+  files:
+  - Library/Application Support/Viscosity/OpenVPN
+  - Library/Preferences/com.viscosityvpn.Viscosity.plist
+vlc:
+  name: VLC
+  files:
+  - Library/Application Support/org.videolan.vlc
+  - Library/Preferences/org.videolan.vlc
+  - Library/Preferences/org.videolan.vlc.LSSharedFileList.plist
+  - Library/Preferences/org.videolan.vlc.plist
+volt:
+  name: Volt
+  files:
+  - volt/lock.json
+  - volt/plugconf
+  - volt/rc
+vs4mac:
+  name: Visual Studio for Mac
+  files:
+  - Library/VisualStudio
+  - Library/Preferences/VisualStudio/7.0/EditingLayout.xml
+  - Library/Preferences/VisualStudio/7.0/MonoDevelopProperties.xml
+  - Library/Preferences/VisualStudio/8.0/EditingLayout.xml
+  - Library/Preferences/VisualStudio/8.0/MonoDevelopProperties.xml
+vscode:
+  name: Visual Studio Code
+  files:
+  - Library/Application Support/Code/User/snippets
+  - Library/Application Support/Code/User/prompts
+  - Library/Application Support/Code/User/keybindings.json
+  - Library/Application Support/Code/User/settings.json
+  xdg_files:
+  - Code/User/snippets
+  - Code/User/keybindings.json
+  - Code/User/settings.json
+vscode-insiders:
+  name: Visual Studio Code Insiders
+  files:
+  - "Library/Application Support/Code - Insiders/User/snippets"
+  - "Library/Application Support/Code - Insiders/User/prompts"
+  - "Library/Application Support/Code - Insiders/User/keybindings.json"
+  - "Library/Application Support/Code - Insiders/User/settings.json"
+  xdg_files:
+  - "Code - Insiders/User/snippets"
+  - "Code - Insiders/User/keybindings.json"
+  - "Code - Insiders/User/settings.json"
+vscode-oss:
+  name: Visual Studio Code Open Source Edition
+  files:
+  - "Library/Application Support/Code - OSS/User/snippets"
+  - "Library/Application Support/Code - OSS/User/keybindings.json"
+  - "Library/Application Support/Code - OSS/User/settings.json"
+  xdg_files:
+  - "Code - OSS/User/snippets"
+  - "Code - OSS/User/keybindings.json"
+  - "Code - OSS/User/settings.json"
+vscodium:
+  name: VSCodium
+  files:
+  - Library/Application Support/VSCodium/User/snippets
+  - Library/Application Support/VSCodium/User/keybindings.json
+  - Library/Application Support/VSCodium/User/settings.json
+  xdg_files:
+  - VSCodium/User/snippets
+  - VSCodium/User/keybindings.json
+  - VSCodium/User/settings.json
+wakatime:
+  name: Wakatime
+  files:
+  - .wakatime.cfg
+warp:
+  name: Warp
+  files:
+  - .warp
+waybar:
+  name: waybar
+  xdg_files:
+  - waybar
+webstorm:
+  name: WebStorm
+  files:
+  - Library/Application Support/JetBrains/WebStorm2020.1
+  - Library/Application Support/JetBrains/WebStorm2020.2
+  - Library/Application Support/JetBrains/WebStorm2020.3
+  - Library/Application Support/JetBrains/WebStorm2020.4
+  - Library/Application Support/JetBrains/WebStorm2021.1
+  - Library/Application Support/JetBrains/WebStorm2021.2
+  - Library/Application Support/JetBrains/WebStorm2021.3
+  - Library/Application Support/JetBrains/WebStorm2023.1
+  - Library/Application Support/JetBrains/WebStorm2023.2
+  - Library/Application Support/WebStorm
+  - Library/Application Support/WebStorm10
+  - Library/Application Support/WebStorm11
+  - Library/Application Support/WebStorm2016.1
+  - Library/Application Support/WebStorm2016.2
+  - Library/Application Support/WebStorm2016.3
+  - Library/Application Support/WebStorm2017.1
+  - Library/Application Support/WebStorm2017.2
+  - Library/Application Support/WebStorm2017.3
+  - Library/Application Support/WebStorm2018.1
+  - Library/Application Support/WebStorm2018.2
+  - Library/Application Support/WebStorm2018.3
+  - Library/Application Support/WebStorm2019.1
+  - Library/Application Support/WebStorm2019.2
+  - Library/Application Support/WebStorm2019.3
+  - Library/Application Support/WebStorm2019.4
+  - Library/Application Support/WebStorm8
+  - Library/Application Support/WebStorm9
+  - Library/Preferences/WebStorm10
+  - Library/Preferences/WebStorm11
+  - Library/Preferences/WebStorm2016.1
+  - Library/Preferences/WebStorm2016.2
+  - Library/Preferences/WebStorm2016.3
+  - Library/Preferences/WebStorm2017.1
+  - Library/Preferences/WebStorm2017.2
+  - Library/Preferences/WebStorm2017.3
+  - Library/Preferences/WebStorm2018.1
+  - Library/Preferences/WebStorm2018.2
+  - Library/Preferences/WebStorm2018.3
+  - Library/Preferences/WebStorm2019.1
+  - Library/Preferences/WebStorm2019.2
+  - Library/Preferences/WebStorm2019.3
+  - Library/Preferences/WebStorm2019.4
+  - Library/Preferences/WebStorm8
+  - Library/Preferences/WebStorm9
+wezterm:
+  name: WezTerm
+  files:
+  - .wezterm.lua
+  xdg_files:
+  - wezterm
+wget:
+  name: Wget
+  files:
+  - .wgetrc
+  - .wget-hsts
+whatsapp:
+  name: WhatsApp Web
+  files:
+  - Library/Application Support/WhatsApp/Preferences
+  - Library/Application Support/WhatsApp/settings.json
+  - Library/Preferences/WhatsApp-Helper.plist
+  - Library/Preferences/WhatsApp.plist
+windsurf:
+  name: Windsurf
+  files:
+  - Library/Application Support/Windsurf/User/snippets
+  - Library/Application Support/Windsurf/User/keybindings.json
+  - Library/Application Support/Windsurf/User/settings.json
+  xdg_files:
+  - Windsurf/User/snippets
+  - Windsurf/User/keybindings.json
+  - Windsurf/User/settings.json
+wireshark:
+  name: Wireshark 2
+  xdg_files:
+  - wireshark
+witch:
+  name: Witch
+  files:
+  - Library/Preferences/com.manytricks.Witch.plist
+wordgrinder:
+  name: wordgrinder
+  files:
+  - .wordgrinder.settings
+workrave:
+  name: Workrave
+  files:
+  - .workrave/id
+  - .workrave/historystats
+wp-cli:
+  name: WP-CLI
+  files:
+  - .wp-cli
+x11:
+  name: X11
+  files:
+  - .Xmodmap
+  - .Xresources
+  - .fonts
+  - .xinitrc
+xamarinstudio-5:
+  name: Xamarin Studio 5
+  files:
+  - Library/Preferences/XamarinStudio-5.0
+xbar:
+  name: xbar
+  files:
+  - Library/Application Support/xbar/xbar.config.json
+  - Library/Application Support/xbar/plugins
+xbindkeys:
+  name: xbindkeys
+  files:
+  - .xbindkeysrc
+xchat:
+  name: XChat
+  files:
+  - .xchat2
+xcode:
+  name: Xcode
+  files:
+  - Library/Preferences/com.apple.dt.Xcode.plist
+  - Library/Application Support/Developer/Shared/Xcode/Plug-ins
+  - Library/Developer/Xcode/UserData/CodeSnippets
+  - Library/Developer/Xcode/UserData/FontAndColorThemes
+  - Library/Developer/Xcode/UserData/KeyBindings
+  - Library/Developer/Xcode/UserData/Debugger
+  - Library/Developer/Xcode/UserData/xcdebugger
+  - Library/Developer/Xcode/UserData/SearchScopes.xcsclist
+  - Library/Developer/Xcode/Templates
+xee:
+  name: Xee
+  files:
+  - Library/Preferences/cx.c3.Xee3.plist
+xemacs:
+  name: XEmacs
+  files:
+  - .xemacs
+xld:
+  name: XLD
+  files:
+  - Library/Application Support/XLD
+  - Library/Preferences/jp.tmkk.XLD.plist
+xonsh:
+  name: Xonsh
+  files:
+  - .xonshrc
+  xdg_files:
+  - xonsh
+xtrafinder:
+  name: XtraFinder
+  files:
+  - Library/Preferences/com.trankynam.XtraFinder.plist
+yabai:
+  name: yabai
+  files:
+  - .yabairc
+  xdg_files:
+  - yabai/yabairc
+yarn:
+  name: yarn
+  files:
+  - .yarnrc
+yazi:
+  name: yazi
+  xdg_files:
+  - yazi/yazi.toml
+  - yazi/keymap.toml
+  - yazi/theme.toml
+youtube-dl:
+  name: youtube-dl
+  xdg_files:
+  - youtube-dl/config
+yummyftp:
+  name: Yummy FTP
+  files:
+  - Library/Preferences/com.yummysoftware.yummy-ftp.plist
+  - Library/Application Support/Yummy FTP/DefaultBookmark.bkmk
+  - Library/Application Support/Yummy FTP/Bookmarks
+zabbix-cli:
+  name: Zabbix CLI
+  files:
+  - .zabbix-cli/zabbix-cli.conf
+zathura:
+  name: zathura
+  xdg_files:
+  - zathura/zathurarc
+zed:
+  name: Zed
+  xdg_files:
+  - zed/keymap.json
+  - zed/settings.json
+zoom:
+  name: Zoom
+  files:
+  - Library/Preferences/us.zoom.Transcode.plist
+  - Library/Preferences/us.zoom.xos.Hotkey.plist
+  - Library/Preferences/us.zoom.xos.plist
+  - Library/Preferences/us.zoom.ZoomAutoUpdater.plist
+  - Library/Preferences/ZoomChat.plist
+zoxide:
+  name: zoxide
+  files:
+  - Library/Application Support/zoxide
+zsh:
+  name: Zsh
+  files:
+  - .zshenv
+  - .zprofile
+  - .zshrc
+  - .zlogin
+  - .zlogout

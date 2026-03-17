@@ -49,4 +49,38 @@ templates:
 4. Run ` + "`mmdot generate`" + ` instead of ` + "`mmdot brew compile`" + `
 `,
 	},
+	{
+		Version: 3,
+		Summary: "Application data backup and restore",
+		Body: `### Migrate v2 → v3: Application data backup and restore
+
+**Added:**
+- ` + "`appdata`" + ` top-level config section for backing up and restoring application config files
+  - ` + "`storage`" + `: path to backup storage directory (supports ` + "`~`" + `)
+  - ` + "`snapshot_retention`" + `: number of snapshots to keep (default: 3)
+  - ` + "`apps`" + `: list of app groups mapping tags to app IDs
+  - ` + "`ignore`" + `: list of app IDs to exclude
+  - ` + "`custom`" + `: custom app definitions with id, name, tags, files, and xdg_files
+- ` + "`appdata backup`" + `, ` + "`appdata restore`" + `, ` + "`appdata list`" + ` commands (alias ` + "`ad`" + `)
+- Tag-based app groups with expression filtering (` + "`+tag`" + `, ` + "`!tag`" + `, ` + "`@macro`" + `)
+- Embedded database of 605 app definitions sourced from mackup
+
+**Migration steps:**
+1. Add an ` + "`appdata:`" + ` section to your config:
+
+` + "```yaml" + `
+appdata:
+  storage: ~/backups/appdata
+  snapshot_retention: 3
+  apps:
+    - tags: [dev]
+      ids: [git, vim, ssh]
+  ignore: []
+  custom: []
+` + "```" + `
+
+2. Set ` + "`version: 3`" + ` in your config file
+3. Run ` + "`mmdot appdata list`" + ` to discover available app IDs
+`,
+	},
 }
