@@ -53,6 +53,21 @@ exec:
   scripts:
     - path: path/to/script.sh
       tags: [<tag>, ...]
+
+# Application data backup and restore
+appdata:
+  storage: <path>                  # required, backup storage directory (supports ~)
+  snapshot_retention: <int>        # optional, snapshots to keep (default: 3)
+  apps:                            # app groups mapping tags to app IDs
+    - tags: [<tag>, ...]
+      ids: [<app-id>, ...]
+  ignore: [<app-id>, ...]          # app IDs to exclude from backup
+  custom:                          # custom app definitions
+    - id: <id>
+      name: <name>
+      tags: [<tag>, ...]
+      files: [<path>, ...]         # paths relative to $HOME
+      xdg_files: [<path>, ...]     # paths relative to $XDG_CONFIG_HOME
 ```
 
 ### Variable precedence
@@ -61,6 +76,17 @@ Variables are merged with later sources overriding earlier:
 1. `variables.vars` (global inline)
 2. `variables.var_files` (file-based, in order)
 3. `templates[].vars` (template-specific)
+
+### Expression filtering
+
+The `exec` and `appdata` commands support expression-based filtering via the `--expr` flag:
+
+- `+tag` — include items with this tag
+- `!tag` — exclude items with this tag
+- `@macro` — expand a named macro from the `macros:` config section
+- Full expr-lang expressions referencing `tags` (e.g., `"dev" in tags && not ("heavy" in tags)`)
+
+Shortcuts and macros can be combined: `+dev !heavy @myfilter`
 
 ### Paths
 

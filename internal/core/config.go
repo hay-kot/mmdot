@@ -17,7 +17,7 @@ import (
 // ConfigVersion is the current config schema version. Increment this when
 // making breaking changes to the config format and add a corresponding
 // migration note in the migrations package.
-const ConfigVersion = 2
+const ConfigVersion = 3
 
 type ConfigFile struct {
 	Version   int               `yaml:"version"`

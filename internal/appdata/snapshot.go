@@ -70,20 +70,23 @@ func SnapshotHomeFiles(storageDir string, apps []ResolvedApp) (string, error) {
 	return snapPath, nil
 }
 
-func addFileToZip(w *zip.Writer, srcPath, arcPath string) error {
+func addFileToZip(w *zip.Writer, srcPath, arcPath string) (rerr error) {
 	src, err := os.Open(srcPath)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if cerr := src.Close(); cerr != nil && rerr == nil {
+			rerr = cerr
+		}
+	}()
 
 	fw, err := w.Create(arcPath)
 	if err != nil {
-		src.Close()
 		return err
 	}
 
 	_, err = io.Copy(fw, src)
-	src.Close()
 	return err
 }
 

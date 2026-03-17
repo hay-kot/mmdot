@@ -41,3 +41,7 @@ brew install --cask firefox
 ## Available Brew Configs
 
 Use `mmdot brew diff` to see available brew config names, or check the `brews:` section in your mmdot.yml.
+
+## Discovering App IDs
+
+Use `mmdot appdata list` to see all available application IDs from the embedded database and custom definitions. App IDs are used in the `appdata.apps[].ids` config field.
