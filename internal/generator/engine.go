@@ -230,6 +230,26 @@ func (e *Engine) funcMap() template.FuncMap {
 			}
 			return b, nil
 		},
+		// brewBlock renders a batch install block with backslash continuation.
+		// e.g. brewBlock "brew install" ["git", "vim"] produces:
+		//   brew install \
+		//     git \
+		//     vim
+		"brewBlock": func(cmd string, pkgs []string) string {
+			if len(pkgs) == 0 {
+				return ""
+			}
+			var sb strings.Builder
+			sb.WriteString(cmd + " \\\n")
+			for i, pkg := range pkgs {
+				sb.WriteString("  " + pkg)
+				if i < len(pkgs)-1 {
+					sb.WriteString(" \\")
+				}
+				sb.WriteString("\n")
+			}
+			return sb.String()
+		},
 	}
 }
 

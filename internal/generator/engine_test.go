@@ -55,11 +55,10 @@ set -euo pipefail
 	// Verify includes are resolved (base brews merged in)
 	for _, want := range []string{
 		"brew tap homebrew/cask",
-		"brew install curl",
-		"brew install wget",
-		"brew install git",
-		"brew install vim",
-		"brew install --cask firefox",
+		"brew install \\\n  curl",
+		"  curl \\\n  wget",
+		"  vim\n",
+		"brew install --cask \\\n  firefox",
 		"mas install 497799835",
 	} {
 		if !bytes.Contains(got, []byte(want)) {
