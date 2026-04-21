@@ -14,10 +14,17 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 archives:
   - format: tar.gz
-    # this name template makes the OS and Arch compatible with the results of uname.
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -25,7 +32,6 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # use zip for windows archives
     format_overrides:
       - goos: windows
         format: zip
@@ -41,11 +47,19 @@ snapshot:
 
 changelog:
   sort: asc
+  use: github
+  groups:
+    - title: Features
+      regexp: "^feat"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^fix"
+      order: 1
+    - title: Other
+      order: 999
   filters:
     exclude:
       - "^docs:"
       - "^test:"
-# The lines beneath this are called `modelines`. See `:help modeline`
-# Feel free to remove those if you don't want/use them.
-# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
-# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+      - "^chore:"
+      - "^ci:"
