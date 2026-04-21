@@ -83,5 +83,5 @@ formatters:
       - examples$
   settings:
     gofumpt:
-      module-path: gitea.kotel.app/hay-kot/recipinned/backend
+      module-path: github.com/hay-kot/mmdot
       extra-rules: false

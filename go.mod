@@ -1,6 +1,6 @@
 module github.com/hay-kot/mmdot
 
-go 1.24.0
+go 1.26
 
 require (
 	filippo.io/age v1.2.1
