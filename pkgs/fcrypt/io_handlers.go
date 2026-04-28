@@ -10,14 +10,14 @@ import (
 )
 
 // EncryptReader encrypts data from an io.Reader and writes the encrypted result to an io.Writer
-func EncryptReader(r io.Reader, w io.Writer, recipient age.Recipient) error {
+func EncryptReader(r io.Reader, w io.Writer, recipients []age.Recipient) error {
 	armorWriter := armor.NewWriter(w)
 	defer func() {
 		_ = armorWriter.Close()
 	}()
 
 	// Create encryptor
-	encryptor, err := age.Encrypt(armorWriter, recipient)
+	encryptor, err := age.Encrypt(armorWriter, recipients...)
 	if err != nil {
 		return fmt.Errorf("failed to create encryptor: %w", err)
 	}
@@ -64,7 +64,7 @@ func EncryptFile(inputPath, outputPath string, recipient age.Recipient) error {
 	}()
 
 	// Use EncryptReader to handle the encryption
-	if err := EncryptReader(inputFile, outputFile, recipient); err != nil {
+	if err := EncryptReader(inputFile, outputFile, []age.Recipient{recipient}); err != nil {
 		return err
 	}
 
