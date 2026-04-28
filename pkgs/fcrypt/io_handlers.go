@@ -106,9 +106,10 @@ func DecryptReader(r io.Reader, w io.Writer, identity age.Identity) error {
 	return nil
 }
 
-// DecryptFile decrypts a file leaving the original
-func DecryptFile(inputPath, outputPath string, identity age.Identity) error {
-	// Open input file
+// DecryptFile decrypts a file leaving the original.
+// It writes to a temporary file first and renames on success to avoid
+// leaving a partially-written output file on failure.
+func DecryptFile(inputPath, outputPath string, identity age.Identity) (err error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open input file: %w", err)
@@ -117,18 +118,27 @@ func DecryptFile(inputPath, outputPath string, identity age.Identity) error {
 		_ = inputFile.Close()
 	}()
 
-	// Create output file
-	outputFile, err := os.Create(outputPath)
+	tmpFile, err := os.CreateTemp(filepath.Dir(outputPath), ".mmdot-decrypt-*")
 	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
+		return fmt.Errorf("failed to create temp file: %w", err)
 	}
 	defer func() {
-		_ = outputFile.Close()
+		if err != nil {
+			_ = os.Remove(tmpFile.Name())
+		}
 	}()
 
-	// Use DecryptReader to handle the decryption
-	if err := DecryptReader(inputFile, outputFile, identity); err != nil {
+	if err = DecryptReader(inputFile, tmpFile, identity); err != nil {
+		_ = tmpFile.Close()
 		return err
+	}
+
+	if err = tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp file: %w", err)
+	}
+
+	if err = os.Rename(tmpFile.Name(), outputPath); err != nil {
+		return fmt.Errorf("failed to rename temp file to output: %w", err)
 	}
 
 	return nil
