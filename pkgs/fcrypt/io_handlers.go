@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"filippo.io/age"
 	"filippo.io/age/armor"
 )
 
 // EncryptReader encrypts data from an io.Reader and writes the encrypted result to an io.Writer
-func EncryptReader(r io.Reader, w io.Writer, recipient age.Recipient) error {
+func EncryptReader(r io.Reader, w io.Writer, recipients []age.Recipient) error {
 	armorWriter := armor.NewWriter(w)
 	defer func() {
 		_ = armorWriter.Close()
 	}()
 
 	// Create encryptor
-	encryptor, err := age.Encrypt(armorWriter, recipient)
+	encryptor, err := age.Encrypt(armorWriter, recipients...)
 	if err != nil {
 		return fmt.Errorf("failed to create encryptor: %w", err)
 	}
@@ -43,9 +44,10 @@ func EncryptReader(r io.Reader, w io.Writer, recipient age.Recipient) error {
 	return nil
 }
 
-// EncryptFile encrypts a file in place removing the original version
-func EncryptFile(inputPath, outputPath string, recipient age.Recipient) error {
-	// Open input file
+// EncryptFile encrypts a file in place removing the original version.
+// It writes to a temporary file first and renames on success to avoid
+// leaving a partially-written output file on failure.
+func EncryptFile(inputPath, outputPath string, recipients []age.Recipient) (err error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open input file: %w", err)
@@ -54,21 +56,29 @@ func EncryptFile(inputPath, outputPath string, recipient age.Recipient) error {
 		_ = inputFile.Close()
 	}()
 
-	// Create output file
-	outputFile, err := os.Create(outputPath)
+	tmpFile, err := os.CreateTemp(filepath.Dir(outputPath), ".mmdot-encrypt-*")
 	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
+		return fmt.Errorf("failed to create temp file: %w", err)
 	}
 	defer func() {
-		_ = outputFile.Close()
+		if err != nil {
+			_ = os.Remove(tmpFile.Name())
+		}
 	}()
 
-	// Use EncryptReader to handle the encryption
-	if err := EncryptReader(inputFile, outputFile, recipient); err != nil {
+	if err = EncryptReader(inputFile, tmpFile, recipients); err != nil {
+		_ = tmpFile.Close()
 		return err
 	}
 
-	// Delete the original file
+	if err = tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp file: %w", err)
+	}
+
+	if err = os.Rename(tmpFile.Name(), outputPath); err != nil {
+		return fmt.Errorf("failed to rename temp file to output: %w", err)
+	}
+
 	if err = os.Remove(inputPath); err != nil {
 		return err
 	}
@@ -96,9 +106,10 @@ func DecryptReader(r io.Reader, w io.Writer, identity age.Identity) error {
 	return nil
 }
 
-// DecryptFile decrypts a file leaving the original
-func DecryptFile(inputPath, outputPath string, identity age.Identity) error {
-	// Open input file
+// DecryptFile decrypts a file leaving the original.
+// It writes to a temporary file first and renames on success to avoid
+// leaving a partially-written output file on failure.
+func DecryptFile(inputPath, outputPath string, identity age.Identity) (err error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open input file: %w", err)
@@ -107,18 +118,27 @@ func DecryptFile(inputPath, outputPath string, identity age.Identity) error {
 		_ = inputFile.Close()
 	}()
 
-	// Create output file
-	outputFile, err := os.Create(outputPath)
+	tmpFile, err := os.CreateTemp(filepath.Dir(outputPath), ".mmdot-decrypt-*")
 	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
+		return fmt.Errorf("failed to create temp file: %w", err)
 	}
 	defer func() {
-		_ = outputFile.Close()
+		if err != nil {
+			_ = os.Remove(tmpFile.Name())
+		}
 	}()
 
-	// Use DecryptReader to handle the decryption
-	if err := DecryptReader(inputFile, outputFile, identity); err != nil {
+	if err = DecryptReader(inputFile, tmpFile, identity); err != nil {
+		_ = tmpFile.Close()
 		return err
+	}
+
+	if err = tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp file: %w", err)
+	}
+
+	if err = os.Rename(tmpFile.Name(), outputPath); err != nil {
+		return fmt.Errorf("failed to rename temp file to output: %w", err)
 	}
 
 	return nil

@@ -147,9 +147,9 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("no age recipients configured in mmdot.yaml")
 	}
 
-	recipient, err := fcrypt.LoadPublicKey(cfg.Age.Recipients[0])
+	recipients, err := fcrypt.LoadPublicKeys(cfg.Age.Recipients)
 	if err != nil {
-		return fmt.Errorf("failed to load public key: %w", err)
+		return fmt.Errorf("failed to load public keys: %w", err)
 	}
 
 	// Encrypt vault files
@@ -161,7 +161,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		log.Info().Str("source", sourceFile).Str("target", targetFile).Msg("Encrypting vault file")
-		if err := fcrypt.EncryptFile(sourceFile, targetFile, recipient); err != nil {
+		if err := fcrypt.EncryptFile(sourceFile, targetFile, recipients); err != nil {
 			return fmt.Errorf("failed to encrypt %s: %w", sourceFile, err)
 		}
 		log.Info().Str("file", targetFile).Msg("Vault file encrypted successfully")
@@ -174,7 +174,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		log.Info().Str("source", af.Dest).Str("target", af.Src).Msg("Encrypting age file")
-		if err := fcrypt.EncryptFile(af.Dest, af.Src, recipient); err != nil {
+		if err := fcrypt.EncryptFile(af.Dest, af.Src, recipients); err != nil {
 			return fmt.Errorf("failed to encrypt %s: %w", af.Dest, err)
 		}
 		log.Info().Str("file", af.Src).Msg("Age file encrypted successfully")

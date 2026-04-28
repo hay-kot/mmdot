@@ -11,9 +11,9 @@ import (
 // EncryptInPlace takes a filepath <name>.<ext>. This file is then replaced with an
 // encrypted version with a new file <name>.<ext>.age. The old file is removed
 // without confirmation and cannot be recovered.
-func EncryptInPlace(filepath string, pubkey age.Recipient) error {
+func EncryptInPlace(filepath string, recipients []age.Recipient) error {
 	outputPath := filepath + ".age"
-	return EncryptFile(filepath, outputPath, pubkey)
+	return EncryptFile(filepath, outputPath, recipients)
 }
 
 // DecryptInPlace takes in a file that is assumed to be encrypted and replaces that file
