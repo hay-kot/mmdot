@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"filippo.io/age"
 	"github.com/hay-kot/mmdot/internal/core"
 	"github.com/hay-kot/mmdot/pkgs/fcrypt"
 	"github.com/rs/zerolog/log"
@@ -161,7 +162,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		log.Info().Str("source", sourceFile).Str("target", targetFile).Msg("Encrypting vault file")
-		if err := fcrypt.EncryptFile(sourceFile, targetFile, recipient); err != nil {
+		if err := fcrypt.EncryptFile(sourceFile, targetFile, []age.Recipient{recipient}); err != nil {
 			return fmt.Errorf("failed to encrypt %s: %w", sourceFile, err)
 		}
 		log.Info().Str("file", targetFile).Msg("Vault file encrypted successfully")
@@ -174,7 +175,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		log.Info().Str("source", af.Dest).Str("target", af.Src).Msg("Encrypting age file")
-		if err := fcrypt.EncryptFile(af.Dest, af.Src, recipient); err != nil {
+		if err := fcrypt.EncryptFile(af.Dest, af.Src, []age.Recipient{recipient}); err != nil {
 			return fmt.Errorf("failed to encrypt %s: %w", af.Dest, err)
 		}
 		log.Info().Str("file", af.Src).Msg("Age file encrypted successfully")

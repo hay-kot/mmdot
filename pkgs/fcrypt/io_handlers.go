@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"filippo.io/age"
 	"filippo.io/age/armor"
@@ -43,9 +44,10 @@ func EncryptReader(r io.Reader, w io.Writer, recipients []age.Recipient) error {
 	return nil
 }
 
-// EncryptFile encrypts a file in place removing the original version
-func EncryptFile(inputPath, outputPath string, recipient age.Recipient) error {
-	// Open input file
+// EncryptFile encrypts a file in place removing the original version.
+// It writes to a temporary file first and renames on success to avoid
+// leaving a partially-written output file on failure.
+func EncryptFile(inputPath, outputPath string, recipients []age.Recipient) (err error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open input file: %w", err)
@@ -54,21 +56,29 @@ func EncryptFile(inputPath, outputPath string, recipient age.Recipient) error {
 		_ = inputFile.Close()
 	}()
 
-	// Create output file
-	outputFile, err := os.Create(outputPath)
+	tmpFile, err := os.CreateTemp(filepath.Dir(outputPath), ".mmdot-encrypt-*")
 	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
+		return fmt.Errorf("failed to create temp file: %w", err)
 	}
 	defer func() {
-		_ = outputFile.Close()
+		if err != nil {
+			_ = os.Remove(tmpFile.Name())
+		}
 	}()
 
-	// Use EncryptReader to handle the encryption
-	if err := EncryptReader(inputFile, outputFile, []age.Recipient{recipient}); err != nil {
+	if err = EncryptReader(inputFile, tmpFile, recipients); err != nil {
+		_ = tmpFile.Close()
 		return err
 	}
 
-	// Delete the original file
+	if err = tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp file: %w", err)
+	}
+
+	if err = os.Rename(tmpFile.Name(), outputPath); err != nil {
+		return fmt.Errorf("failed to rename temp file to output: %w", err)
+	}
+
 	if err = os.Remove(inputPath); err != nil {
 		return err
 	}

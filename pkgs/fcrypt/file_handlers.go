@@ -13,7 +13,7 @@ import (
 // without confirmation and cannot be recovered.
 func EncryptInPlace(filepath string, pubkey age.Recipient) error {
 	outputPath := filepath + ".age"
-	return EncryptFile(filepath, outputPath, pubkey)
+	return EncryptFile(filepath, outputPath, []age.Recipient{pubkey})
 }
 
 // DecryptInPlace takes in a file that is assumed to be encrypted and replaces that file
