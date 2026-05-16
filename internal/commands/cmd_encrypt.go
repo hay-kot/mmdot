@@ -108,17 +108,38 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
 	}
 
-	// Collect age.files that need encryption (dest plaintext exists)
+	// Collect age.files that need encryption.
+	// A file needs encryption when:
+	//   - dest (plaintext) exists AND src (.age) does NOT exist, or
+	//   - dest (plaintext) is newer than src (.age)
 	ageFilesToEncrypt := []core.AgeFile{}
 	for _, af := range cfg.Age.Files {
-		if _, err := os.Stat(af.Dest); err != nil {
+		destInfo, err := os.Stat(af.Dest)
+		if err != nil {
 			if os.IsNotExist(err) {
 				log.Debug().Str("dest", af.Dest).Msg("Plaintext dest doesn't exist, skipping")
 				continue
 			}
 			return fmt.Errorf("failed to stat %s: %w", af.Dest, err)
 		}
-		ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+
+		srcInfo, err := os.Stat(af.Src)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// Plaintext exists but .age file doesn't — needs encryption
+				ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+				continue
+			}
+			return fmt.Errorf("failed to stat %s: %w", af.Src, err)
+		}
+
+		// Both exist — only re-encrypt if plaintext is newer
+		if destInfo.ModTime().After(srcInfo.ModTime()) {
+			log.Debug().Str("dest", af.Dest).Str("src", af.Src).Msg("Plaintext is newer than encrypted, needs re-encryption")
+			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+		} else {
+			log.Debug().Str("dest", af.Dest).Str("src", af.Src).Msg("Encrypted file is up-to-date, skipping")
+		}
 	}
 
 	totalToEncrypt := len(vaultFilesToEncrypt) + len(ageFilesToEncrypt)
