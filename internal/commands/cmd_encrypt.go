@@ -16,6 +16,7 @@ import (
 type EncryptCmd struct {
 	coreFlags *core.Flags
 	dryRun    bool
+	force     bool
 }
 
 func NewEncryptCmd(coreFlags *core.Flags) *EncryptCmd {
@@ -36,16 +37,26 @@ Files to encrypt are specified in mmdot.yaml under various sections like:
 The command will:
 - Use the configured age recipient (public key) for encryption
 - Create .age encrypted versions of the files
-- Skip files that are already encrypted
+- Skip files that are already encrypted (use --force to override)
 - Preserve original files after encryption
 
 Encrypted files use the age format and can only be decrypted with the
-corresponding age identity (private key).`,
+corresponding age identity (private key).
+
+Use --force to unconditionally re-encrypt every configured file, even
+if an up-to-date .age file already exists. This is useful when the
+existing .age files were encrypted to a different recipient set than
+the one currently configured.`,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:        "dry-run",
 					Usage:       "check if files need encryption without encrypting them",
 					Destination: &ec.dryRun,
+				},
+				&cli.BoolFlag{
+					Name:        "force",
+					Usage:       "re-encrypt every configured file regardless of whether an up-to-date .age file already exists",
+					Destination: &ec.force,
 				},
 			},
 			Action: ec.encrypt,
@@ -99,8 +110,11 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		if _, err := os.Stat(targetFile); err == nil {
-			log.Debug().Str("file", targetFile).Msg("Encrypted file already exists, skipping")
-			continue
+			if !ec.force {
+				log.Debug().Str("file", targetFile).Msg("Encrypted file already exists, skipping")
+				continue
+			}
+			log.Debug().Str("file", targetFile).Msg("Encrypted file already exists, re-encrypting (--force)")
 		} else if !os.IsNotExist(err) {
 			return fmt.Errorf("failed to stat %s: %w", targetFile, err)
 		}
@@ -133,8 +147,8 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to stat %s: %w", af.Src, err)
 		}
 
-		if destInfo.ModTime().After(srcInfo.ModTime()) {
-			// Plaintext is newer than encrypted — needs re-encryption
+		if ec.force || destInfo.ModTime().After(srcInfo.ModTime()) {
+			// Plaintext is newer than encrypted (or --force) — needs re-encryption
 			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
 			continue
 		}
@@ -146,16 +160,24 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 
 	if ec.dryRun {
 		if totalToEncrypt > 0 {
-			log.Error().Msg("Found unencrypted files:")
+			action := "needs encryption"
+			if ec.force {
+				action = "would be re-encrypted"
+			}
+			log.Error().Msgf("Found files that are %s:", action)
 			for _, file := range vaultFilesToEncrypt {
-				log.Error().Str("file", file).Msg("  - vault file needs encryption")
+				log.Error().Str("file", file).Msgf("  - vault file %s", action)
 			}
 			for _, af := range ageFilesToEncrypt {
-				log.Error().Str("dest", af.Dest).Str("src", af.Src).Msg("  - age file needs encryption")
+				log.Error().Str("dest", af.Dest).Str("src", af.Src).Msgf("  - age file %s", action)
 			}
-			return fmt.Errorf("found %d unencrypted file(s)", totalToEncrypt)
+			return fmt.Errorf("found %d file(s) that %s", totalToEncrypt, action)
 		}
-		log.Info().Msg("All files are encrypted")
+		if ec.force {
+			log.Info().Msg("No files configured for encryption")
+		} else {
+			log.Info().Msg("All files are encrypted")
+		}
 		return nil
 	}
 
