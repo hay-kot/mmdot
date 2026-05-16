@@ -210,6 +210,38 @@ func TestAgeFileNeedsEncrypt_BothExistDestNewer(t *testing.T) {
 	}
 }
 
+func TestAgeFileNeedsEncrypt_BothExistEqualMtime(t *testing.T) {
+	tmpDir := t.TempDir()
+	destPath := filepath.Join(tmpDir, "secret.json")
+	srcPath := filepath.Join(tmpDir, "secret.age")
+
+	if err := os.WriteFile(srcPath, []byte("encrypted"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(destPath, []byte("plaintext"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// Set both to the same mtime
+	now := time.Now()
+	if err := os.Chtimes(srcPath, now, now); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(destPath, now, now); err != nil {
+		t.Fatal(err)
+	}
+
+	af := core.AgeFile{Src: srcPath, Dest: destPath}
+
+	needs, err := ageFileNeedsEncrypt(af)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if needs {
+		t.Error("should NOT need encryption when mtimes are equal")
+	}
+}
+
 func TestEncryptFileKeepSource(t *testing.T) {
 	_, recipients := testRecipients(t)
 
