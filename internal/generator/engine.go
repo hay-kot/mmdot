@@ -151,7 +151,11 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 
 			err = fcrypt.DecryptReader(file, buff, identity)
 			if err != nil {
-				return nil, err
+				// Provide an actionable hint: a common cause is that the .age file
+				// was encrypted to a different set of recipients than the identity
+				// currently in use. Running `mmdot encrypt --force` re-encrypts all
+				// vault files from plaintext to the current recipient list.
+				return nil, fmt.Errorf("%w\n  Hint: %s may have been encrypted with different recipients; if the plaintext source is available, run `mmdot encrypt --force` to re-encrypt it", err, encryptedPath)
 			}
 
 			vars := map[string]any{}
