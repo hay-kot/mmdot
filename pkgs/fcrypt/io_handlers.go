@@ -44,10 +44,21 @@ func EncryptReader(r io.Reader, w io.Writer, recipients []age.Recipient) error {
 	return nil
 }
 
-// EncryptFile encrypts a file in place removing the original version.
+// EncryptFile encrypts a file, removing the original version.
 // It writes to a temporary file first and renames on success to avoid
 // leaving a partially-written output file on failure.
-func EncryptFile(inputPath, outputPath string, recipients []age.Recipient) (err error) {
+func EncryptFile(inputPath, outputPath string, recipients []age.Recipient) error {
+	return encryptFile(inputPath, outputPath, recipients, true)
+}
+
+// EncryptFileKeepSource encrypts a file, keeping the original intact.
+// Use this when the plaintext source lives outside the repository and
+// must not be deleted (e.g. age.files entries).
+func EncryptFileKeepSource(inputPath, outputPath string, recipients []age.Recipient) error {
+	return encryptFile(inputPath, outputPath, recipients, false)
+}
+
+func encryptFile(inputPath, outputPath string, recipients []age.Recipient, removeSource bool) (err error) {
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to open input file: %w", err)
@@ -79,8 +90,10 @@ func EncryptFile(inputPath, outputPath string, recipients []age.Recipient) (err 
 		return fmt.Errorf("failed to rename temp file to output: %w", err)
 	}
 
-	if err = os.Remove(inputPath); err != nil {
-		return err
+	if removeSource {
+		if err = os.Remove(inputPath); err != nil {
+			return err
+		}
 	}
 
 	return nil
