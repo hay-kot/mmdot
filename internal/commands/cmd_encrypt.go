@@ -108,17 +108,38 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
 	}
 
-	// Collect age.files that need encryption (dest plaintext exists)
+	// Collect age.files that need encryption.
+	// Only encrypt when:
+	//   1. Plaintext dest exists AND encrypted src does not (new file)
+	//   2. Plaintext dest is newer than encrypted src (modified file)
 	ageFilesToEncrypt := []core.AgeFile{}
 	for _, af := range cfg.Age.Files {
-		if _, err := os.Stat(af.Dest); err != nil {
+		destInfo, err := os.Stat(af.Dest)
+		if err != nil {
 			if os.IsNotExist(err) {
 				log.Debug().Str("dest", af.Dest).Msg("Plaintext dest doesn't exist, skipping")
 				continue
 			}
 			return fmt.Errorf("failed to stat %s: %w", af.Dest, err)
 		}
-		ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+
+		srcInfo, err := os.Stat(af.Src)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// Encrypted file missing — needs encryption
+				ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+				continue
+			}
+			return fmt.Errorf("failed to stat %s: %w", af.Src, err)
+		}
+
+		if destInfo.ModTime().After(srcInfo.ModTime()) {
+			// Plaintext is newer than encrypted — needs re-encryption
+			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+			continue
+		}
+
+		log.Debug().Str("src", af.Src).Str("dest", af.Dest).Msg("Encrypted file is up-to-date, skipping")
 	}
 
 	totalToEncrypt := len(vaultFilesToEncrypt) + len(ageFilesToEncrypt)
@@ -167,14 +188,14 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		log.Info().Str("file", targetFile).Msg("Vault file encrypted successfully")
 	}
 
-	// Encrypt age.files (dest -> src; EncryptFile removes the plaintext)
+	// Encrypt age.files (dest -> src; keep plaintext dest intact)
 	for _, af := range ageFilesToEncrypt {
 		if err := os.MkdirAll(filepath.Dir(af.Src), 0o755); err != nil {
 			return fmt.Errorf("failed to create parent dir for %s: %w", af.Src, err)
 		}
 
 		log.Info().Str("source", af.Dest).Str("target", af.Src).Msg("Encrypting age file")
-		if err := fcrypt.EncryptFile(af.Dest, af.Src, recipients); err != nil {
+		if err := fcrypt.EncryptFileKeepSource(af.Dest, af.Src, recipients); err != nil {
 			return fmt.Errorf("failed to encrypt %s: %w", af.Dest, err)
 		}
 		log.Info().Str("file", af.Src).Msg("Age file encrypted successfully")
