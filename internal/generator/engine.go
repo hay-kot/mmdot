@@ -136,8 +136,9 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 			encryptedPath = path + ".age"
 		}
 
-		// Try encrypted file first
-		if _, err := os.Stat(encryptedPath); err == nil {
+		// Try encrypted file first.
+		encryptedStatErr := func() error { _, err := os.Stat(encryptedPath); return err }()
+		if encryptedStatErr == nil {
 			if identity == nil {
 				return nil, fmt.Errorf("no identity loaded for encrypted file %s", encryptedPath)
 			}
@@ -149,21 +150,50 @@ func (e *Engine) loadVarsFile(vf core.VarFile, identity age.Identity) (map[strin
 			}
 			defer func() { _ = file.Close() }()
 
-			err = fcrypt.DecryptReader(file, buff, identity)
-			if err != nil {
-				return nil, err
-			}
+			decryptErr := fcrypt.DecryptReader(file, buff, identity)
+			if decryptErr != nil {
+				// Strict mode: always fatal on decryption failure.
+				if vf.Strict {
+					return nil, fmt.Errorf("vault decryption failed for %s (strict mode): %w", encryptedPath, decryptErr)
+				}
 
-			vars := map[string]any{}
-			if err = yaml.Unmarshal(buff.Bytes(), &vars); err != nil {
-				return nil, err
-			}
+				// Non-strict: fall back to plaintext if it exists.
+				plaintextExists := false
+				if _, statErr := os.Stat(path); statErr == nil {
+					plaintextExists = true
+				}
 
-			return vars, nil
+				if !plaintextExists {
+					identityHint := e.cfg.Age.IdentityFile
+					if identityHint == "" {
+						identityHint = "(none configured)"
+					}
+					return nil, fmt.Errorf(
+						"vault decryption failed for %s with identity %s and no plaintext fallback exists: %w\n"+
+							"hint: re-encrypt with the current recipients: mmdot encrypt --force",
+						encryptedPath, identityHint, decryptErr,
+					)
+				}
+
+				// Plaintext exists — warn loudly and fall through.
+				log.Warn().
+					Str("encrypted_path", encryptedPath).
+					Str("plaintext_path", path).
+					Str("identity_file", e.cfg.Age.IdentityFile).
+					Err(decryptErr).
+					Msg("WARNING: vault decryption failed — the .age file may have been encrypted to a different recipient; " +
+						"falling back to plaintext. Run 'mmdot encrypt --force' to re-encrypt with current recipients.")
+			} else {
+				vars := map[string]any{}
+				if err = yaml.Unmarshal(buff.Bytes(), &vars); err != nil {
+					return nil, err
+				}
+				return vars, nil
+			}
+		} else {
+			// Encrypted file not present — fall back to unencrypted.
+			log.Debug().Str("encrypted_path", encryptedPath).Str("fallback_path", path).Msg("encrypted vault not found, trying unencrypted")
 		}
-
-		// Fall back to unencrypted file
-		log.Debug().Str("encrypted_path", encryptedPath).Str("fallback_path", path).Msg("encrypted vault not found, trying unencrypted")
 	}
 
 	// Non-encrypted file (or vault fallback)

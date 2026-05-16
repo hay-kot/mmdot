@@ -245,6 +245,10 @@ type Variables struct {
 type VarFile struct {
 	Path    string
 	IsVault bool
+	// Strict disables the plaintext fallback when a .age vault cannot be
+	// decrypted. When true the original behaviour is preserved: a decryption
+	// failure is always fatal, even if a plaintext sibling exists.
+	Strict bool
 }
 
 func (vf *VarFile) UnmarshalYAML(unmarshal func(any) error) error {
@@ -255,8 +259,9 @@ func (vf *VarFile) UnmarshalYAML(unmarshal func(any) error) error {
 		if idx := strings.Index(path, "?"); idx != -1 {
 			vf.Path = path[:idx]
 			query := path[idx+1:]
-			// Check for vault=true
+			// Check for vault=true and strict=true
 			vf.IsVault = strings.Contains(query, "vault=true")
+			vf.Strict = strings.Contains(query, "strict=true")
 		} else {
 			vf.Path = path
 			vf.IsVault = false
@@ -268,12 +273,14 @@ func (vf *VarFile) UnmarshalYAML(unmarshal func(any) error) error {
 	var v struct {
 		Path    string `yaml:"path"`
 		IsVault bool   `yaml:"vault"`
+		Strict  bool   `yaml:"strict"`
 	}
 	if err := unmarshal(&v); err != nil {
 		return err
 	}
 	vf.Path = v.Path
 	vf.IsVault = v.IsVault
+	vf.Strict = v.Strict
 	return nil
 }
 
