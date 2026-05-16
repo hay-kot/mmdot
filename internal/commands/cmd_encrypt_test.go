@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -297,6 +298,105 @@ func TestEncryptFileKeepSource_RoundTrip(t *testing.T) {
 	got, _ := os.ReadFile(decPath)
 	if string(got) != plaintext {
 		t.Errorf("round-trip failed: got %q, want %q", got, plaintext)
+	}
+}
+
+// TestVaultFileRecipientDrift verifies that a vault .age file encrypted to
+// fewer recipients than configured is flagged for re-encryption.
+// This simulates the production bug where vault.yml.age was encrypted to only
+// the personal recipient while two recipients were configured in mmdot.yml.
+func TestVaultFileRecipientDrift_DetectedByCountStanzas(t *testing.T) {
+	// Generate two identities; encrypt only to the first.
+	id1, err := age.GenerateX25519Identity()
+	if err != nil {
+		t.Fatalf("generate id1: %v", err)
+	}
+	id2, err := age.GenerateX25519Identity()
+	if err != nil {
+		t.Fatalf("generate id2: %v", err)
+	}
+	_ = id2 // second recipient — present in config but NOT used for encryption
+
+	dir := t.TempDir()
+	plainPath := filepath.Join(dir, "vault.yml")
+	encPath := filepath.Join(dir, "vault.yml.age")
+
+	if err := os.WriteFile(plainPath, []byte("secret: value"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// Encrypt to only one recipient — simulates the stale state.
+	if err := fcrypt.EncryptFile(plainPath, encPath, []age.Recipient{id1.Recipient()}); err != nil {
+		t.Fatalf("EncryptFile (1 recipient): %v", err)
+	}
+
+	// Stanza count should be 1.
+	stanzas, err := fcrypt.CountStanzas(encPath)
+	if err != nil {
+		t.Fatalf("CountStanzas: %v", err)
+	}
+	if stanzas != 1 {
+		t.Fatalf("CountStanzas = %d, want 1", stanzas)
+	}
+
+	// With 2 configured recipients, drift is detected.
+	configuredCount := 2
+	if stanzas == configuredCount {
+		t.Errorf("drift not detected: stanza count %d equals configured %d", stanzas, configuredCount)
+	}
+}
+
+// TestVaultFileRecipientDrift_ReencryptUpdatesStanzas verifies the full
+// re-encrypt cycle: after re-encrypting a drifted vault file to two
+// recipients the stanza count becomes 2.
+func TestVaultFileRecipientDrift_ReencryptUpdatesStanzas(t *testing.T) {
+	id1, err := age.GenerateX25519Identity()
+	if err != nil {
+		t.Fatalf("generate id1: %v", err)
+	}
+	id2, err := age.GenerateX25519Identity()
+	if err != nil {
+		t.Fatalf("generate id2: %v", err)
+	}
+
+	dir := t.TempDir()
+	plainPath := filepath.Join(dir, "vault.yml")
+	encPath := filepath.Join(dir, "vault.yml.age")
+
+	if err := os.WriteFile(plainPath, []byte("secret: value"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// First encryption: only one recipient.
+	if err := fcrypt.EncryptFile(plainPath, encPath, []age.Recipient{id1.Recipient()}); err != nil {
+		t.Fatalf("EncryptFile (1 recipient): %v", err)
+	}
+
+	// Drift detected — restore plaintext so we can re-encrypt.
+	// (EncryptFile removes the source; write it back)
+	if err := os.WriteFile(plainPath, []byte("secret: value"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// Re-encrypt to both recipients.
+	if err := fcrypt.EncryptFile(plainPath, encPath, []age.Recipient{id1.Recipient(), id2.Recipient()}); err != nil {
+		t.Fatalf("EncryptFile (2 recipients): %v", err)
+	}
+
+	stanzas, err := fcrypt.CountStanzas(encPath)
+	if err != nil {
+		t.Fatalf("CountStanzas after re-encrypt: %v", err)
+	}
+	if stanzas != 2 {
+		t.Errorf("CountStanzas after re-encrypt = %d, want 2", stanzas)
+	}
+
+	// Both identities should now be able to decrypt.
+	for i, id := range []*age.X25519Identity{id1, id2} {
+		outPath := filepath.Join(dir, fmt.Sprintf("restored-%d.yml", i))
+		if err := fcrypt.DecryptFile(encPath, outPath, id); err != nil {
+			t.Errorf("DecryptFile with identity %d: %v", i, err)
+		}
 	}
 }
 

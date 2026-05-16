@@ -16,6 +16,7 @@ import (
 type EncryptCmd struct {
 	coreFlags *core.Flags
 	dryRun    bool
+	force     bool
 }
 
 func NewEncryptCmd(coreFlags *core.Flags) *EncryptCmd {
@@ -47,6 +48,12 @@ corresponding age identity (private key).`,
 					Usage:       "check if files need encryption without encrypting them",
 					Destination: &ec.dryRun,
 				},
+				&cli.BoolFlag{
+					Name:        "force",
+					Aliases:     []string{"f"},
+					Usage:       "re-encrypt all files regardless of mtime or recipient count",
+					Destination: &ec.force,
+				},
 			},
 			Action: ec.encrypt,
 		},
@@ -77,7 +84,16 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	// Collect vault files that need encryption
+	// Collect vault files that need encryption.
+	//
+	// A vault file needs (re-)encryption when:
+	//   1. The .age file is missing (new file).
+	//   2. --force is set (unconditional re-encryption).
+	//   3. Recipient drift: the stanza count in the .age file differs from the
+	//      configured recipient count. Age X25519 stanzas carry only the
+	//      ephemeral wrapped key, not the recipient public key, so exact
+	//      matching is impossible without an identity. Stanza count is a
+	//      reliable proxy: age writes exactly one stanza per recipient.
 	vaultFilesToEncrypt := []string{}
 	for _, file := range cfg.EncryptedFiles() {
 		var sourceFile, targetFile string
@@ -90,6 +106,7 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 			targetFile = file + ".age"
 		}
 
+		// Plaintext source must exist to (re-)encrypt.
 		if _, err := os.Stat(sourceFile); err != nil {
 			if os.IsNotExist(err) {
 				log.Debug().Str("file", sourceFile).Msg("Source file doesn't exist, skipping")
@@ -98,20 +115,51 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to stat %s: %w", sourceFile, err)
 		}
 
-		if _, err := os.Stat(targetFile); err == nil {
-			log.Debug().Str("file", targetFile).Msg("Encrypted file already exists, skipping")
+		// Check whether the target .age file exists.
+		if _, err := os.Stat(targetFile); err != nil {
+			if !os.IsNotExist(err) {
+				return fmt.Errorf("failed to stat %s: %w", targetFile, err)
+			}
+			// Target missing — needs first-time encryption.
+			vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
 			continue
-		} else if !os.IsNotExist(err) {
-			return fmt.Errorf("failed to stat %s: %w", targetFile, err)
 		}
 
-		vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
+		// Target exists. Re-encrypt when --force or recipient drift detected.
+		if ec.force {
+			log.Debug().Str("file", targetFile).Msg("--force: re-encrypting existing vault file")
+			vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
+			continue
+		}
+
+		stanzaCount, err := fcrypt.CountStanzas(targetFile)
+		if err != nil {
+			log.Warn().Err(err).Str("file", targetFile).
+				Msg("Could not count recipient stanzas; re-encrypting to be safe")
+			vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
+			continue
+		}
+
+		if stanzaCount != len(cfg.Age.Recipients) {
+			log.Debug().
+				Str("file", targetFile).
+				Int("stanzas", stanzaCount).
+				Int("configured_recipients", len(cfg.Age.Recipients)).
+				Msg("Recipient drift detected: re-encrypting vault file")
+			vaultFilesToEncrypt = append(vaultFilesToEncrypt, sourceFile)
+			continue
+		}
+
+		log.Debug().Str("file", targetFile).Msg("Encrypted vault file is up-to-date, skipping")
 	}
 
 	// Collect age.files that need encryption.
-	// Only encrypt when:
-	//   1. Plaintext dest exists AND encrypted src does not (new file)
-	//   2. Plaintext dest is newer than encrypted src (modified file)
+	// Encrypt when any of:
+	//   1. Plaintext dest exists AND encrypted src does not (new file).
+	//   2. Plaintext dest is newer than encrypted src (modified file).
+	//   3. --force is set.
+	//   4. Recipient drift: stanza count in the .age file differs from the
+	//      configured recipient count (same heuristic as vault files above).
 	ageFilesToEncrypt := []core.AgeFile{}
 	for _, af := range cfg.Age.Files {
 		destInfo, err := os.Stat(af.Dest)
@@ -126,15 +174,40 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		srcInfo, err := os.Stat(af.Src)
 		if err != nil {
 			if os.IsNotExist(err) {
-				// Encrypted file missing — needs encryption
+				// Encrypted file missing — needs encryption.
 				ageFilesToEncrypt = append(ageFilesToEncrypt, af)
 				continue
 			}
 			return fmt.Errorf("failed to stat %s: %w", af.Src, err)
 		}
 
+		if ec.force {
+			log.Debug().Str("src", af.Src).Msg("--force: re-encrypting existing age file")
+			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+			continue
+		}
+
 		if destInfo.ModTime().After(srcInfo.ModTime()) {
-			// Plaintext is newer than encrypted — needs re-encryption
+			// Plaintext is newer than encrypted — needs re-encryption.
+			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+			continue
+		}
+
+		// Mtime is current; check for recipient drift.
+		stanzaCount, err := fcrypt.CountStanzas(af.Src)
+		if err != nil {
+			log.Warn().Err(err).Str("file", af.Src).
+				Msg("Could not count recipient stanzas; re-encrypting to be safe")
+			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
+			continue
+		}
+
+		if stanzaCount != len(cfg.Age.Recipients) {
+			log.Debug().
+				Str("file", af.Src).
+				Int("stanzas", stanzaCount).
+				Int("configured_recipients", len(cfg.Age.Recipients)).
+				Msg("Recipient drift detected: re-encrypting age file")
 			ageFilesToEncrypt = append(ageFilesToEncrypt, af)
 			continue
 		}
