@@ -28,20 +28,17 @@ func (ec *EncryptCmd) Register(app *cli.Command) *cli.Command {
 	cmds := []*cli.Command{
 		{
 			Name:  "encrypt",
-			Usage: "encrypt all secrets files in-place",
-			Description: `Encrypts all configured secret files using age encryption.
-
-Files to encrypt are specified in mmdot.yaml under various sections like:
-- [ssh.secrets] for SSH private keys and configurations
-- Template varsFile references
+			Usage: "encrypt managed secret files",
+			Description: `Encrypts configured secret files using age encryption.
 
 The command will:
-- Use the configured age recipient (public key) for encryption
-- Create .age encrypted versions of the files
-- Skip files that are already encrypted
-- Preserve original files after encryption
+- Create or update .age files for managed secrets
+- Remove plaintext vault variable files after encryption
+- Keep plaintext age.files destinations after encryption
+- Rotate existing .age files when the configured recipient count changes
+- Skip files that are already encrypted and current
 
-Encrypted files use the age format and can only be decrypted with the
+Encrypted files use the age format and can only be decrypted with a
 corresponding age identity (private key).`,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
@@ -51,7 +48,7 @@ corresponding age identity (private key).`,
 				},
 				&cli.BoolFlag{
 					Name:        "force",
-					Usage:       "force re-encryption of every managed .age file with the current recipients (escape hatch for swapped-but-same-count recipients, or when rotation detection misbehaves)",
+					Usage:       "re-encrypt all managed .age files with the current recipients",
 					Destination: &ec.force,
 				},
 			},
@@ -78,17 +75,18 @@ left alone so you don't lose data.`,
 		},
 		{
 			Name:  "decrypt",
-			Usage: "decrypt all secrets files in-place",
-			Description: `Decrypts all configured .age encrypted files.
+			Usage: "decrypt managed secret files",
+			Description: `Decrypts configured .age files.
 
 The command will:
 - Use your configured age identity (private key) for decryption
-- Restore the original unencrypted files
-- Remove the .age encrypted versions after successful decryption
+- Restore plaintext copies of managed secret files
+- Keep the .age encrypted files in place
 - Skip files that are already decrypted
 
-This is typically used when you need to edit secret files or when setting up
-a new machine from encrypted configuration files.`,
+Use this when you need to edit secret files or when setting up a new machine
+from encrypted configuration files. Run 'mmdot clean' to remove plaintext
+copies later.`,
 			Action: ec.decrypt,
 		},
 	}
@@ -169,10 +167,10 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Collect existing .age files whose recipient stanza count no longer
-	// matches the configured recipient list (or all of them, when --rotate is
-	// passed). These need to be decrypted and re-encrypted so newly added
-	// keys can read them.
-	filesToRotate, err := ec.collectRotationCandidates(cfg)
+	// matches the configured recipient list (or all of them, when --force is
+	// passed). Files that will already be rewritten from plaintext are skipped
+	// so dry-run output shows each file once.
+	filesToRotate, err := ec.collectRotationCandidates(cfg, rotationSkipSet(ageFilesToEncrypt))
 	if err != nil {
 		return err
 	}
@@ -266,14 +264,17 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 // existing .age files when --force is set).
 //
 // Stanza counting is a heuristic that catches the common case of adding or
-// removing a recipient. Same-count swaps, or any bug in the heuristic, can
-// be worked around by re-running with --force, which unconditionally
-// re-encrypts every managed .age file.
-func (ec *EncryptCmd) collectRotationCandidates(cfg core.ConfigFile) ([]string, error) {
+// removing a recipient. Same-count swaps can be handled by re-running with
+// --force, which re-encrypts managed .age files that are not already being
+// rewritten from plaintext.
+func (ec *EncryptCmd) collectRotationCandidates(cfg core.ConfigFile, skip map[string]struct{}) ([]string, error) {
 	want := len(cfg.Age.Recipients)
 	var candidates []string
 
 	check := func(path string) error {
+		if _, ok := skip[path]; ok {
+			return nil
+		}
 		info, err := os.Stat(path)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -314,6 +315,14 @@ func (ec *EncryptCmd) collectRotationCandidates(cfg core.ConfigFile) ([]string, 
 		}
 	}
 	return candidates, nil
+}
+
+func rotationSkipSet(ageFilesToEncrypt []core.AgeFile) map[string]struct{} {
+	skip := make(map[string]struct{}, len(ageFilesToEncrypt))
+	for _, af := range ageFilesToEncrypt {
+		skip[af.Src] = struct{}{}
+	}
+	return skip
 }
 
 // clean removes plaintext copies of managed secret files when the encrypted

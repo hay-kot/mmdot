@@ -28,11 +28,11 @@ func (hc *HookCmd) Register(app *cli.Command) *cli.Command {
 			Commands: []*cli.Command{
 				{
 					Name:  "install",
-					Usage: "install git pre-commit hook to check for unencrypted vault files",
-					Description: `Installs a pre-commit hook that prevents commits containing unencrypted vault files.
+					Usage: "install git pre-commit hook to check managed secrets",
+					Description: `Installs a pre-commit hook that prevents commits when managed secrets need encryption work.
 
-The hook will call 'mmdot encrypt --dry-run' before each commit to verify that all vault files
-are properly encrypted with .age extension.
+The hook will call 'mmdot encrypt --dry-run' before each commit to verify that managed
+.age files exist and are current with the configured recipients.
 
 If a pre-commit hook already exists, the mmdot check will be appended to it.`,
 					Action: hc.install,
@@ -83,7 +83,7 @@ func (hc *HookCmd) install(ctx context.Context, cmd *cli.Command) error {
 
 	// Create the mmdot hook section
 	mmdotHook := fmt.Sprintf(`
-# mmdot pre-commit hook - check vault files are encrypted
+# mmdot pre-commit hook - check managed secrets are encrypted
 %s --config="%s" encrypt --dry-run || exit 1
 `, mmdotPath, configPath)
 
