@@ -126,4 +126,3 @@ func (bc *BrewCmd) diff(ctx context.Context, c *cli.Command) error {
 
 	return nil
 }
-

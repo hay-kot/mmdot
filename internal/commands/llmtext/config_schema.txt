@@ -14,7 +14,7 @@ variables:
     <key>: <value>
   var_files:
     - path/to/vars.yml
-    - path/to/secret.yml?vault=true  # decrypted with age
+    - path/to/secret.yml?vault=true  # encrypted as path/to/secret.yml.age
 
 # Age encryption configuration
 age:
@@ -22,9 +22,9 @@ age:
     - <age-public-key>
   identity_file: path/to/key.txt
   files:
-    - src: path/to/file
-      dest: path/to/file.age
-      perm: "0600"  # optional
+    - src: path/to/file.age  # encrypted file managed by mmdot
+      dest: path/to/file     # plaintext destination
+      perm: "0600"          # optional permission after decrypt
 
 # Template definitions
 templates:

@@ -55,7 +55,7 @@ func TestPathResolver_Resolve(t *testing.T) {
 			name:      "relative path without config dir",
 			configDir: "",
 			input:     "relative/path",
-			want:      func() string {
+			want: func() string {
 				cwd, _ := os.Getwd()
 				return filepath.Join(cwd, "relative/path")
 			}(),

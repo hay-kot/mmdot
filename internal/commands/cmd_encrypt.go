@@ -16,6 +16,8 @@ import (
 type EncryptCmd struct {
 	coreFlags *core.Flags
 	dryRun    bool
+	force     bool
+	cleanDry  bool
 }
 
 func NewEncryptCmd(coreFlags *core.Flags) *EncryptCmd {
@@ -26,20 +28,17 @@ func (ec *EncryptCmd) Register(app *cli.Command) *cli.Command {
 	cmds := []*cli.Command{
 		{
 			Name:  "encrypt",
-			Usage: "encrypt all secrets files in-place",
-			Description: `Encrypts all configured secret files using age encryption.
-
-Files to encrypt are specified in mmdot.yaml under various sections like:
-- [ssh.secrets] for SSH private keys and configurations
-- Template varsFile references
+			Usage: "encrypt managed secret files",
+			Description: `Encrypts configured secret files using age encryption.
 
 The command will:
-- Use the configured age recipient (public key) for encryption
-- Create .age encrypted versions of the files
-- Skip files that are already encrypted
-- Preserve original files after encryption
+- Create or update .age files for managed secrets
+- Remove plaintext vault variable files after encryption
+- Keep plaintext age.files destinations after encryption
+- Rotate existing .age files when the configured recipient count changes
+- Skip files that are already encrypted and current
 
-Encrypted files use the age format and can only be decrypted with the
+Encrypted files use the age format and can only be decrypted with a
 corresponding age identity (private key).`,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
@@ -47,22 +46,47 @@ corresponding age identity (private key).`,
 					Usage:       "check if files need encryption without encrypting them",
 					Destination: &ec.dryRun,
 				},
+				&cli.BoolFlag{
+					Name:        "force",
+					Usage:       "re-encrypt all managed .age files with the current recipients",
+					Destination: &ec.force,
+				},
 			},
 			Action: ec.encrypt,
 		},
 		{
+			Name:  "clean",
+			Usage: "remove decrypted plaintext artifacts, keeping .age files intact",
+			Description: `Removes plaintext copies of managed secret files when an
+encrypted .age counterpart exists.
+
+Useful when decommissioning a machine or pruning a local checkout. The
+.age (encrypted) versions are never touched; only the decrypted
+plaintext is removed. Files whose encrypted counterpart is missing are
+left alone so you don't lose data.`,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:        "dry-run",
+					Usage:       "show what would be removed without deleting anything",
+					Destination: &ec.cleanDry,
+				},
+			},
+			Action: ec.clean,
+		},
+		{
 			Name:  "decrypt",
-			Usage: "decrypt all secrets files in-place",
-			Description: `Decrypts all configured .age encrypted files.
+			Usage: "decrypt managed secret files",
+			Description: `Decrypts configured .age files.
 
 The command will:
 - Use your configured age identity (private key) for decryption
-- Restore the original unencrypted files
-- Remove the .age encrypted versions after successful decryption
+- Restore plaintext copies of managed secret files
+- Keep the .age encrypted files in place
 - Skip files that are already decrypted
 
-This is typically used when you need to edit secret files or when setting up
-a new machine from encrypted configuration files.`,
+Use this when you need to edit secret files or when setting up a new machine
+from encrypted configuration files. Run 'mmdot clean' to remove plaintext
+copies later.`,
 			Action: ec.decrypt,
 		},
 	}
@@ -142,25 +166,38 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		log.Debug().Str("src", af.Src).Str("dest", af.Dest).Msg("Encrypted file is up-to-date, skipping")
 	}
 
+	// Collect existing .age files whose recipient stanza count no longer
+	// matches the configured recipient list (or all of them, when --force is
+	// passed). Files that will already be rewritten from plaintext are skipped
+	// so dry-run output shows each file once.
+	filesToRotate, err := ec.collectRotationCandidates(cfg, rotationSkipSet(ageFilesToEncrypt))
+	if err != nil {
+		return err
+	}
+
 	totalToEncrypt := len(vaultFilesToEncrypt) + len(ageFilesToEncrypt)
+	totalWork := totalToEncrypt + len(filesToRotate)
 
 	if ec.dryRun {
-		if totalToEncrypt > 0 {
-			log.Error().Msg("Found unencrypted files:")
+		if totalWork > 0 {
+			log.Error().Msg("Found files needing encryption work:")
 			for _, file := range vaultFilesToEncrypt {
 				log.Error().Str("file", file).Msg("  - vault file needs encryption")
 			}
 			for _, af := range ageFilesToEncrypt {
 				log.Error().Str("dest", af.Dest).Str("src", af.Src).Msg("  - age file needs encryption")
 			}
-			return fmt.Errorf("found %d unencrypted file(s)", totalToEncrypt)
+			for _, file := range filesToRotate {
+				log.Error().Str("file", file).Msg("  - .age file needs recipient rotation")
+			}
+			return fmt.Errorf("found %d file(s) needing encryption work", totalWork)
 		}
-		log.Info().Msg("All files are encrypted")
+		log.Info().Msg("All files are encrypted and up-to-date with current recipients")
 		return nil
 	}
 
-	if totalToEncrypt == 0 {
-		log.Info().Msg("All files are already encrypted")
+	if totalWork == 0 {
+		log.Info().Msg("All files are already encrypted and up-to-date with current recipients")
 		return nil
 	}
 
@@ -171,6 +208,20 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 	recipients, err := fcrypt.LoadPublicKeys(cfg.Age.Recipients)
 	if err != nil {
 		return fmt.Errorf("failed to load public keys: %w", err)
+	}
+
+	// Rotation requires the identity so we can decrypt then re-encrypt.
+	if len(filesToRotate) > 0 {
+		identity, err := cfg.Age.ReadIdentity()
+		if err != nil {
+			return fmt.Errorf("rotation requires age identity: %w", err)
+		}
+		for _, path := range filesToRotate {
+			log.Info().Str("file", path).Msg("Rotating recipients")
+			if err := fcrypt.RecryptFile(path, identity, recipients); err != nil {
+				return fmt.Errorf("rotate %s: %w", path, err)
+			}
+		}
 	}
 
 	// Encrypt vault files
@@ -201,7 +252,140 @@ func (ec *EncryptCmd) encrypt(ctx context.Context, cmd *cli.Command) error {
 		log.Info().Str("file", af.Src).Msg("Age file encrypted successfully")
 	}
 
-	log.Info().Int("count", totalToEncrypt).Msg("Encryption complete")
+	log.Info().
+		Int("encrypted", totalToEncrypt).
+		Int("rotated", len(filesToRotate)).
+		Msg("Encryption complete")
+	return nil
+}
+
+// collectRotationCandidates returns the list of existing .age files whose
+// recipient stanza count no longer matches the configured recipients (or all
+// existing .age files when --force is set).
+//
+// Stanza counting is a heuristic that catches the common case of adding or
+// removing a recipient. Same-count swaps can be handled by re-running with
+// --force, which re-encrypts managed .age files that are not already being
+// rewritten from plaintext.
+func (ec *EncryptCmd) collectRotationCandidates(cfg core.ConfigFile, skip map[string]struct{}) ([]string, error) {
+	want := len(cfg.Age.Recipients)
+	var candidates []string
+
+	check := func(path string) error {
+		if _, ok := skip[path]; ok {
+			return nil
+		}
+		info, err := os.Stat(path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return nil
+			}
+			return fmt.Errorf("stat %s: %w", path, err)
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if ec.force {
+			candidates = append(candidates, path)
+			return nil
+		}
+		got, err := fcrypt.CountRecipientStanzas(path)
+		if err != nil {
+			return fmt.Errorf("inspect %s: %w", path, err)
+		}
+		if got != want {
+			log.Debug().Str("file", path).Int("have", got).Int("want", want).Msg("recipient count mismatch")
+			candidates = append(candidates, path)
+		}
+		return nil
+	}
+
+	for _, vf := range cfg.EncryptedFiles() {
+		path := vf
+		if !strings.HasSuffix(path, ".age") {
+			path += ".age"
+		}
+		if err := check(path); err != nil {
+			return nil, err
+		}
+	}
+	for _, af := range cfg.Age.Files {
+		if err := check(af.Src); err != nil {
+			return nil, err
+		}
+	}
+	return candidates, nil
+}
+
+func rotationSkipSet(ageFilesToEncrypt []core.AgeFile) map[string]struct{} {
+	skip := make(map[string]struct{}, len(ageFilesToEncrypt))
+	for _, af := range ageFilesToEncrypt {
+		skip[af.Src] = struct{}{}
+	}
+	return skip
+}
+
+// clean removes plaintext copies of managed secret files when the encrypted
+// .age counterpart exists. Encrypted files are never touched.
+func (ec *EncryptCmd) clean(ctx context.Context, cmd *cli.Command) error {
+	cfg, err := core.SetupEnv(ec.coreFlags.ConfigFilePath)
+	if err != nil {
+		return err
+	}
+
+	type target struct {
+		label     string
+		plaintext string
+		encrypted string
+	}
+	var targets []target
+
+	for _, vf := range cfg.EncryptedFiles() {
+		plaintext := strings.TrimSuffix(vf, ".age")
+		encrypted := plaintext + ".age"
+		targets = append(targets, target{"vault", plaintext, encrypted})
+	}
+	for _, af := range cfg.Age.Files {
+		targets = append(targets, target{"age file", af.Dest, af.Src})
+	}
+
+	removed := 0
+	for _, t := range targets {
+		if _, err := os.Stat(t.plaintext); err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return fmt.Errorf("stat %s: %w", t.plaintext, err)
+		}
+		if _, err := os.Stat(t.encrypted); err != nil {
+			if os.IsNotExist(err) {
+				log.Warn().
+					Str("plaintext", t.plaintext).
+					Str("encrypted", t.encrypted).
+					Msg("Encrypted counterpart missing; skipping to avoid data loss")
+				continue
+			}
+			return fmt.Errorf("stat %s: %w", t.encrypted, err)
+		}
+
+		if ec.cleanDry {
+			log.Info().Str("type", t.label).Str("file", t.plaintext).Msg("would remove plaintext")
+			removed++
+			continue
+		}
+
+		log.Info().Str("type", t.label).Str("file", t.plaintext).Msg("removing plaintext")
+		if err := os.Remove(t.plaintext); err != nil {
+			return fmt.Errorf("remove %s: %w", t.plaintext, err)
+		}
+		removed++
+	}
+
+	verb := "removed"
+	if ec.cleanDry {
+		verb = "would remove"
+	}
+	log.Info().Int("count", removed).Msgf("Clean complete (%s plaintext file(s))", verb)
 	return nil
 }
 
@@ -252,9 +436,10 @@ func (ec *EncryptCmd) decrypt(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to decrypt %s: %w", sourceFile, err)
 		}
 
-		if err := os.Remove(sourceFile); err != nil {
-			log.Warn().Str("file", sourceFile).Err(err).Msg("Failed to remove encrypted file after decryption")
-		}
+		// Note: the encrypted .age file is intentionally left in place. It's
+		// committed to the repo and removing it here would force users to
+		// re-run `encrypt` after every decrypt. Use `mmdot clean` to drop
+		// plaintext copies when decommissioning a machine.
 
 		decryptedCount++
 		log.Info().Str("file", targetFile).Msg("Vault file decrypted successfully")

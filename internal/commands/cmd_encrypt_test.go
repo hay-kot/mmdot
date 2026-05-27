@@ -109,6 +109,59 @@ func testRecipients(t *testing.T) (*age.X25519Identity, []age.Recipient) {
 	return id, []age.Recipient{id.Recipient()}
 }
 
+func TestCollectRotationCandidates_SkipsFilesAlreadyNeedingEncryption(t *testing.T) {
+	_, recipients := testRecipients(t)
+
+	tmpDir := t.TempDir()
+	destPath := filepath.Join(tmpDir, "secret.json")
+	srcPath := filepath.Join(tmpDir, "secret.age")
+
+	if err := os.WriteFile(destPath, []byte("plaintext"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := fcrypt.EncryptFileKeepSource(destPath, srcPath, recipients); err != nil {
+		t.Fatal(err)
+	}
+
+	past := time.Now().Add(-1 * time.Hour)
+	if err := os.Chtimes(srcPath, past, past); err != nil {
+		t.Fatal(err)
+	}
+
+	af := core.AgeFile{Src: srcPath, Dest: destPath}
+	cfg := core.ConfigFile{
+		Age: core.Age{
+			Recipients: []string{"old", "new"},
+			Files:      []core.AgeFile{af},
+		},
+	}
+
+	candidates, err := (&EncryptCmd{}).collectRotationCandidates(cfg, nil)
+	if err != nil {
+		t.Fatalf("collectRotationCandidates without skip: %v", err)
+	}
+	if len(candidates) != 1 {
+		t.Fatalf("candidates without skip = %v, want one", candidates)
+	}
+
+	candidates, err = (&EncryptCmd{force: true}).collectRotationCandidates(cfg, rotationSkipSet([]core.AgeFile{af}))
+	if err != nil {
+		t.Fatalf("collectRotationCandidates: %v", err)
+	}
+	if len(candidates) != 0 {
+		t.Fatalf("candidates = %v, want none", candidates)
+	}
+
+	cfg.Age.Recipients = []string{"old", "new", "newer"}
+	candidates, err = (&EncryptCmd{}).collectRotationCandidates(cfg, rotationSkipSet([]core.AgeFile{af}))
+	if err != nil {
+		t.Fatalf("collectRotationCandidates without force: %v", err)
+	}
+	if len(candidates) != 0 {
+		t.Fatalf("candidates without force = %v, want none", candidates)
+	}
+}
+
 func TestAgeFileNeedsEncrypt_NoDest(t *testing.T) {
 	tmpDir := t.TempDir()
 	af := core.AgeFile{

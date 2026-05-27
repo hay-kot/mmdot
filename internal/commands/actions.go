@@ -72,7 +72,7 @@ func expandMacros(code string, macros map[string]string) (string, error) {
 		})
 
 		for _, word := range words {
-			if after, ok :=strings.CutPrefix(word, "@"); ok  {
+			if after, ok := strings.CutPrefix(word, "@"); ok {
 				macroName := after
 				if _, exists := macros[macroName]; !exists {
 					return "", fmt.Errorf("undefined macro: @%s", macroName)
