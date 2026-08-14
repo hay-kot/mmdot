@@ -27,6 +27,16 @@ Running `mmdot encrypt` writes `<file>.age` and removes the plaintext vault file
 Running `mmdot decrypt` restores the plaintext copy and leaves the `.age` file in
 place so it remains ready to commit.
 
+`encrypt` decides whether an `.age` file is current by decrypting it and
+comparing plaintext, so the `decrypt` -> edit -> `encrypt` loop picks up edits.
+Age ciphertext is non-deterministic, so comparing the encrypted bytes would
+report every file as changed; the private key is therefore required whenever a
+plaintext file and its `.age` counterpart both exist. Unchanged files are left
+byte-for-byte alone.
+
+`decrypt` never overwrites an existing plaintext file, but warns when that file
+differs from the `.age` copy it skipped.
+
 Files configured under `age.files` use explicit encrypted/plaintext paths:
 
 ```yaml
